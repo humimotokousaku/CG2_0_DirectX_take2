@@ -22,7 +22,7 @@ struct Vector4 final {
 #pragma region ウィンドウプロシージャ
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	// メッセいーじに応じてゲーム固有の処理を行う
+	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
 		// ウィンドウが破棄された
 	case WM_DESTROY:
