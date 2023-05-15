@@ -4,8 +4,6 @@
 #include <string>
 #include <format>
 
-#pragma region ウィンドウプロシージャ
-
 MyWindows::MyWindows() {
 
 }
@@ -14,6 +12,7 @@ MyWindows::~MyWindows() {
 
 }
 
+// ウィンドウプロシージャ
 LRESULT CALLBACK MyWindows::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
@@ -27,8 +26,6 @@ LRESULT CALLBACK MyWindows::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARA
 	// 標準のメッセージ処理を行う
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
-
-#pragma endregion 
 
 // ウィンドウクラスの登録
 void MyWindows::WindowClassRegister() {
@@ -70,6 +67,11 @@ void MyWindows::WindowGeneration() {
 		wc_.hInstance,
 		nullptr
 	);
+}
+
+// 出力ウィンドウに文字を出す
+void MyWindows::Log(const std::string& message) {
+	OutputDebugStringA(message.c_str());
 }
 
 #pragma region メンバ変数

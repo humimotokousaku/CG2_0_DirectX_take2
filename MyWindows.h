@@ -1,6 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <stdint.h>
+#include <string>
 
 // ここではWindows初期化のクラスを扱っている
 class MyWindows
@@ -13,7 +14,6 @@ public:
 	// ウィンドウプロシージャ
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-
 	// ウィンドウクラスの登録
 	static void WindowClassRegister();
 
@@ -22,6 +22,9 @@ public:
 
 	// ウィンドウの生成
 	static void WindowGeneration();
+
+	// 出力ウィンドウに文字を出す
+	static void Log(const std::string& message);
 
 public:
 	// メンバ変数
