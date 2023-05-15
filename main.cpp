@@ -11,6 +11,7 @@
 #pragma comment(lib, "dxguid.lib")
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
+#include "MyWindows.h"
 
 struct Vector4 final {
 	float x;
@@ -21,19 +22,19 @@ struct Vector4 final {
 
 #pragma region ウィンドウプロシージャ
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	// メッセージに応じてゲーム固有の処理を行う
-	switch (msg) {
-		// ウィンドウが破棄された
-	case WM_DESTROY:
-		// OSに対して、アプリの終了を伝える
-		PostQuitMessage(0);
-		return 0;
-	}
-
-	// 標準のメッセージ処理を行う
-	return DefWindowProc(hwnd, msg, wparam, lparam);
-}
+//LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+//	// メッセージに応じてゲーム固有の処理を行う
+//	switch (msg) {
+//		// ウィンドウが破棄された
+//	case WM_DESTROY:
+//		// OSに対して、アプリの終了を伝える
+//		PostQuitMessage(0);
+//		return 0;
+//	}
+//
+//	// 標準のメッセージ処理を行う
+//	return DefWindowProc(hwnd, msg, wparam, lparam);
+//}
 
 #pragma endregion 
 
@@ -173,50 +174,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 #pragma region ウィンドウクラスを登録する
 
-	WNDCLASS wc{};
-	// ウィンドウプロシージャ
-	wc.lpfnWndProc = WindowProc;
-	// ウィンドウクラス名
-	wc.lpszClassName = L"CG2WindowClass";
-	// インスタンスハンドル
-	wc.hInstance = GetModuleHandle(nullptr);
-	// カーソル
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	MyWindows windows;
 
-	// ウィンドウクラスを登録する
-	RegisterClass(&wc);
+	windows.WindowClassRegister();
 
 #pragma endregion
 
 #pragma region ウィンドウサイズを決める
 
-	// クライアント領域のサイズ
-	const int32_t kClientWidth = 1280;
-	const int32_t kClientHeight = 720;
-
-	// ウィンドウサイズを表す構造体にクライアント領域を入れる
-	RECT wrc = { 0, 0, kClientWidth, kClientHeight };
-
-	// クライアント領域をもとに二サイズにWRCを変更してもらう
-	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+	windows.WindowSizeDecide();
 
 #pragma endregion
 
 #pragma region ウィンドウを生成
 
-	HWND hwnd = CreateWindow(
-		wc.lpszClassName,
-		L"CG2_revenge",
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		wrc.right - wrc.left,
-		wrc.bottom - wrc.top,
-		nullptr,
-		nullptr,
-		wc.hInstance,
-		nullptr
-	);
+	windows.WindowGeneration();
 
 #pragma endregion 
 
@@ -235,7 +207,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #pragma endregion
 
 	// ウィンドウを表示する
-	ShowWindow(hwnd, SW_SHOW);
+	ShowWindow(windows.hwnd_, SW_SHOW);
 
 #pragma region DXGIFactoryの生成
 
@@ -356,7 +328,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(SUCCEEDED(hr));
 
 	// コマンドリストを生成する
-	ID3D12GraphicsCommandList*	commandList = nullptr;
+	ID3D12GraphicsCommandList* commandList = nullptr;
 	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr,
 		IID_PPV_ARGS(&commandList));
 	// コマンドリストの生成がうまくいかなかったので起動できない
@@ -369,15 +341,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// スワップチェーンを生成する
 	IDXGISwapChain4* swapChain = nullptr;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = kClientWidth;
-	swapChainDesc.Height = kClientHeight;
+	swapChainDesc.Width = windows.kClientWidth_;
+	swapChainDesc.Height = windows.kClientHeight_;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 2;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
-	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain));
+	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue, windows.hwnd_, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain));
 	assert(SUCCEEDED(hr));
 
 #pragma endregion
@@ -620,8 +592,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ビューポート
 	D3D12_VIEWPORT viewport{};
 	// クライアント領域のサイズと一緒にして画面全体に表示
-	viewport.Width = kClientWidth;
-	viewport.Height = kClientHeight;
+	viewport.Width = windows.kClientWidth_;
+	viewport.Height = windows.kClientHeight_;
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0.0f;
@@ -631,15 +603,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	D3D12_RECT scissorRect{};
 	// 基本的にビューポートと同じ矩形が構成されるようにする
 	scissorRect.left = 0;
-	scissorRect.right = kClientWidth;
+	scissorRect.right = windows.kClientWidth_;
 	scissorRect.top = 0;
-	scissorRect.bottom = kClientHeight;
+	scissorRect.bottom = windows.kClientHeight_;
 
 #pragma endregion
 
 #pragma region メインループ
 
-		MSG msg {};
+	MSG msg{};
 	// ウィンドウの×ボタンが押されるまでループ
 	while (msg.message != WM_QUIT) {
 		// Windowにメッセージが来ていたら最優先で処理させる
@@ -692,7 +664,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
 			commandList->DrawInstanced(3, 1, 0, 0);
-			
+
 #pragma endregion
 
 #pragma region 画面表示できるようにする
@@ -785,7 +757,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	pixelShaderBlob->Release();
 	vertexShaderBlob->Release();
 
-	CloseWindow(hwnd);
+	CloseWindow(windows.hwnd_);
 
 #pragma endregion
 
