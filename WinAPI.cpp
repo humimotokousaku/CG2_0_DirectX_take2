@@ -1,19 +1,19 @@
-#include "MyWindows.h"
+#include "WinAPI.h"
 #include <Windows.h>
 #include <cstdint>
 #include <string>
 #include <format>
 
-MyWindows::MyWindows() {
+WinAPI::WinAPI() {
 
 }
 
-MyWindows::~MyWindows() {
+WinAPI::~WinAPI() {
 
 }
 
 // ウィンドウプロシージャ
-LRESULT CALLBACK MyWindows::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+LRESULT CALLBACK WinAPI::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
 		// ウィンドウが破棄された
@@ -28,7 +28,7 @@ LRESULT CALLBACK MyWindows::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARA
 }
 
 // ウィンドウクラスの登録
-void MyWindows::WindowClassRegister() {
+void WinAPI::WindowClassRegister() {
 	// ウィンドウプロシージャ
 	wc_.lpfnWndProc = WindowProc;
 	// ウィンドウクラス名
@@ -43,7 +43,7 @@ void MyWindows::WindowClassRegister() {
 }
 
 // ウィンドウサイズを決める
-void MyWindows::WindowSizeDecide() {
+void WinAPI::WindowSizeDecide() {
 
 	// ウィンドウサイズを表す構造体にクライアント領域を入れる
 	wrc_ = { 0, 0, kClientWidth_, kClientHeight_ };
@@ -53,10 +53,10 @@ void MyWindows::WindowSizeDecide() {
 }
 
 // ウィンドウの生成
-void MyWindows::WindowGeneration() {
+void WinAPI::WindowGeneration() {
 	hwnd_ = CreateWindow(
 		wc_.lpszClassName,
-		L"CG2_revenge",
+		L"CG2_CLASS",
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -69,19 +69,26 @@ void MyWindows::WindowGeneration() {
 	);
 }
 
+// Windowsの初期化
+void WinAPI::Initialize() {
+	WindowClassRegister();
+	WindowSizeDecide();
+	WindowGeneration();
+}
+
 // 出力ウィンドウに文字を出す
-void MyWindows::Log(const std::string& message) {
+void WinAPI::Log(const std::string& message) {
 	OutputDebugStringA(message.c_str());
 }
 
 #pragma region メンバ変数
 
 // ウィンドウクラス登録用
-WNDCLASS MyWindows::wc_;
+WNDCLASS WinAPI::wc_;
 
-RECT MyWindows::wrc_;
+RECT WinAPI::wrc_;
 
 // ウィンドウを生成
-HWND MyWindows::hwnd_;
+HWND WinAPI::hwnd_;
 
 #pragma endregion

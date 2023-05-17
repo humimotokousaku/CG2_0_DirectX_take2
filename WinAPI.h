@@ -4,12 +4,12 @@
 #include <string>
 
 // ここではWindows初期化のクラスを扱っている
-class MyWindows
+class WinAPI
 {
 public:
 	// メンバ関数
-	MyWindows();
-	~MyWindows();
+	WinAPI();
+	~WinAPI();
 
 	// ウィンドウプロシージャ
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -22,6 +22,9 @@ public:
 
 	// ウィンドウの生成
 	static void WindowGeneration();
+
+	// Windowsの初期化
+	static void Initialize();
 
 	// 出力ウィンドウに文字を出す
 	static void Log(const std::string& message);

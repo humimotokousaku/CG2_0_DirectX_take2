@@ -11,7 +11,7 @@
 #pragma comment(lib, "dxguid.lib")
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
-#include "MyWindows.h"
+#include "WinAPI.h"
 
 struct Vector4 final {
 	float x;
@@ -25,15 +25,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 出力ウィンドウへの文字出力
 	OutputDebugStringA("Hello,DirectX!\n");
 
-	// ウィンドウクラスを登録する
-	MyWindows windows;
-	windows.WindowClassRegister();
-
-	// ウィンドウサイズを決める
-	windows.WindowSizeDecide();
-
-	// ウィンドウを生成
-	windows.WindowGeneration();
+	// windowsの初期化
+	WinAPI windows;
+	windows.Initialize();
 
 	// ウィンドウを表示する
 	ShowWindow(windows.hwnd_, SW_SHOW);
