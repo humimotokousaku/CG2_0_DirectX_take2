@@ -11,7 +11,8 @@
 #pragma comment(lib, "dxguid.lib")
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
-#include "WinAPI.h"
+#include "WinApp.h"
+#include "DirIectXCommon.h"
 
 struct Vector4 final {
 	float x;
@@ -26,11 +27,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	OutputDebugStringA("Hello,DirectX!\n");
 
 	// windowsの初期化
-	WinAPI windows;
+	WinApp windows;
 	windows.Initialize();
+
+	// directX初期化のためのインスタンス
+	DirectXCommon* directX = new DirectXCommon();
+	// DebugLayer
+	directX->DebugLayer();
 
 	// ウィンドウを表示する
 	ShowWindow(windows.hwnd_, SW_SHOW);
+
+	// DirectX初期化
+	directX->Initialize();
 
 #pragma region メインループ
 
@@ -45,8 +54,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		else {
 			// ループ処理
 
+			// スクリーンの色を変える
+			directX->WindowChangeColor();
 		}
 	}
+	// 解放処理
+	directX->Release();
 
 #pragma endregion
 

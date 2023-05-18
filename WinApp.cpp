@@ -1,19 +1,19 @@
-#include "WinAPI.h"
+#include "WinApp.h"
 #include <Windows.h>
 #include <cstdint>
 #include <string>
 #include <format>
 
-WinAPI::WinAPI() {
+WinApp::WinApp() {
 
 }
 
-WinAPI::~WinAPI() {
+WinApp::~WinApp() {
 
 }
 
 // ウィンドウプロシージャ
-LRESULT CALLBACK WinAPI::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
 		// ウィンドウが破棄された
@@ -28,7 +28,7 @@ LRESULT CALLBACK WinAPI::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 }
 
 // ウィンドウクラスの登録
-void WinAPI::WindowClassRegister() {
+void WinApp::WindowClassRegister() {
 	// ウィンドウプロシージャ
 	wc_.lpfnWndProc = WindowProc;
 	// ウィンドウクラス名
@@ -43,7 +43,7 @@ void WinAPI::WindowClassRegister() {
 }
 
 // ウィンドウサイズを決める
-void WinAPI::WindowSizeDecide() {
+void WinApp::WindowSizeDecide() {
 
 	// ウィンドウサイズを表す構造体にクライアント領域を入れる
 	wrc_ = { 0, 0, kClientWidth_, kClientHeight_ };
@@ -53,7 +53,7 @@ void WinAPI::WindowSizeDecide() {
 }
 
 // ウィンドウの生成
-void WinAPI::WindowGeneration() {
+void WinApp::WindowGeneration() {
 	hwnd_ = CreateWindow(
 		wc_.lpszClassName,
 		L"CG2_CLASS",
@@ -70,25 +70,25 @@ void WinAPI::WindowGeneration() {
 }
 
 // Windowsの初期化
-void WinAPI::Initialize() {
+void WinApp::Initialize() {
 	WindowClassRegister();
 	WindowSizeDecide();
 	WindowGeneration();
 }
 
 // 出力ウィンドウに文字を出す
-void WinAPI::Log(const std::string& message) {
+void WinApp::Log(const std::string& message) {
 	OutputDebugStringA(message.c_str());
 }
 
 #pragma region メンバ変数
 
 // ウィンドウクラス登録用
-WNDCLASS WinAPI::wc_;
+WNDCLASS WinApp::wc_;
 
-RECT WinAPI::wrc_;
+RECT WinApp::wrc_;
 
 // ウィンドウを生成
-HWND WinAPI::hwnd_;
+HWND WinApp::hwnd_;
 
 #pragma endregion

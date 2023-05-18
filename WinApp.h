@@ -4,12 +4,12 @@
 #include <string>
 
 // ここではWindows初期化のクラスを扱っている
-class WinAPI
+class WinApp
 {
 public:
 	// メンバ関数
-	WinAPI();
-	~WinAPI();
+	WinApp();
+	~WinApp();
 
 	// ウィンドウプロシージャ
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
