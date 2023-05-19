@@ -32,6 +32,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// directX初期化のためのインスタンス
 	DirectXCommon* directX = new DirectXCommon();
+
 	// DebugLayer
 	directX->DebugLayer();
 

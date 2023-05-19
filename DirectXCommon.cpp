@@ -350,6 +350,8 @@ void DirectXCommon::Release() {
 #pragma endregion
 }
 
+#pragma region メンバ変数
+
 ID3D12Debug1* DirectXCommon::debugController_;
 UINT DirectXCommon::backBufferIndex_;
 IDXGIFactory7* DirectXCommon::dxgiFactory_;
@@ -368,3 +370,5 @@ ID3D12Fence* DirectXCommon::fence_;
 uint64_t DirectXCommon::fenceValue_;
 HANDLE DirectXCommon::fenceEvent_;
 IDXGIDebug1* DirectXCommon::debug_;
+
+#pragma endregion
