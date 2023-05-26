@@ -4,14 +4,6 @@
 #include <string>
 #include <format>
 
-WinApp::WinApp() {
-
-}
-
-WinApp::~WinApp() {
-
-}
-
 // ウィンドウプロシージャ
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
@@ -69,11 +61,25 @@ void WinApp::WindowGeneration() {
 	);
 }
 
+void WinApp::DebugLayer() {
+#ifdef _DEBUG
+	//debugController_ = nullptr;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController_)))) {
+		// デバッグレイヤーを有効化する
+		debugController_->EnableDebugLayer();
+		// さらにGPU側でもチェックを行うようにする
+		debugController_->SetEnableGPUBasedValidation(TRUE);
+	}
+#endif
+}
+
 // Windowsの初期化
 void WinApp::Initialize() {
 	WindowClassRegister();
 	WindowSizeDecide();
 	WindowGeneration();
+	// ウィンドウを表示する
+	ShowWindow(hwnd_, SW_SHOW);
 }
 
 // 出力ウィンドウに文字を出す
@@ -82,6 +88,8 @@ void WinApp::Log(const std::string& message) {
 }
 
 #pragma region メンバ変数
+
+ID3D12Debug1* WinApp::debugController_;
 
 // ウィンドウクラス登録用
 WNDCLASS WinApp::wc_;

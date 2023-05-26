@@ -8,21 +8,25 @@ class DirectXCommon
 {
 public:
 
-	void DebugLayer();
-
+	// メインループ前の初期化
 	void Initialize();
 
-	void WindowChangeColor();
+	// 描画前の処理
+	void PreDraw();
 
-	// 解放処理とリソースチェックが入ってる
+	// 描画後の処理
+	void PostDraw();
+
+	// getter
+	ID3D12Device* GetDevice() { return this->device_; }
+	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
+
+	// 解放処理とリソースチェック
 	void Release();
 
-
 public:
-	static ID3D12Debug1* debugController_;
 	static UINT backBufferIndex_;
 	static IDXGIFactory7* dxgiFactory_;
-	static HRESULT hr_;
 	static IDXGIAdapter4* useAdapter_;
 	static ID3D12Device* device_;
 	static ID3D12InfoQueue* infoQueue_;
@@ -37,5 +41,6 @@ public:
 	static uint64_t fenceValue_;
 	static HANDLE fenceEvent_;
 	static IDXGIDebug1* debug_;
+	static D3D12_RESOURCE_BARRIER barrier_;
 };
 

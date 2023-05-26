@@ -2,14 +2,12 @@
 #include <Windows.h>
 #include <stdint.h>
 #include <string>
+#include <d3d12.h>
 
-// ここではWindows初期化のクラスを扱っている
 class WinApp
 {
 public:
 	// メンバ関数
-	WinApp();
-	~WinApp();
 
 	// ウィンドウプロシージャ
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -23,6 +21,9 @@ public:
 	// ウィンドウの生成
 	static void WindowGeneration();
 
+	// デバッグレイヤ
+	void DebugLayer();
+
 	// Windowsの初期化
 	static void Initialize();
 
@@ -31,6 +32,7 @@ public:
 
 public:
 	// メンバ変数
+	static ID3D12Debug1* debugController_;
 
 	// ウィンドウクラス登録用
 	static WNDCLASS wc_;
