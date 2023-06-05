@@ -100,11 +100,23 @@ IDxcBlob* MyEngine::CompileShader(
 
 }
 
+void MyEngine::CreateRootParameter() {
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[0].Descriptor.ShaderRegister = 0;
+	descriptionRootSignature.pParameters = rootParameters;
+	descriptionRootSignature.NumParameters = _countof(rootParameters);
+}
+
 void MyEngine::CreateRootSignature() {
 	HRESULT hr;
 	
 	descriptionRootSignature.Flags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	// rootParameter生成
+	CreateRootParameter();
+
 	// シリアライズしてバイナリにする
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature,
 		D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
@@ -182,6 +194,8 @@ void MyEngine::CreatePSO() {
 
 void MyEngine::PSO() {
 	CreateRootSignature();
+
+	CreateRootParameter();
 
 	SettingInputLayout();
 

@@ -22,6 +22,9 @@ public:
 	// RootSignatureの生成
 	void CreateRootSignature();
 
+	// RootParameter生成
+	void CreateRootParameter();
+
 	// InputLayerの設定
 	void SettingInputLayout();
 
@@ -93,5 +96,7 @@ public:
 	Vector4 vertexLeft[kMaxTriangle];
 	Vector4 vertexTop[kMaxTriangle];
 	Vector4 vertexRight[kMaxTriangle];
+
+	D3D12_ROOT_PARAMETER rootParameters[1];
 };
 
