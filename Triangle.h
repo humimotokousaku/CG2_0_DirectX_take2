@@ -37,16 +37,13 @@ public:
 	// 三角形描画
 	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom);
 
-	// 解放処理
-	//void Release();
-
 public:
 	DirectXCommon* directXCommon_;
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	Vector4* vertexData_;
 
-	ID3D12Resource* materialResource;
-	Vector4* materialData;
+	ID3D12Resource* materialResource_;
+	Vector4* materialData_;
 };
 

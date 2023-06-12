@@ -7,6 +7,29 @@
 class DirectXCommon
 {
 public:
+	// 使用するアダプタを決定する
+	void GetAdapter();
+
+	// D3D12Deviceの生成
+	void CreateD3D12Device();
+
+	// エラーや警告が起きると止まる
+	void StopError();
+
+	// コマンドキューの生成
+	void CreateComandQueue();
+
+	// コマンドリストの生成
+	void CreateComandList();
+
+	// SwapChainの生成
+	void CreateSwapChain();
+
+	// DescriptorHeapの生成
+	void CreateDescriptorHeap();
+
+	// RTVを作る
+	void CreateRTV();
 
 	// メインループ前の初期化
 	void Initialize();

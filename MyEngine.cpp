@@ -6,16 +6,13 @@
 void MyEngine::DXCInitialize() {
 	HRESULT hr;
 	// dxCompilerの初期化
-	/*IDxcUtils**/ dxcUtils = nullptr;
-	/*IDxcCompiler3**/ dxcCompiler = nullptr;
-	hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&dxcUtils));
+	hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&dxcUtils_));
 	assert(SUCCEEDED(hr));
-	hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&dxcCompiler));
+	hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&dxcCompiler_));
 	assert(SUCCEEDED(hr));
 
 	// 現時点でincludeはしないが、includeに対応するために設定を行っておく
-	/*IDxcIncludeHandler**/ includeHandler = nullptr;
-	hr = dxcUtils->CreateDefaultIncludeHandler(&includeHandler);
+	hr = dxcUtils_->CreateDefaultIncludeHandler(&includeHandler_);
 	assert(SUCCEEDED(hr));
 }
 
@@ -101,94 +98,94 @@ IDxcBlob* MyEngine::CompileShader(
 }
 
 void MyEngine::CreateRootParameter() {
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-	rootParameters[0].Descriptor.ShaderRegister = 0;
-	descriptionRootSignature.pParameters = rootParameters;
-	descriptionRootSignature.NumParameters = _countof(rootParameters);
+	rootParameters_[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters_[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters_[0].Descriptor.ShaderRegister = 0;
+	descriptionRootSignature_.pParameters = rootParameters_;
+	descriptionRootSignature_.NumParameters = _countof(rootParameters_);
 }
 
 void MyEngine::CreateRootSignature() {
 	HRESULT hr;
 	
-	descriptionRootSignature.Flags =
+	descriptionRootSignature_.Flags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	// rootParameter生成
 	CreateRootParameter();
 
 	// シリアライズしてバイナリにする
-	hr = D3D12SerializeRootSignature(&descriptionRootSignature,
-		D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
+	hr = D3D12SerializeRootSignature(&descriptionRootSignature_,
+		D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob_, &errorBlob_);
 	if (FAILED(hr)) {
-		WinApp::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		WinApp::Log(reinterpret_cast<char*>(errorBlob_->GetBufferPointer()));
 		assert(false);
 	}
 	// バイナリをもとに生成
-	hr = DirectXCommon::device_->CreateRootSignature(0, signatureBlob->GetBufferPointer(),
-		signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	hr = DirectXCommon::device_->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
+		signatureBlob_->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 	assert(SUCCEEDED(hr));
 }
 
 void MyEngine::SettingInputLayout() {
-	inputElementDescs[0].SemanticName = "POSITION";
-	inputElementDescs[0].SemanticIndex = 0;
-	inputElementDescs[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	inputElementDescs[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-	inputLayoutDesc = { 0 };
-	inputLayoutDesc.pInputElementDescs = inputElementDescs;
-	inputLayoutDesc.NumElements = _countof(inputElementDescs);
+	inputElementDescs_[0].SemanticName = "POSITION";
+	inputElementDescs_[0].SemanticIndex = 0;
+	inputElementDescs_[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	inputElementDescs_[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+	inputLayoutDesc_ = { 0 };
+	inputLayoutDesc_.pInputElementDescs = inputElementDescs_;
+	inputLayoutDesc_.NumElements = _countof(inputElementDescs_);
 }
 
 void MyEngine::SettingBlendState() {
 	// すべての色要素を書き込む
-	blendDesc.RenderTarget[0].RenderTargetWriteMask =
+	blendDesc_.RenderTarget[0].RenderTargetWriteMask =
 		D3D12_COLOR_WRITE_ENABLE_ALL;
 }
 
 void MyEngine::SettingRasterizerState() {
 	// 裏面(時計回り)を表示しない
-	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+	rasterizerDesc_.CullMode = D3D12_CULL_MODE_BACK;
 	// 三角形の中を塗りつぶす
-	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
+	rasterizerDesc_.FillMode = D3D12_FILL_MODE_SOLID;
 }
 
 void MyEngine::PixelSharder() {
-	pixelShaderBlob = CompileShader(L"Object3d.PS.hlsl",
-		L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
-	assert(pixelShaderBlob != nullptr);
+	pixelShaderBlob_ = CompileShader(L"Object3d.PS.hlsl",
+		L"ps_6_0", dxcUtils_, dxcCompiler_, includeHandler_);
+	assert(pixelShaderBlob_ != nullptr);
 }
 
 void MyEngine::VertexSharder() {
 	// Shaderをコンパイルする
-	vertexShaderBlob = CompileShader(L"Object3d.VS.hlsl",
-		L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
-	assert(vertexShaderBlob != nullptr);
+	vertexShaderBlob_ = CompileShader(L"Object3d.VS.hlsl",
+		L"vs_6_0", dxcUtils_, dxcCompiler_, includeHandler_);
+	assert(vertexShaderBlob_ != nullptr);
 }
 
 void MyEngine::CreatePSO() {
 	HRESULT hr;
 
-	graphicsPipelineStateDescs.pRootSignature = rootSignature; // rootSignature
-	graphicsPipelineStateDescs.InputLayout = inputLayoutDesc; // InputLayout
-	graphicsPipelineStateDescs.VS = { vertexShaderBlob->GetBufferPointer(),
-	vertexShaderBlob->GetBufferSize() }; // vertexShader
-	graphicsPipelineStateDescs.PS = { pixelShaderBlob->GetBufferPointer(),
-	pixelShaderBlob->GetBufferSize() }; // pixelShader
-	graphicsPipelineStateDescs.BlendState = blendDesc; // blendState
-	graphicsPipelineStateDescs.RasterizerState = rasterizerDesc; // rasterizerState
+	graphicsPipelineStateDescs_.pRootSignature = rootSignature_; // rootSignature
+	graphicsPipelineStateDescs_.InputLayout = inputLayoutDesc_; // InputLayout
+	graphicsPipelineStateDescs_.VS = { vertexShaderBlob_->GetBufferPointer(),
+	vertexShaderBlob_->GetBufferSize() }; // vertexShader
+	graphicsPipelineStateDescs_.PS = { pixelShaderBlob_->GetBufferPointer(),
+	pixelShaderBlob_->GetBufferSize() }; // pixelShader
+	graphicsPipelineStateDescs_.BlendState = blendDesc_; // blendState
+	graphicsPipelineStateDescs_.RasterizerState = rasterizerDesc_; // rasterizerState
 	// 書き込むRTVの情報
-	graphicsPipelineStateDescs.NumRenderTargets = 1;
-	graphicsPipelineStateDescs.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	graphicsPipelineStateDescs_.NumRenderTargets = 1;
+	graphicsPipelineStateDescs_.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	// 利用するトポロ時（形状）のタイプ。三角形
-	graphicsPipelineStateDescs.PrimitiveTopologyType =
+	graphicsPipelineStateDescs_.PrimitiveTopologyType =
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	// どのように画面に色を打ち込むかの設定（気にしなくてよい）
-	graphicsPipelineStateDescs.SampleDesc.Count = 1;
-	graphicsPipelineStateDescs.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+	graphicsPipelineStateDescs_.SampleDesc.Count = 1;
+	graphicsPipelineStateDescs_.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 	// 実際に生成
-	hr = DirectXCommon::device_->CreateGraphicsPipelineState(&graphicsPipelineStateDescs,
-		IID_PPV_ARGS(&graphicsPipelineState));
+	hr = DirectXCommon::device_->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
+		IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
 
@@ -212,62 +209,62 @@ void MyEngine::PSO() {
 
 void MyEngine::CreateViewport() {
 	// クライアント領域のサイズと一緒にして画面全体に表示
-	viewport.Width = WinApp::kClientWidth_;
-	viewport.Height = WinApp::kClientHeight_;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
+	viewport_.Width = WinApp::kClientWidth_;
+	viewport_.Height = WinApp::kClientHeight_;
+	viewport_.TopLeftX = 0;
+	viewport_.TopLeftY = 0;
+	viewport_.MinDepth = 0.0f;
+	viewport_.MaxDepth = 1.0f;
 }
 
 void MyEngine::CreateScissor() {
 	// 基本的にビューポートと同じ矩形が構成されるようにする
-	scissorRect.left = 0;
-	scissorRect.right = WinApp::kClientWidth_;
-	scissorRect.top = 0;
-	scissorRect.bottom = WinApp::kClientHeight_;
+	scissorRect_.left = 0;
+	scissorRect_.right = WinApp::kClientWidth_;
+	scissorRect_.top = 0;
+	scissorRect_.bottom = WinApp::kClientHeight_;
 }
 
 void MyEngine::VariableInitialize() {
-	vertexLeft[0] = { -0.2f, -1.0f,0.5f,1.0f };
-	vertexTop[0] = { 0.0f, -0.8f,0.5f,1.0f };
-	vertexRight[0] = { 0.2f, -1.0f,0.5f,1.0f };
+	vertexLeft_[0] = { -0.2f, -1.0f,0.5f,1.0f };
+	vertexTop_[0] = { 0.0f, -0.8f,0.5f,1.0f };
+	vertexRight_[0] = { 0.2f, -1.0f,0.5f,1.0f };
 
-	vertexLeft[1] = { -0.2f, -0.8f,0.5f,1.0f };
-	vertexTop[1] = { 0.0f, -0.6f,0.5f,1.0f };
-	vertexRight[1] = { 0.2f, -0.8f,0.5f,1.0f };
+	vertexLeft_[1] = { -0.2f, -0.8f,0.5f,1.0f };
+	vertexTop_[1] = { 0.0f, -0.6f,0.5f,1.0f };
+	vertexRight_[1] = { 0.2f, -0.8f,0.5f,1.0f };
 
-	vertexLeft[2] = { -0.2f, -0.6f,0.5f,1.0f };
-	vertexTop[2] = { 0.0f, -0.4f,0.5f,1.0f };
-	vertexRight[2] = { 0.2f, -0.6f,0.5f,1.0f };
+	vertexLeft_[2] = { -0.2f, -0.6f,0.5f,1.0f };
+	vertexTop_[2] = { 0.0f, -0.4f,0.5f,1.0f };
+	vertexRight_[2] = { 0.2f, -0.6f,0.5f,1.0f };
 
-	vertexLeft[3] = { -0.2f, -0.4f,0.5f,1.0f };
-	vertexTop[3] = { 0.0f, -0.2f,0.5f,1.0f };
-	vertexRight[3] = { 0.2f, -0.4f,0.5f,1.0f };
+	vertexLeft_[3] = { -0.2f, -0.4f,0.5f,1.0f };
+	vertexTop_[3] = { 0.0f, -0.2f,0.5f,1.0f };
+	vertexRight_[3] = { 0.2f, -0.4f,0.5f,1.0f };
 
-	vertexLeft[4] = { -0.2f, -0.2f,0.5f,1.0f };
-	vertexTop[4] = { 0.0f, 0.0f,0.5f,1.0f };
-	vertexRight[4] = { 0.2f, -0.2f,0.5f,1.0f };
+	vertexLeft_[4] = { -0.2f, -0.2f,0.5f,1.0f };
+	vertexTop_[4] = { 0.0f, 0.0f,0.5f,1.0f };
+	vertexRight_[4] = { 0.2f, -0.2f,0.5f,1.0f };
 
-	vertexLeft[5] = { -0.2f, 0.0f,0.5f,1.0f };
-	vertexTop[5] = { 0.0f, 0.2f,0.5f,1.0f };
-	vertexRight[5] = { 0.2f, 0.0f,0.5f,1.0f };
+	vertexLeft_[5] = { -0.2f, 0.0f,0.5f,1.0f };
+	vertexTop_[5] = { 0.0f, 0.2f,0.5f,1.0f };
+	vertexRight_[5] = { 0.2f, 0.0f,0.5f,1.0f };
 
-	vertexLeft[6] = { -0.2f, 0.2f,0.5f,1.0f };
-	vertexTop[6] = { 0.0f, 0.4f,0.5f,1.0f };
-	vertexRight[6] = { 0.2f, 0.2f,0.5f,1.0f };
+	vertexLeft_[6] = { -0.2f, 0.2f,0.5f,1.0f };
+	vertexTop_[6] = { 0.0f, 0.4f,0.5f,1.0f };
+	vertexRight_[6] = { 0.2f, 0.2f,0.5f,1.0f };
 
-	vertexLeft[7] = { -0.2f, 0.4f,0.5f,1.0f };
-	vertexTop[7] = { 0.0f, 0.6f,0.5f,1.0f };
-	vertexRight[7] = { 0.2f, 0.4f,0.5f,1.0f };
+	vertexLeft_[7] = { -0.2f, 0.4f,0.5f,1.0f };
+	vertexTop_[7] = { 0.0f, 0.6f,0.5f,1.0f };
+	vertexRight_[7] = { 0.2f, 0.4f,0.5f,1.0f };
 
-	vertexLeft[8] = { -0.2f, 0.6f,0.5f,1.0f };
-	vertexTop[8] = { 0.0f, 0.8f,0.5f,1.0f };
-	vertexRight[8] = { 0.2f, 0.6f,0.5f,1.0f };
+	vertexLeft_[8] = { -0.2f, 0.6f,0.5f,1.0f };
+	vertexTop_[8] = { 0.0f, 0.8f,0.5f,1.0f };
+	vertexRight_[8] = { 0.2f, 0.6f,0.5f,1.0f };
 
-	vertexLeft[9] = { -0.2f, 0.8f,0.5f,1.0f };
-	vertexTop[9] = { 0.0f, 1.0f,0.5f,1.0f };
-	vertexRight[9] = { 0.2f, 0.8f,0.5f,1.0f };
+	vertexLeft_[9] = { -0.2f, 0.8f,0.5f,1.0f };
+	vertexTop_[9] = { 0.0f, 1.0f,0.5f,1.0f };
+	vertexRight_[9] = { 0.2f, 0.8f,0.5f,1.0f };
 
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i] = new Triangle();
@@ -292,16 +289,16 @@ void MyEngine::Initialize() {
 
 void MyEngine::BeginFrame() {
 	directXCommon_->PreDraw();
-	directXCommon_->GetCommandList()->RSSetViewports(1, &viewport); // Viewportを設定
-	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect); // Scirssorを設定
+	directXCommon_->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
+	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
-	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature);
-	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState); // PSOを設定
+	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
+	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
 }
 
 void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft[i], vertexTop[i], vertexRight[i]);
+		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i]);
 	}
 }
 
@@ -313,14 +310,14 @@ void MyEngine::Release() {
 	for (int i = 0; i < kMaxTriangle; i++) {
 		delete Triangle_[i];
 	}
-	graphicsPipelineState->Release();
-	signatureBlob->Release();
-	if (errorBlob) {
-		errorBlob->Release();
+	graphicsPipelineState_->Release();
+	signatureBlob_->Release();
+	if (errorBlob_) {
+		errorBlob_->Release();
 	}
-	rootSignature->Release();
-	pixelShaderBlob->Release();
-	vertexShaderBlob->Release();
+	rootSignature_->Release();
+	pixelShaderBlob_->Release();
+	vertexShaderBlob_->Release();
 	directXCommon_->Release();
 }
 

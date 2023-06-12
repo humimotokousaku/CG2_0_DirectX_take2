@@ -8,19 +8,8 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
-void DirectXCommon::Initialize() {
+void DirectXCommon::GetAdapter() {
 	HRESULT hr;
-	WinApp::Initialize();
-#pragma region DXGIFactoryの生成
-
-	// HRESULTはWindows系のエラーコードであり、関数が成功したかどうかをSUCCEEDEDマクロで判定できる
-	hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory_));
-	assert(SUCCEEDED(hr));
-
-#pragma endregion
-
-#pragma region 使用するアダプタ(GPU)を決定する
-
 	// 良い順にアダプタを頼む
 	for (UINT i = 0; dxgiFactory_->EnumAdapterByGpuPreference(i,
 		DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&useAdapter_)) !=
@@ -39,11 +28,10 @@ void DirectXCommon::Initialize() {
 	}
 	// 適切なアダプタが見つからないので起動できない
 	assert(useAdapter_ != nullptr);
+}
 
-#pragma endregion
-
-#pragma region D3D12Deviceの生成
-
+void DirectXCommon::CreateD3D12Device() {
+	HRESULT hr;
 	// 機能レベルとログ出力用の文字列
 	D3D_FEATURE_LEVEL featureLevels[] = {
 		D3D_FEATURE_LEVEL_12_2,D3D_FEATURE_LEVEL_12_1,D3D_FEATURE_LEVEL_12_0
@@ -64,10 +52,9 @@ void DirectXCommon::Initialize() {
 	assert(device_ != nullptr);
 	WinApp::Log("Complate create D3D12Device!!\n"); // 初期化完了のログを出す
 
-#pragma endregion
+}
 
-#pragma region エラーや警告が起きると止まる
-
+void DirectXCommon::StopError() {
 #ifdef _DEBUG
 	if (SUCCEEDED(device_->QueryInterface(IID_PPV_ARGS(&infoQueue_)))) {
 		// やばいエラー時に止まる
@@ -101,20 +88,18 @@ void DirectXCommon::Initialize() {
 		infoQueue_->Release();
 	}
 #endif
+}
 
-#pragma endregion
-
-#pragma region コマンドキューの生成する
-
+void DirectXCommon::CreateComandQueue() {
+	HRESULT hr;
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
 	hr = device_->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue_));
 	// コマンドキューの生成がうまくいかなかったのできどう
 	assert(SUCCEEDED(hr));
+}
 
-#pragma endregion
-
-#pragma region CommandListを生成する
-
+void DirectXCommon::CreateComandList() {
+	HRESULT hr;
 	// コマンドアロケータを生成する
 	hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator_));
 	// コマンドアロケータの生成がうまくいかなかったので起動できない
@@ -125,11 +110,10 @@ void DirectXCommon::Initialize() {
 		IID_PPV_ARGS(&commandList_));
 	// コマンドリストの生成がうまくいかなかったので起動できない
 	assert(SUCCEEDED(hr));
+}
 
-#pragma endregion
-
-#pragma region SwapChainを生成する
-
+void DirectXCommon::CreateSwapChain() {
+	HRESULT hr;
 	// スワップチェーンを生成する
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
 	swapChainDesc.Width = WinApp::kClientWidth_;
@@ -142,20 +126,16 @@ void DirectXCommon::Initialize() {
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
 	hr = dxgiFactory_->CreateSwapChainForHwnd(commandQueue_, WinApp::hwnd_, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain_));
 	assert(SUCCEEDED(hr));
+}
 
-#pragma endregion
-
-#pragma region DescriptorHeapを生成する
-	// DiscriptorHeapの生成
-	rtvDescriptorHeap_ = nullptr;
+void DirectXCommon::CreateDescriptorHeap() {
+	HRESULT hr;
 	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
 	rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // レンダーターゲットビュー用
 	rtvDescriptorHeapDesc.NumDescriptors = 2; // ダブルバッファ用に2つ。多くても別に構わない
 	hr = device_->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap_));
 	// DiscriptorHeapが作れなかったので起動できない
 	assert(SUCCEEDED(hr));
-
-#pragma endregion
 
 #pragma region SwapChainからResourceを引っ張ってくる
 
@@ -169,9 +149,9 @@ void DirectXCommon::Initialize() {
 	assert(SUCCEEDED(hr));
 
 #pragma endregion
+}
 
-#pragma region RTVを作る
-
+void DirectXCommon::CreateRTV() {
 	// RTVの設定
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 出力結果をSRGBに変換して書き込む
@@ -186,8 +166,36 @@ void DirectXCommon::Initialize() {
 	rtvHandles_[1].ptr = rtvHandles_[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	// 2つ目を作る
 	device_->CreateRenderTargetView(swapChainResources_[1], &rtvDesc, rtvHandles_[1]);
+}
+
+void DirectXCommon::Initialize() {
+	HRESULT hr;
+
+	WinApp::Initialize();
+
+#pragma region DXGIFactoryの生成
+
+	// HRESULTはWindows系のエラーコードであり、関数が成功したかどうかをSUCCEEDEDマクロで判定できる
+	hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory_));
+	assert(SUCCEEDED(hr));
 
 #pragma endregion
+
+	GetAdapter();
+
+	CreateD3D12Device();
+
+	StopError();
+
+	CreateComandQueue();
+
+	CreateComandList();
+
+	CreateSwapChain();
+
+	CreateDescriptorHeap();
+
+	CreateRTV();
 
 #pragma region FenceとEventを生成する
 

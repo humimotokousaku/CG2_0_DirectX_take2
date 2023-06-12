@@ -12,7 +12,6 @@
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
 
-#include "Vector4.h"
 #include "MyEngine.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -44,6 +43,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 	// 解放処理
 	engine->Release();
+
 #pragma endregion
 
 	return 0;

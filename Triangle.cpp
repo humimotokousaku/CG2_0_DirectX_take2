@@ -65,18 +65,16 @@ void Triangle::CreateVertexBufferView() {
 	// 1頂点当たりのサイズ
 	vertexBufferView_.StrideInBytes = sizeof(Vector4);
 
-	// 書き込むためのアドレスを取得
-	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 }
 
 void Triangle::CreateMaterialResource() {
-	materialResource = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4));
+	materialResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4));
 	// マテリアルにデータを書き込む
-	materialData = nullptr;
+	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
-	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 	// 赤色にする
-	*materialData = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+	*materialData_ = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void Triangle::Initialize(DirectXCommon* directXCommon) {
@@ -87,6 +85,9 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	CreateMaterialResource();
 
 	CreateVertexBufferView();
+
+	// 書き込むためのアドレスを取得
+	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 }
 
 void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom) {
@@ -105,14 +106,8 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 
 	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
 	commandList->DrawInstanced(3, 1, 0, 0);
 }
-
-//void Triangle::Release() {
-//	materialResource->Release
-//}
-
-
