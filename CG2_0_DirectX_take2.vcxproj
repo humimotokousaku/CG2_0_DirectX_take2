@@ -88,7 +88,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DirectXCommon.cpp" />
+    <ClCompile Include="Matrix4x4.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ConvertString.cpp" />
@@ -110,10 +112,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="ConvertString.h" />
     <ClInclude Include="DirIectXCommon.h" />
+    <ClInclude Include="Matrix4x4.h" />
+    <ClInclude Include="Transform.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="MyEngine.h" />
+    <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vector4.h" />
     <ClInclude Include="WinApp.h" />
   </ItemGroup>

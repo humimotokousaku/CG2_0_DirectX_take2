@@ -101,6 +101,9 @@ void MyEngine::CreateRootParameter() {
 	rootParameters_[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters_[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters_[0].Descriptor.ShaderRegister = 0;
+	rootParameters_[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters_[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	rootParameters_[1].Descriptor.ShaderRegister = 0;
 	descriptionRootSignature_.pParameters = rootParameters_;
 	descriptionRootSignature_.NumParameters = _countof(rootParameters_);
 }
@@ -122,7 +125,7 @@ void MyEngine::CreateRootSignature() {
 		assert(false);
 	}
 	// バイナリをもとに生成
-	hr = DirectXCommon::device_->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
+	hr = directXCommon_->GetDevice()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
 		signatureBlob_->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 	assert(SUCCEEDED(hr));
 }
@@ -184,7 +187,7 @@ void MyEngine::CreatePSO() {
 	graphicsPipelineStateDescs_.SampleDesc.Count = 1;
 	graphicsPipelineStateDescs_.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 	// 実際に生成
-	hr = DirectXCommon::device_->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
+	hr = directXCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
 		IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
@@ -226,45 +229,45 @@ void MyEngine::CreateScissor() {
 }
 
 void MyEngine::VariableInitialize() {
-	vertexLeft_[0] = { -0.2f, -1.0f,0.5f,1.0f };
-	vertexTop_[0] = { 0.0f, -0.8f,0.5f,1.0f };
-	vertexRight_[0] = { 0.2f, -1.0f,0.5f,1.0f };
+	vertexLeft_[0] = { -0.2f, -1.0f,0.0f,1.0f };
+	vertexTop_[0] = { 0.0f, -0.8f,0.0f,1.0f };
+	vertexRight_[0] = { 0.2f, -1.0f,0.0f,1.0f };
 
-	vertexLeft_[1] = { -0.2f, -0.8f,0.5f,1.0f };
-	vertexTop_[1] = { 0.0f, -0.6f,0.5f,1.0f };
-	vertexRight_[1] = { 0.2f, -0.8f,0.5f,1.0f };
+	vertexLeft_[1] = { -0.2f, -0.8f,0.0f,1.0f };
+	vertexTop_[1] = { 0.0f, -0.6f,0.0f,1.0f };
+	vertexRight_[1] = { 0.2f, -0.8f,0.0f,1.0f };
 
-	vertexLeft_[2] = { -0.2f, -0.6f,0.5f,1.0f };
-	vertexTop_[2] = { 0.0f, -0.4f,0.5f,1.0f };
-	vertexRight_[2] = { 0.2f, -0.6f,0.5f,1.0f };
+	vertexLeft_[2] = { -0.2f, -0.6f,0.0f,1.0f };
+	vertexTop_[2] = { 0.0f, -0.4f,0.0f,1.0f };
+	vertexRight_[2] = { 0.2f, -0.6f,0.0f,1.0f };
 
-	vertexLeft_[3] = { -0.2f, -0.4f,0.5f,1.0f };
-	vertexTop_[3] = { 0.0f, -0.2f,0.5f,1.0f };
-	vertexRight_[3] = { 0.2f, -0.4f,0.5f,1.0f };
+	vertexLeft_[3] = { -0.2f, -0.4f,0.0f,1.0f };
+	vertexTop_[3] = { 0.0f, -0.2f,0.0f,1.0f };
+	vertexRight_[3] = { 0.2f, -0.4f,0.0f,1.0f };
 
-	vertexLeft_[4] = { -0.2f, -0.2f,0.5f,1.0f };
-	vertexTop_[4] = { 0.0f, 0.0f,0.5f,1.0f };
-	vertexRight_[4] = { 0.2f, -0.2f,0.5f,1.0f };
+	vertexLeft_[4] = { -0.2f, -0.2f,0.0f,1.0f };
+	vertexTop_[4] = { 0.0f, 0.0f,0.0f,1.0f };
+	vertexRight_[4] = { 0.2f, -0.2f,0.0f,1.0f };
 
-	vertexLeft_[5] = { -0.2f, 0.0f,0.5f,1.0f };
-	vertexTop_[5] = { 0.0f, 0.2f,0.5f,1.0f };
-	vertexRight_[5] = { 0.2f, 0.0f,0.5f,1.0f };
+	vertexLeft_[5] = { -0.2f, 0.0f,0.0f,1.0f };
+	vertexTop_[5] = { 0.0f, 0.2f,0.0f,1.0f };
+	vertexRight_[5] = { 0.2f, 0.0f,0.0f,1.0f };
 
-	vertexLeft_[6] = { -0.2f, 0.2f,0.5f,1.0f };
-	vertexTop_[6] = { 0.0f, 0.4f,0.5f,1.0f };
-	vertexRight_[6] = { 0.2f, 0.2f,0.5f,1.0f };
+	vertexLeft_[6] = { -0.2f, 0.2f,0.0f,1.0f };
+	vertexTop_[6] = { 0.0f, 0.4f,0.0f,1.0f };
+	vertexRight_[6] = { 0.2f, 0.2f,0.0f,1.0f };
 
-	vertexLeft_[7] = { -0.2f, 0.4f,0.5f,1.0f };
-	vertexTop_[7] = { 0.0f, 0.6f,0.5f,1.0f };
-	vertexRight_[7] = { 0.2f, 0.4f,0.5f,1.0f };
+	vertexLeft_[7] = { -0.2f, 0.4f,0.0f,1.0f };
+	vertexTop_[7] = { 0.0f, 0.6f,0.0f,1.0f };
+	vertexRight_[7] = { 0.2f, 0.4f,0.0f,1.0f };
 
-	vertexLeft_[8] = { -0.2f, 0.6f,0.5f,1.0f };
-	vertexTop_[8] = { 0.0f, 0.8f,0.5f,1.0f };
-	vertexRight_[8] = { 0.2f, 0.6f,0.5f,1.0f };
+	vertexLeft_[8] = { -0.2f, 0.6f,0.0f,1.0f };
+	vertexTop_[8] = { 0.0f, 0.8f,0.0f,1.0f };
+	vertexRight_[8] = { 0.2f, 0.6f,0.0f,1.0f };
 
-	vertexLeft_[9] = { -0.2f, 0.8f,0.5f,1.0f };
-	vertexTop_[9] = { 0.0f, 1.0f,0.5f,1.0f };
-	vertexRight_[9] = { 0.2f, 0.8f,0.5f,1.0f };
+	vertexLeft_[9] = { -0.2f, 0.8f,0.0f,1.0f };
+	vertexTop_[9] = { 0.0f, 1.0f,0.0f,1.0f };
+	vertexRight_[9] = { 0.2f, 0.8f,0.0f,1.0f };
 
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i] = new Triangle();

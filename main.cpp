@@ -13,6 +13,8 @@
 #pragma comment(lib, "dxcompiler.lib")
 
 #include "MyEngine.h"
+#include "Matrix4x4.h"
+#include "Transform.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {

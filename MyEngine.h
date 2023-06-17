@@ -97,6 +97,6 @@ public:
 	Vector4 vertexTop_[kMaxTriangle];
 	Vector4 vertexRight_[kMaxTriangle];
 
-	D3D12_ROOT_PARAMETER rootParameters_[1];
+	D3D12_ROOT_PARAMETER rootParameters_[2];
 };
 

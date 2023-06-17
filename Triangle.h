@@ -12,6 +12,9 @@
 
 #include "DirIectXCommon.h"
 #include "Vector4.h"
+#include "Matrix4x4.h"
+#include "Transform.h"
+#include "Camera.h"
 
 class Triangle
 {
@@ -31,6 +34,9 @@ public:
 	// MaterialResourceの生成
 	void CreateMaterialResource();
 
+	// TransformationMatrix用のResourceを生成
+	void CreateWvpResource();
+
 	// 初期化
 	void Initialize(DirectXCommon* directXCommon);
 
@@ -45,5 +51,18 @@ public:
 
 	ID3D12Resource* materialResource_;
 	Vector4* materialData_;
-};
 
+	ID3D12Resource* wvpResource_;
+	Matrix4x4* wvpData_;
+
+	Transform transform;
+
+	Matrix4x4 worldMatrix_;
+
+	Matrix4x4 cameraMatrix_;
+	Transform cameraTransform_;
+	Matrix4x4 viewMatrix_;
+	Matrix4x4 projectionMatrix_;
+	Matrix4x4 worldViewProjectionMatrix_;
+	Matrix4x4* transformationMatrixData_;
+};
