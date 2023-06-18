@@ -8,6 +8,11 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
+#include "externals/ImGui/imgui.h"
+#include "externals/ImGui/imgui_impl_dx12.h"
+#include "externals/ImGui/imgui_impl_win32.h"
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 void DirectXCommon::GetAdapter() {
 	HRESULT hr;
 	// 良い順にアダプタを頼む
@@ -115,28 +120,35 @@ void DirectXCommon::CreateComandList() {
 void DirectXCommon::CreateSwapChain() {
 	HRESULT hr;
 	// スワップチェーンを生成する
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = WinApp::kClientWidth_;
-	swapChainDesc.Height = WinApp::kClientHeight_;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = 2;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	//DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
+	swapChainDesc_.Width = WinApp::kClientWidth_;
+	swapChainDesc_.Height = WinApp::kClientHeight_;
+	swapChainDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc_.SampleDesc.Count = 1;
+	swapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc_.BufferCount = 2;
+	swapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
-	hr = dxgiFactory_->CreateSwapChainForHwnd(commandQueue_, WinApp::hwnd_, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain_));
+	hr = dxgiFactory_->CreateSwapChainForHwnd(commandQueue_, WinApp::hwnd_, &swapChainDesc_, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain_));
 	assert(SUCCEEDED(hr));
 }
 
-void DirectXCommon::CreateDescriptorHeap() {
+ID3D12DescriptorHeap* DirectXCommon::CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
 	HRESULT hr;
+	ID3D12DescriptorHeap* descriptorHeap = nullptr;
 	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
-	rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // レンダーターゲットビュー用
-	rtvDescriptorHeapDesc.NumDescriptors = 2; // ダブルバッファ用に2つ。多くても別に構わない
-	hr = device_->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap_));
+	rtvDescriptorHeapDesc.Type = heapType; // レンダーターゲットビュー用
+	rtvDescriptorHeapDesc.NumDescriptors = numDescriptors; // ダブルバッファ用に2つ。多くても別に構わない
+	rtvDescriptorHeapDesc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	hr = device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
 	// DiscriptorHeapが作れなかったので起動できない
 	assert(SUCCEEDED(hr));
 
+	return descriptorHeap;
+}
+
+void DirectXCommon::GetSwapChainResources() {
+	HRESULT hr;
 #pragma region SwapChainからResourceを引っ張ってくる
 
 	// SeapChainからResourceを引っ張ってくる
@@ -153,19 +165,19 @@ void DirectXCommon::CreateDescriptorHeap() {
 
 void DirectXCommon::CreateRTV() {
 	// RTVの設定
-	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 出力結果をSRGBに変換して書き込む
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D; // 2Dテクスチャとして書き込む
+	//D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+	rtvDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 出力結果をSRGBに変換して書き込む
+	rtvDesc_.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D; // 2Dテクスチャとして書き込む
 	// ディスクリプタの先頭を取得する
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
 	// RTVを2つ作るのでディスクリプタを2つ用意
 	// まず一つ目を作る一つ目は最初のところに作る。作る場所をこちらで指定してあげる必要がある
 	rtvHandles_[0] = rtvStartHandle;
-	device_->CreateRenderTargetView(swapChainResources_[0], &rtvDesc, rtvHandles_[0]);
+	device_->CreateRenderTargetView(swapChainResources_[0], &rtvDesc_, rtvHandles_[0]);
 	// 二つ目のディスクリプタハンドルを得る(自力で)
 	rtvHandles_[1].ptr = rtvHandles_[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	// 2つ目を作る
-	device_->CreateRenderTargetView(swapChainResources_[1], &rtvDesc, rtvHandles_[1]);
+	device_->CreateRenderTargetView(swapChainResources_[1], &rtvDesc_, rtvHandles_[1]);
 }
 
 void DirectXCommon::Initialize() {
@@ -193,7 +205,11 @@ void DirectXCommon::Initialize() {
 
 	CreateSwapChain();
 
-	CreateDescriptorHeap();
+	rtvDescriptorHeap_ = CreateDescriptorHeap(device_, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
+
+	srvDescriptorHeap_ = CreateDescriptorHeap(device_, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
+
+	GetSwapChainResources();
 
 	CreateRTV();
 
@@ -210,6 +226,17 @@ void DirectXCommon::Initialize() {
 	assert(fenceEvent_ != nullptr);
 
 #pragma endregion
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui_ImplWin32_Init(WinApp::hwnd_);
+	ImGui_ImplDX12_Init(device_,
+		swapChainDesc_.BufferCount,
+		rtvDesc_.Format,
+		srvDescriptorHeap_,
+		srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart(),
+		srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart());
 }
 
 void DirectXCommon::PreDraw() {
@@ -241,9 +268,16 @@ void DirectXCommon::PreDraw() {
 	// 指定した色で画面全体をクリアする
 	float clearColor[] = { 0.1f, 0.25f, 0.5f, 1.0f }; // 青っぽい色。RGBAの順
 	commandList_->ClearRenderTargetView(rtvHandles_[backBufferIndex_], clearColor, 0, nullptr);
+	
+	// 描画用のDescriptorHeapの設定
+	ID3D12DescriptorHeap* descriptorHeaps[] = { srvDescriptorHeap_ };
+	commandList_->SetDescriptorHeaps(1, descriptorHeaps);
 }
 
 void DirectXCommon::PostDraw() {
+	// 実際のcommandListのImGuiの描画コマンドを積む
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList_);
+
 	HRESULT hr;
 #pragma region 画面表示できるようにする
 
@@ -343,7 +377,10 @@ ID3D12CommandQueue* DirectXCommon::commandQueue_;
 ID3D12CommandAllocator* DirectXCommon::commandAllocator_;
 ID3D12GraphicsCommandList* DirectXCommon::commandList_;
 IDXGISwapChain4* DirectXCommon::swapChain_;
+DXGI_SWAP_CHAIN_DESC1 DirectXCommon::swapChainDesc_;
+D3D12_RENDER_TARGET_VIEW_DESC DirectXCommon::rtvDesc_;
 ID3D12DescriptorHeap* DirectXCommon::rtvDescriptorHeap_;
+ID3D12DescriptorHeap* DirectXCommon::srvDescriptorHeap_;
 ID3D12Resource* DirectXCommon::swapChainResources_[2];
 D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::rtvHandles_[2];
 ID3D12Fence* DirectXCommon::fence_;

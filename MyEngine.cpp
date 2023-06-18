@@ -3,6 +3,10 @@
 #include <format>
 #include <cassert>
 
+#include "externals/ImGui/imgui.h"
+#include "externals/ImGui/imgui_impl_dx12.h"
+#include "externals/ImGui/imgui_impl_win32.h"
+
 void MyEngine::DXCInitialize() {
 	HRESULT hr;
 	// dxCompilerの初期化
@@ -291,7 +295,14 @@ void MyEngine::Initialize() {
 }
 
 void MyEngine::BeginFrame() {
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow();
+	ImGui::Render();
+
 	directXCommon_->PreDraw();
+
 	directXCommon_->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
 	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
@@ -303,6 +314,7 @@ void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i]);
 	}
+
 }
 
 void MyEngine::EndFrame() {

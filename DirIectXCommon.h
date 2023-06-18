@@ -26,7 +26,10 @@ public:
 	void CreateSwapChain();
 
 	// DescriptorHeapの生成
-	void CreateDescriptorHeap();
+	ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device,D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+
+	// swapChainのResource二つを取得する
+	void GetSwapChainResources();
 
 	// RTVを作る
 	void CreateRTV();
@@ -44,6 +47,7 @@ public:
 	ID3D12Device* GetDevice() { return this->device_; }
 	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
 
+
 	// 解放処理とリソースチェック
 	void Release();
 
@@ -57,7 +61,10 @@ public:
 	static ID3D12CommandAllocator* commandAllocator_;
 	static ID3D12GraphicsCommandList* commandList_;
 	static IDXGISwapChain4* swapChain_;
+	static DXGI_SWAP_CHAIN_DESC1 swapChainDesc_;
+	static D3D12_RENDER_TARGET_VIEW_DESC rtvDesc_;
 	static ID3D12DescriptorHeap* rtvDescriptorHeap_;
+	static ID3D12DescriptorHeap* srvDescriptorHeap_;
 	static ID3D12Resource* swapChainResources_[2];
 	static D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
 	static ID3D12Fence* fence_;
