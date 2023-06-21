@@ -116,8 +116,8 @@ void DirectXCommon::CreateSwapChain() {
 	HRESULT hr;
 	// スワップチェーンを生成する
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = WinApp::kClientWidth_;
-	swapChainDesc.Height = WinApp::kClientHeight_;
+	swapChainDesc.Width = WinApp::kWindowWidth;
+	swapChainDesc.Height = WinApp::kWindowHeight;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -170,8 +170,6 @@ void DirectXCommon::CreateRTV() {
 
 void DirectXCommon::Initialize() {
 	HRESULT hr;
-
-	WinApp::Initialize();
 
 #pragma region DXGIFactoryの生成
 
@@ -315,20 +313,6 @@ void DirectXCommon::Release() {
 	useAdapter_->Release();
 	dxgiFactory_->Release();
 
-	CloseWindow(WinApp::hwnd_);
-
-#pragma endregion
-
-#pragma region ReportLiveObjects
-
-	// リソースリークチェック
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug_)))) {
-		debug_->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		debug_->Release();
-	}
-
 #pragma endregion
 }
 
@@ -349,7 +333,6 @@ D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::rtvHandles_[2];
 ID3D12Fence* DirectXCommon::fence_;
 uint64_t DirectXCommon::fenceValue_;
 HANDLE DirectXCommon::fenceEvent_;
-IDXGIDebug1* DirectXCommon::debug_;
 
 D3D12_RESOURCE_BARRIER DirectXCommon::barrier_;
 #pragma endregion

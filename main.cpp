@@ -1,29 +1,13 @@
-#include <Windows.h>
-#include "ConvertString.h"
-#include <cstdint>
-#include <format>
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <cassert>
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib,"dxgi.lib")
-#include <dxgidebug.h>
-#pragma comment(lib, "dxguid.lib")
-#include <dxcapi.h>
-#pragma comment(lib, "dxcompiler.lib")
-
 #include "MyEngine.h"
-#include "Matrix4x4.h"
-#include "Transform.h"
+
+const char kWindowTitle[] = "CG2_CLASS";
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-
+	// engineの実体を生成
 	MyEngine* engine = new MyEngine();
 	// エンジンの初期化
-	engine->Initialize();
-
-#pragma region メインループ
+	engine->Initialize(kWindowTitle, 1280, 720);
 
 	MSG msg{};
 	// ウィンドウの×ボタンが押されるまでループ
@@ -33,20 +17,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else {
-			// ループ処理
+		else {// ループ処理
+			// 描画前の処理
 			engine->BeginFrame();
 
 			// 三角形
 			engine->Draw();
 
+			// 描画後の処理
 			engine->EndFrame();
 		}
 	}
 	// 解放処理
 	engine->Release();
-
-#pragma endregion
 
 	return 0;
 }

@@ -63,7 +63,6 @@ public:
 	static ID3D12Fence* fence_;
 	static uint64_t fenceValue_;
 	static HANDLE fenceEvent_;
-	static IDXGIDebug1* debug_;
 	static D3D12_RESOURCE_BARRIER barrier_;
 };
 

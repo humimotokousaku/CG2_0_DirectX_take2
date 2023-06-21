@@ -7,44 +7,30 @@
 class WinApp
 {
 public:
-	// メンバ関数
-
+	// ウィンドウサイズ
+	static const int kWindowWidth = 1280;
+	static const int kWindowHeight = 720;
+public: // メンバ関数
 	// ウィンドウプロシージャ
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-	// ウィンドウクラスの登録
-	static void WindowClassRegister();
-
-	// ウィンドウサイズを決める
-	static void WindowSizeDecide();
-
 	// ウィンドウの生成
-	static void WindowGeneration();
+	static void CreateGameWindow(const wchar_t* title, int32_t kClientWidth, int32_t kClientHeight);
 
 	// デバッグレイヤ
-	void DebugLayer();
+	static void DebugLayer();
 
 	// Windowsの初期化
-	static void Initialize();
+	static void Initialize(const wchar_t* title, int32_t kClientWidth = kWindowWidth, int32_t kClientHeight = kWindowHeight);
 
 	// 出力ウィンドウに文字を出す
 	static void Log(const std::string& message);
 
-public:
-	// メンバ変数
-	static ID3D12Debug1* debugController_;
-
+public: // メンバ変数
 	// ウィンドウクラス登録用
 	static WNDCLASS wc_;
 
-	// クライアント領域のサイズ
-	static const int32_t kClientWidth_ = 1280;
-	static const int32_t kClientHeight_ = 720;
-
-	static RECT wrc_;
-
 	// ウィンドウを生成
 	static HWND hwnd_;
-
 };
 
