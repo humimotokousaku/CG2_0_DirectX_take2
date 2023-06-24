@@ -120,7 +120,6 @@ void DirectXCommon::CreateComandList() {
 void DirectXCommon::CreateSwapChain() {
 	HRESULT hr;
 	// スワップチェーンを生成する
-	//DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
 	swapChainDesc_.Width = WinApp::kClientWidth_;
 	swapChainDesc_.Height = WinApp::kClientHeight_;
 	swapChainDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -165,7 +164,6 @@ void DirectXCommon::GetSwapChainResources() {
 
 void DirectXCommon::CreateRTV() {
 	// RTVの設定
-	//D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 	rtvDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 出力結果をSRGBに変換して書き込む
 	rtvDesc_.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D; // 2Dテクスチャとして書き込む
 	// ディスクリプタの先頭を取得する
@@ -182,8 +180,6 @@ void DirectXCommon::CreateRTV() {
 
 void DirectXCommon::Initialize() {
 	HRESULT hr;
-
-	WinApp::Initialize();
 
 #pragma region DXGIFactoryの生成
 
@@ -226,17 +222,17 @@ void DirectXCommon::Initialize() {
 	assert(fenceEvent_ != nullptr);
 
 #pragma endregion
-
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(WinApp::hwnd_);
-	ImGui_ImplDX12_Init(device_,
-		swapChainDesc_.BufferCount,
-		rtvDesc_.Format,
-		srvDescriptorHeap_,
-		srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart(),
-		srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart());
+	imGuiManager_.Initialize(device_, swapChainDesc_, rtvDesc_, srvDescriptorHeap_);
+	//IMGUI_CHECKVERSION();
+	//ImGui::CreateContext();
+	//ImGui::StyleColorsDark();
+	//ImGui_ImplWin32_Init(WinApp::hwnd_);
+	//ImGui_ImplDX12_Init(device_,
+	//	swapChainDesc_.BufferCount,
+	//	rtvDesc_.Format,
+	//	srvDescriptorHeap_,
+	//	srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart(),
+	//	srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart());
 }
 
 void DirectXCommon::PreDraw() {
@@ -275,8 +271,9 @@ void DirectXCommon::PreDraw() {
 }
 
 void DirectXCommon::PostDraw() {
-	// 実際のcommandListのImGuiの描画コマンドを積む
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList_);
+	//// 実際のcommandListのImGuiの描画コマンドを積む
+	//ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList_);
+	imGuiManager_.PostDraw(commandList_);
 
 	HRESULT hr;
 #pragma region 画面表示できるようにする
@@ -293,7 +290,6 @@ void DirectXCommon::PostDraw() {
 	// コマンドリストの内容を確定させる。すべてのコマンドを積んでからCloseすること
 	hr = commandList_->Close();
 	assert(SUCCEEDED(hr));
-
 
 #pragma region コマンドをキックする
 
@@ -338,6 +334,7 @@ void DirectXCommon::Release() {
 
 	CloseHandle(fenceEvent_);
 	fence_->Release();
+	srvDescriptorHeap_->Release();
 	rtvDescriptorHeap_->Release();
 	swapChainResources_[0]->Release();
 	swapChainResources_[1]->Release();
@@ -349,19 +346,7 @@ void DirectXCommon::Release() {
 	useAdapter_->Release();
 	dxgiFactory_->Release();
 
-	CloseWindow(WinApp::hwnd_);
-
-#pragma endregion
-
-#pragma region ReportLiveObjects
-
-	// リソースリークチェック
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug_)))) {
-		debug_->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		debug_->Release();
-	}
+	imGuiManager_.Release();
 
 #pragma endregion
 }
@@ -386,7 +371,5 @@ D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::rtvHandles_[2];
 ID3D12Fence* DirectXCommon::fence_;
 uint64_t DirectXCommon::fenceValue_;
 HANDLE DirectXCommon::fenceEvent_;
-IDXGIDebug1* DirectXCommon::debug_;
-
 D3D12_RESOURCE_BARRIER DirectXCommon::barrier_;
 #pragma endregion

@@ -20,10 +20,10 @@ class Triangle
 {
 public:
 
-	~Triangle() = default;
+	~Triangle();
 
 	// Resource生成
-	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
+	ID3D12Resource* CreateBufferResource(size_t sizeInBytes);
 
 	// VertexResourceの生成
 	void CreateVertexResource();
@@ -41,28 +41,16 @@ public:
 	void Initialize(DirectXCommon* directXCommon);
 
 	// 三角形描画
-	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom);
-
-public:
+	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color);
+private:
 	DirectXCommon* directXCommon_;
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	Vector4* vertexData_;
-
 	ID3D12Resource* materialResource_;
 	Vector4* materialData_;
-
 	ID3D12Resource* wvpResource_;
 	Matrix4x4* wvpData_;
-
 	Transform transform;
-
 	Matrix4x4 worldMatrix_;
-
-	Matrix4x4 cameraMatrix_;
-	Transform cameraTransform_;
-	Matrix4x4 viewMatrix_;
-	Matrix4x4 projectionMatrix_;
-	Matrix4x4 worldViewProjectionMatrix_;
-	Matrix4x4* transformationMatrixData_;
 };

@@ -27,8 +27,10 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-// ウィンドウクラスの登録
-void WinApp::WindowClassRegister() {
+// ウィンドウの生成
+void WinApp::CreateGameWindow(const wchar_t* title, int32_t kClientWidth, int32_t kClientHeight) {
+	kClientWidth_ = kClientWidth;
+	kClientHeight_ = kClientHeight;
 	// ウィンドウプロシージャ
 	wc_.lpfnWndProc = WindowProc;
 	// ウィンドウクラス名
@@ -37,57 +39,48 @@ void WinApp::WindowClassRegister() {
 	wc_.hInstance = GetModuleHandle(nullptr);
 	// カーソル
 	wc_.hCursor = LoadCursor(nullptr, IDC_ARROW);
-
 	// ウィンドウクラスを登録する
 	RegisterClass(&wc_);
-}
 
-// ウィンドウサイズを決める
-void WinApp::WindowSizeDecide() {
-
+	RECT wrc;
 	// ウィンドウサイズを表す構造体にクライアント領域を入れる
-	wrc_ = { 0, 0, kClientWidth_, kClientHeight_ };
+	wrc = { 0, 0, kClientWidth, kClientHeight };
 
 	// クライアント領域をもとに2サイズにWRCを変更してもらう
-	AdjustWindowRect(&wrc_, WS_OVERLAPPEDWINDOW, false);
-}
-
-// ウィンドウの生成
-void WinApp::WindowGeneration() {
+	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
 	hwnd_ = CreateWindow(
 		wc_.lpszClassName,
-		L"CG2_CLASS",
+		title,
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		wrc_.right - wrc_.left,
-		wrc_.bottom - wrc_.top,
+		wrc.right - wrc.left,
+		wrc.bottom - wrc.top,
 		nullptr,
 		nullptr,
 		wc_.hInstance,
 		nullptr
 	);
+	// ウィンドウを表示する
+	ShowWindow(hwnd_, SW_SHOW);
 }
 
 void WinApp::DebugLayer() {
 #ifdef _DEBUG
-	//debugController_ = nullptr;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController_)))) {
+	ID3D12Debug1* debugController = nullptr;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 		// デバッグレイヤーを有効化する
-		debugController_->EnableDebugLayer();
+		debugController->EnableDebugLayer();
 		// さらにGPU側でもチェックを行うようにする
-		debugController_->SetEnableGPUBasedValidation(TRUE);
+		debugController->SetEnableGPUBasedValidation(TRUE);
 	}
 #endif
 }
 
 // Windowsの初期化
-void WinApp::Initialize() {
-	WindowClassRegister();
-	WindowSizeDecide();
-	WindowGeneration();
-	// ウィンドウを表示する
-	ShowWindow(hwnd_, SW_SHOW);
+void WinApp::Initialize(const wchar_t* title, int32_t kClientWidth, int32_t kClientHeight) {
+	CreateGameWindow(title, kClientWidth, kClientHeight);
+	DebugLayer();
 }
 
 // 出力ウィンドウに文字を出す
@@ -97,12 +90,11 @@ void WinApp::Log(const std::string& message) {
 
 #pragma region メンバ変数
 
-ID3D12Debug1* WinApp::debugController_;
-
 // ウィンドウクラス登録用
 WNDCLASS WinApp::wc_;
 
-RECT WinApp::wrc_;
+int32_t WinApp::kClientWidth_;
+int32_t WinApp::kClientHeight_;
 
 // ウィンドウを生成
 HWND WinApp::hwnd_;

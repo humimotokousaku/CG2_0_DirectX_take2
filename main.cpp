@@ -1,27 +1,13 @@
-#include <Windows.h>
-#include "ConvertString.h"
-#include <cstdint>
-#include <format>
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <cassert>
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib,"dxgi.lib")
-#include <dxgidebug.h>
-#pragma comment(lib, "dxguid.lib")
-#include <dxcapi.h>
-#pragma comment(lib, "dxcompiler.lib")
-
 #include "MyEngine.h"
-#include "Matrix4x4.h"
-#include "Transform.h"
+
+const char kWindowTitle[] = "CG2_CLASS";
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	MyEngine* engine = new MyEngine();
 	// エンジンの初期化
-	engine->Initialize();
+	engine->Initialize(kWindowTitle, 1280, 720);
 
 #pragma region メインループ
 

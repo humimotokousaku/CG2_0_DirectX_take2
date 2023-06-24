@@ -3,10 +3,6 @@
 #include <format>
 #include <cassert>
 
-#include "externals/ImGui/imgui.h"
-#include "externals/ImGui/imgui_impl_dx12.h"
-#include "externals/ImGui/imgui_impl_win32.h"
-
 void MyEngine::DXCInitialize() {
 	HRESULT hr;
 	// dxCompilerの初期化
@@ -114,7 +110,7 @@ void MyEngine::CreateRootParameter() {
 
 void MyEngine::CreateRootSignature() {
 	HRESULT hr;
-	
+
 	descriptionRootSignature_.Flags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -216,8 +212,8 @@ void MyEngine::PSO() {
 
 void MyEngine::CreateViewport() {
 	// クライアント領域のサイズと一緒にして画面全体に表示
-	viewport_.Width = WinApp::kClientWidth_;
-	viewport_.Height = WinApp::kClientHeight_;
+	viewport_.Width = (float)WinApp::kClientWidth_;
+	viewport_.Height = (float)WinApp::kClientHeight_;
 	viewport_.TopLeftX = 0;
 	viewport_.TopLeftY = 0;
 	viewport_.MinDepth = 0.0f;
@@ -279,7 +275,9 @@ void MyEngine::VariableInitialize() {
 	}
 }
 
-void MyEngine::Initialize() {
+void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
+	auto&& titleString = ConvertString(title);
+	WinApp::Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
 	directXCommon_->Initialize();
 
@@ -292,14 +290,14 @@ void MyEngine::Initialize() {
 	CreateScissor();
 
 	VariableInitialize();
+
+	// カメラの初期化
+	camera_.Initialize();
 }
 
 void MyEngine::BeginFrame() {
-	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	ImGui::ShowDemoWindow();
-	ImGui::Render();
+	// ImGui
+	imGuiManager_->Draw();
 
 	directXCommon_->PreDraw();
 
@@ -308,13 +306,17 @@ void MyEngine::BeginFrame() {
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
 	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
 	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
+	// カメラの設定
+	camera_.SettingCamera();
 }
 
 void MyEngine::Draw() {
-	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i]);
+	for (int i = 0; i < kMaxTriangle / 2; i++) {
+		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 1.0f,0.0f,0.0f,1.0f });
 	}
-
+	for (int i = kMaxTriangle / 2; i < kMaxTriangle; i++) {
+		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 0.0f,1.0f,0.0f,1.0f });
+	}
 }
 
 void MyEngine::EndFrame() {
@@ -322,6 +324,7 @@ void MyEngine::EndFrame() {
 }
 
 void MyEngine::Release() {
+	directXCommon_->Release();
 	for (int i = 0; i < kMaxTriangle; i++) {
 		delete Triangle_[i];
 	}
@@ -333,8 +336,15 @@ void MyEngine::Release() {
 	rootSignature_->Release();
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
-	directXCommon_->Release();
-}
 
-// 静的メンバ変数
-DirectXCommon* MyEngine::directXCommon_;
+	CloseWindow(WinApp::hwnd_);
+
+	IDXGIDebug1* debug_;
+	// リソースリークチェック
+	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug_)))) {
+		debug_->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+		debug_->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
+		debug_->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
+		debug_->Release();
+	}
+}

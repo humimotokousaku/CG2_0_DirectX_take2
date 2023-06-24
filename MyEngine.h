@@ -2,6 +2,7 @@
 #include "Triangle.h"
 #include "WinApp.h"
 #include "DirIectXCommon.h"
+#include "ImGuiManager.h"
 
 class MyEngine {
 public:
@@ -56,7 +57,7 @@ public:
 	void VariableInitialize();
 
 	// エンジンの初期化
-	void Initialize();
+	void Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight);
 
 	// 描画前の処理
 	void BeginFrame();
@@ -70,11 +71,11 @@ public:
 	// 解放処理
 	void Release();
 
-public:
+private:
 	// 三角形を描画できる最大数
 	static const int kMaxTriangle = 10;
 	Triangle* Triangle_[kMaxTriangle];
-	static	DirectXCommon* directXCommon_;
+	DirectXCommon* directXCommon_;
 	IDxcUtils* dxcUtils_;
 	IDxcCompiler3* dxcCompiler_;
 	IDxcIncludeHandler* includeHandler_;
@@ -98,5 +99,7 @@ public:
 	Vector4 vertexRight_[kMaxTriangle];
 
 	D3D12_ROOT_PARAMETER rootParameters_[2];
-};
 
+	Camera camera_;
+	ImGuiManager* imGuiManager_;
+};

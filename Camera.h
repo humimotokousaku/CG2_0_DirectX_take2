@@ -6,16 +6,14 @@
 class Camera
 {
 public:
-	
-	~Camera();
-
-	// カメラ位置の初期化
+	// カメラの初期化
 	void Initialize();
 
 	// カメラの設定
-	void SettingCamera(Matrix4x4 worldMatrix);
+	void SettingCamera();
 
 private:
+	Matrix4x4 worldMatrix_;
 	Matrix4x4 cameraMatrix_;
 	Transform cameraTransform_;
 	Matrix4x4 viewMatrix_;

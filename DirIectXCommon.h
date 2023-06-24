@@ -3,6 +3,7 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
+#include "imguiManager.h"
 
 class DirectXCommon
 {
@@ -26,9 +27,8 @@ public:
 	void CreateSwapChain();
 
 	// DescriptorHeapの生成
-	ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device,D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+	ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
-	// swapChainのResource二つを取得する
 	void GetSwapChainResources();
 
 	// RTVを作る
@@ -47,11 +47,10 @@ public:
 	ID3D12Device* GetDevice() { return this->device_; }
 	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
 
-
 	// 解放処理とリソースチェック
 	void Release();
 
-public:
+private:
 	static UINT backBufferIndex_;
 	static IDXGIFactory7* dxgiFactory_;
 	static IDXGIAdapter4* useAdapter_;
@@ -70,7 +69,9 @@ public:
 	static ID3D12Fence* fence_;
 	static uint64_t fenceValue_;
 	static HANDLE fenceEvent_;
-	static IDXGIDebug1* debug_;
+	//static IDXGIDebug1* debug_;
 	static D3D12_RESOURCE_BARRIER barrier_;
+
+	ImGuiManager imGuiManager_;
 };
 

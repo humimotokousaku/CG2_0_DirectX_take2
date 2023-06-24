@@ -7,7 +7,13 @@
 #include "Matrix4x4.h"
 #include "DirIectXCommon.h"
 
-ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+Triangle::~Triangle() {
+	wvpResource_->Release();
+	materialResource_->Release();
+	vertexResource_->Release();
+}
+
+ID3D12Resource* Triangle::CreateBufferResource(size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -27,7 +33,7 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 
 	ID3D12Resource* vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = directXCommon_->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 
@@ -35,7 +41,7 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 }
 
 void Triangle::CreateVertexResource() {
-	vertexResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4) * 3);
+	vertexResource_ = CreateBufferResource(sizeof(Vector4) * 3);
 }
 
 void Triangle::CreateVertexBufferView() {
@@ -45,22 +51,19 @@ void Triangle::CreateVertexBufferView() {
 	vertexBufferView_.SizeInBytes = sizeof(Vector4) * 3;
 	// 1頂点当たりのサイズ
 	vertexBufferView_.StrideInBytes = sizeof(Vector4);
-
 }
 
 void Triangle::CreateMaterialResource() {
-	materialResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4));
+	materialResource_ = CreateBufferResource(sizeof(Vector4));
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
-	// 赤色にする
-	*materialData_ = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void Triangle::CreateWvpResource() {
 	// 1つ分のサイズを用意する
-	wvpResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Matrix4x4));
+	wvpResource_ = CreateBufferResource(sizeof(Matrix4x4));
 	// 書き込むためのアドレスを取得
 	wvpResource_->Map(0, nullptr, reinterpret_cast<void**>(&wvpData_));
 	// 単位行列を書き込んでおく
@@ -87,16 +90,9 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	{0.0f,0.0f,0.0f},
 	{0.0f,0.0f,0.0f}
 	};
-
-	// カメラの情報
-	cameraTransform_ = {
-	{1.0f,1.0f,1.0f},
-	{0.0f,0.0f,0.0f},
-	{0.0f,0.0f,-0.5f}
-	};
 }
 
-void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom) {
+void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color) {
 
 #pragma region 三角形の回転
 
@@ -105,12 +101,6 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	*wvpData_ = worldMatrix_;
 
 #pragma endregion
-	cameraMatrix_ = MakeAffineMatrix(cameraTransform_.scale, cameraTransform_.rotate, cameraTransform_.translate);
-	viewMatrix_ = Inverse(cameraMatrix_);
-	projectionMatrix_ = MakePerspectiveFovMatrix(0.45f, float(1280) / float(720), 0.1f, 100.0f);
-	worldViewProjectionMatrix_ = Multiply(worldMatrix_, Multiply(viewMatrix_, projectionMatrix_));
-	//*transformationMatrixData_ = worldViewProjectionMatrix_;
-	
 
 	// 左下
 	vertexData_[0] = leftBottom;
@@ -118,6 +108,9 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	vertexData_[1] = top;
 	// 右下
 	vertexData_[2] = rightBottom;
+
+	// 赤色にする
+	*materialData_ = color;
 
 	// コマンドを積む
 	ID3D12GraphicsCommandList* commandList = directXCommon_->GetCommandList();
