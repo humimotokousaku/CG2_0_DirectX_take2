@@ -3,6 +3,7 @@
 #include "WinApp.h"
 #include "DirIectXCommon.h"
 #include "ImGuiManager.h"
+#include "TextureManager.h"
 
 class MyEngine {
 public:
@@ -73,7 +74,7 @@ public:
 
 private:
 	// 三角形を描画できる最大数
-	static const int kMaxTriangle = 10;
+	static const int kMaxTriangle = 1;
 	Triangle* Triangle_[kMaxTriangle];
 	DirectXCommon* directXCommon_;
 	IDxcUtils* dxcUtils_;
@@ -83,7 +84,7 @@ private:
 	ID3DBlob* signatureBlob_;
 	ID3DBlob* errorBlob_;
 	ID3D12RootSignature* rootSignature_;
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[1];
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[2];
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc_;
 	D3D12_BLEND_DESC blendDesc_;
 	D3D12_RASTERIZER_DESC rasterizerDesc_;
@@ -94,12 +95,14 @@ private:
 	D3D12_VIEWPORT viewport_;
 	D3D12_RECT scissorRect_;
 
-	Vector4 vertexLeft_[kMaxTriangle];
-	Vector4 vertexTop_[kMaxTriangle];
-	Vector4 vertexRight_[kMaxTriangle];
+	VertexData vertexLeft_[kMaxTriangle];
+	VertexData vertexTop_[kMaxTriangle];
+	VertexData vertexRight_[kMaxTriangle];
 
 	D3D12_ROOT_PARAMETER rootParameters_[2];
 
 	Camera camera_;
 	ImGuiManager* imGuiManager_;
+	TextureManager* textureManager_;
+	ID3D12Resource* textureResource_;
 };

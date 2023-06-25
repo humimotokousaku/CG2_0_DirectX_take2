@@ -46,6 +46,7 @@ public:
 	// getter
 	ID3D12Device* GetDevice() { return this->device_; }
 	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
+	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return this->srvDescriptorHeap_; }
 
 	// 解放処理とリソースチェック
 	void Release();
@@ -69,7 +70,6 @@ private:
 	static ID3D12Fence* fence_;
 	static uint64_t fenceValue_;
 	static HANDLE fenceEvent_;
-	//static IDXGIDebug1* debug_;
 	static D3D12_RESOURCE_BARRIER barrier_;
 
 	ImGuiManager imGuiManager_;

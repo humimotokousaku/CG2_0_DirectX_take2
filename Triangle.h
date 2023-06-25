@@ -15,6 +15,7 @@
 #include "Matrix4x4.h"
 #include "Transform.h"
 #include "Camera.h"
+#include "TextureManager.h"
 
 class Triangle
 {
@@ -41,16 +42,16 @@ public:
 	void Initialize(DirectXCommon* directXCommon);
 
 	// 三角形描画
-	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color);
+	void Draw(const VertexData& leftBottom, const VertexData& top, const VertexData& rightBottom, const Vector4& color);
 private:
 	DirectXCommon* directXCommon_;
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
-	Vector4* vertexData_;
+	VertexData* vertexData_;
 	ID3D12Resource* materialResource_;
 	Vector4* materialData_;
 	ID3D12Resource* wvpResource_;
 	Matrix4x4* wvpData_;
-	Transform transform;
+	Transform transform_;
 	Matrix4x4 worldMatrix_;
 };

@@ -4,7 +4,7 @@ const char kWindowTitle[] = "CG2_CLASS";
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-
+	//CoInitializeEx(0, COINIT_MULTITHREADED);
 	MyEngine* engine = new MyEngine();
 	// エンジンの初期化
 	engine->Initialize(kWindowTitle, 1280, 720);
@@ -31,7 +31,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 	// 解放処理
 	engine->Release();
-
+//	CoUninitialize();
 #pragma endregion
 
 	return 0;

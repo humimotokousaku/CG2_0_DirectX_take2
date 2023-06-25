@@ -85,29 +85,35 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 
 	// 三角形の情報
-	transform = {
+	transform_ = {
 	{1.0f,1.0f,1.0f},
 	{0.0f,0.0f,0.0f},
 	{0.0f,0.0f,0.0f}
 	};
 }
 
-void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color) {
+void Triangle::Draw(const VertexData& leftBottom, const VertexData& top, const VertexData& rightBottom, const Vector4& color) {
 
 #pragma region 三角形の回転
 
-	transform.rotate.y += 0.03f;
-	worldMatrix_ = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
+	transform_.rotate.y += 0.03f;
+	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 	*wvpData_ = worldMatrix_;
 
 #pragma endregion
 
 	// 左下
 	vertexData_[0] = leftBottom;
+	//vertexData_[0].position = leftBottom.position;
+	//vertexData_[0].texcoord = leftBottom.texcoord;
 	// 上
 	vertexData_[1] = top;
+	//vertexData_[1].position = top.position;
+	//vertexData_[1].texcoord = top.texcoord;
 	// 右下
 	vertexData_[2] = rightBottom;
+	//vertexData_[2].position = rightBottom.position;
+	//vertexData_[2].texcoord = rightBottom.texcoord;
 
 	// 赤色にする
 	*materialData_ = color;

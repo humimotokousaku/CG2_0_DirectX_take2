@@ -135,7 +135,11 @@ void MyEngine::SettingInputLayout() {
 	inputElementDescs_[0].SemanticIndex = 0;
 	inputElementDescs_[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	inputElementDescs_[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-	inputLayoutDesc_ = { 0 };
+	
+	inputElementDescs_[1].SemanticName = "TEXCOORD";
+	inputElementDescs_[1].SemanticIndex = 0;
+	inputElementDescs_[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+	inputElementDescs_[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 	inputLayoutDesc_.pInputElementDescs = inputElementDescs_;
 	inputLayoutDesc_.NumElements = _countof(inputElementDescs_);
 }
@@ -229,45 +233,48 @@ void MyEngine::CreateScissor() {
 }
 
 void MyEngine::VariableInitialize() {
-	vertexLeft_[0] = { -0.2f, -1.0f,0.0f,1.0f };
-	vertexTop_[0] = { 0.0f, -0.8f,0.0f,1.0f };
-	vertexRight_[0] = { 0.2f, -1.0f,0.0f,1.0f };
+	vertexLeft_[0].position = { -0.5f, -0.5f,0.0f,1.0f };
+	vertexLeft_[0].texcoord = { 0.0f,1.0f };
+	vertexTop_[0].position = { 0.0f, 0.5f,0.0f,1.0f };
+	vertexTop_[0].texcoord = { 0.5f,0.0f };
+	vertexRight_[0].position = { 0.5f, -0.5f,0.0f,1.0f };
+	vertexRight_[0].texcoord = { 1.0f,1.0f };
 
-	vertexLeft_[1] = { -0.2f, -0.8f,0.0f,1.0f };
-	vertexTop_[1] = { 0.0f, -0.6f,0.0f,1.0f };
-	vertexRight_[1] = { 0.2f, -0.8f,0.0f,1.0f };
+	//vertexLeft_[1] = { -0.2f, -0.8f,0.0f,1.0f };
+	//vertexTop_[1] = { 0.0f, -0.6f,0.0f,1.0f };
+	//vertexRight_[1] = { 0.2f, -0.8f,0.0f,1.0f };
 
-	vertexLeft_[2] = { -0.2f, -0.6f,0.0f,1.0f };
-	vertexTop_[2] = { 0.0f, -0.4f,0.0f,1.0f };
-	vertexRight_[2] = { 0.2f, -0.6f,0.0f,1.0f };
+	//vertexLeft_[2] = { -0.2f, -0.6f,0.0f,1.0f };
+	//vertexTop_[2] = { 0.0f, -0.4f,0.0f,1.0f };
+	//vertexRight_[2] = { 0.2f, -0.6f,0.0f,1.0f };
 
-	vertexLeft_[3] = { -0.2f, -0.4f,0.0f,1.0f };
-	vertexTop_[3] = { 0.0f, -0.2f,0.0f,1.0f };
-	vertexRight_[3] = { 0.2f, -0.4f,0.0f,1.0f };
+	//vertexLeft_[3] = { -0.2f, -0.4f,0.0f,1.0f };
+	//vertexTop_[3] = { 0.0f, -0.2f,0.0f,1.0f };
+	//vertexRight_[3] = { 0.2f, -0.4f,0.0f,1.0f };
 
-	vertexLeft_[4] = { -0.2f, -0.2f,0.0f,1.0f };
-	vertexTop_[4] = { 0.0f, 0.0f,0.0f,1.0f };
-	vertexRight_[4] = { 0.2f, -0.2f,0.0f,1.0f };
+	//vertexLeft_[4] = { -0.2f, -0.2f,0.0f,1.0f };
+	//vertexTop_[4] = { 0.0f, 0.0f,0.0f,1.0f };
+	//vertexRight_[4] = { 0.2f, -0.2f,0.0f,1.0f };
 
-	vertexLeft_[5] = { -0.2f, 0.0f,0.0f,1.0f };
-	vertexTop_[5] = { 0.0f, 0.2f,0.0f,1.0f };
-	vertexRight_[5] = { 0.2f, 0.0f,0.0f,1.0f };
+	//vertexLeft_[5] = { -0.2f, 0.0f,0.0f,1.0f };
+	//vertexTop_[5] = { 0.0f, 0.2f,0.0f,1.0f };
+	//vertexRight_[5] = { 0.2f, 0.0f,0.0f,1.0f };
 
-	vertexLeft_[6] = { -0.2f, 0.2f,0.0f,1.0f };
-	vertexTop_[6] = { 0.0f, 0.4f,0.0f,1.0f };
-	vertexRight_[6] = { 0.2f, 0.2f,0.0f,1.0f };
+	//vertexLeft_[6] = { -0.2f, 0.2f,0.0f,1.0f };
+	//vertexTop_[6] = { 0.0f, 0.4f,0.0f,1.0f };
+	//vertexRight_[6] = { 0.2f, 0.2f,0.0f,1.0f };
 
-	vertexLeft_[7] = { -0.2f, 0.4f,0.0f,1.0f };
-	vertexTop_[7] = { 0.0f, 0.6f,0.0f,1.0f };
-	vertexRight_[7] = { 0.2f, 0.4f,0.0f,1.0f };
+	//vertexLeft_[7] = { -0.2f, 0.4f,0.0f,1.0f };
+	//vertexTop_[7] = { 0.0f, 0.6f,0.0f,1.0f };
+	//vertexRight_[7] = { 0.2f, 0.4f,0.0f,1.0f };
 
-	vertexLeft_[8] = { -0.2f, 0.6f,0.0f,1.0f };
-	vertexTop_[8] = { 0.0f, 0.8f,0.0f,1.0f };
-	vertexRight_[8] = { 0.2f, 0.6f,0.0f,1.0f };
+	//vertexLeft_[8] = { -0.2f, 0.6f,0.0f,1.0f };
+	//vertexTop_[8] = { 0.0f, 0.8f,0.0f,1.0f };
+	//vertexRight_[8] = { 0.2f, 0.6f,0.0f,1.0f };
 
-	vertexLeft_[9] = { -0.2f, 0.8f,0.0f,1.0f };
-	vertexTop_[9] = { 0.0f, 1.0f,0.0f,1.0f };
-	vertexRight_[9] = { 0.2f, 0.8f,0.0f,1.0f };
+	//vertexLeft_[9] = { -0.2f, 0.8f,0.0f,1.0f };
+	//vertexTop_[9] = { 0.0f, 1.0f,0.0f,1.0f };
+	//vertexRight_[9] = { 0.2f, 0.8f,0.0f,1.0f };
 
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i] = new Triangle();
@@ -276,6 +283,7 @@ void MyEngine::VariableInitialize() {
 }
 
 void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
+	textureManager_->Initialize();
 	auto&& titleString = ConvertString(title);
 	WinApp::Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
@@ -288,6 +296,27 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	CreateViewport();
 
 	CreateScissor();
+
+	// Textureの読み込み
+	DirectX::ScratchImage mipImages = textureManager_->LoadTexture("resources/uvChecker.png");
+	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
+	textureResource_ = textureManager_->CreateTextureResource(directXCommon_->GetDevice(), metadata);
+	textureManager_->UploadTextureData(textureResource_, mipImages);
+	// metaDataをもとにSRVの設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = metadata.format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
+
+	// SRVを作成するDescriptorHeapの場所を決める
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU = directXCommon_->GetSrvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU = directXCommon_->GetSrvDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
+	// 先頭はImGuiが使っているのでその次を使う
+	textureSrvHandleCPU.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	// SRVの生成
+	directXCommon_->GetDevice()->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU);
 
 	VariableInitialize();
 
@@ -311,12 +340,12 @@ void MyEngine::BeginFrame() {
 }
 
 void MyEngine::Draw() {
-	for (int i = 0; i < kMaxTriangle / 2; i++) {
+	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 1.0f,0.0f,0.0f,1.0f });
 	}
-	for (int i = kMaxTriangle / 2; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 0.0f,1.0f,0.0f,1.0f });
-	}
+	//for (int i = kMaxTriangle / 2; i < kMaxTriangle; i++) {
+	//	Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 0.0f,1.0f,0.0f,1.0f });
+	//}
 }
 
 void MyEngine::EndFrame() {
@@ -336,6 +365,7 @@ void MyEngine::Release() {
 	rootSignature_->Release();
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
+	textureResource_->Release();
 
 	CloseWindow(WinApp::hwnd_);
 
@@ -347,4 +377,6 @@ void MyEngine::Release() {
 		debug_->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
 		debug_->Release();
 	}
+
+	textureManager_->Finalize();
 }
