@@ -234,11 +234,8 @@ void MyEngine::CreateScissor() {
 
 void MyEngine::VariableInitialize() {
 	vertexLeft_[0].position = { -0.5f, -0.5f,0.0f,1.0f };
-	vertexLeft_[0].texcoord = { 0.0f,1.0f };
 	vertexTop_[0].position = { 0.0f, 0.5f,0.0f,1.0f };
-	vertexTop_[0].texcoord = { 0.5f,0.0f };
 	vertexRight_[0].position = { 0.5f, -0.5f,0.0f,1.0f };
-	vertexRight_[0].texcoord = { 1.0f,1.0f };
 
 	//vertexLeft_[1] = { -0.2f, -0.8f,0.0f,1.0f };
 	//vertexTop_[1] = { 0.0f, -0.6f,0.0f,1.0f };
@@ -369,13 +366,13 @@ void MyEngine::Release() {
 
 	CloseWindow(WinApp::hwnd_);
 
-	IDXGIDebug1* debug_;
+	IDXGIDebug1* debug;
 	// リソースリークチェック
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug_)))) {
-		debug_->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		debug_->Release();
+	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug)))) {
+		debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+		debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
+		debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
+		debug->Release();
 	}
 
 	textureManager_->Finalize();
