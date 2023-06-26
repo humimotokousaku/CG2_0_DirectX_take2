@@ -341,7 +341,7 @@ void MyEngine::BeginFrame() {
 
 void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 1.0f,0.0f,0.0f,1.0f });
+		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,0.0f,0.0f,1.0f });
 	}
 	//for (int i = kMaxTriangle / 2; i < kMaxTriangle; i++) {
 	//	Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 0.0f,1.0f,0.0f,1.0f });

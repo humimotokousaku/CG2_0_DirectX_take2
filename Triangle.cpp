@@ -41,16 +41,16 @@ ID3D12Resource* Triangle::CreateBufferResource(size_t sizeInBytes) {
 }
 
 void Triangle::CreateVertexResource() {
-	vertexResource_ = CreateBufferResource(sizeof(Vector4) * 3);
+	vertexResource_ = CreateBufferResource(sizeof(VertexData) * 3);
 }
 
 void Triangle::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView_.SizeInBytes = sizeof(Vector4) * 3;
+	vertexBufferView_.SizeInBytes = sizeof(VertexData) * 3;
 	// 1頂点当たりのサイズ
-	vertexBufferView_.StrideInBytes = sizeof(Vector4);
+	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
 void Triangle::CreateMaterialResource() {
@@ -92,7 +92,7 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	};
 }
 
-void Triangle::Draw(const VertexData& leftBottom, const VertexData& top, const VertexData& rightBottom, const Vector4& color) {
+void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color) {
 
 #pragma region 三角形の回転
 
@@ -103,17 +103,14 @@ void Triangle::Draw(const VertexData& leftBottom, const VertexData& top, const V
 #pragma endregion
 
 	// 左下
-	vertexData_[0] = leftBottom;
-	//vertexData_[0].position = leftBottom.position;
-	//vertexData_[0].texcoord = leftBottom.texcoord;
-	// 上
-	vertexData_[1] = top;
-	//vertexData_[1].position = top.position;
-	//vertexData_[1].texcoord = top.texcoord;
+	vertexData_[0].position = leftBottom;
+	vertexData_[0].texcoord = { 1.0f,0.0f };
+	// 上:
+	vertexData_[1].position = top;
+	vertexData_[1].texcoord = { 0.5f,0.0f };
 	// 右下
-	vertexData_[2] = rightBottom;
-	//vertexData_[2].position = rightBottom.position;
-	//vertexData_[2].texcoord = rightBottom.texcoord;
+	vertexData_[2].position = rightBottom;
+	vertexData_[2].texcoord = {1.0f,1.0f};
 
 	// 赤色にする
 	*materialData_ = color;
