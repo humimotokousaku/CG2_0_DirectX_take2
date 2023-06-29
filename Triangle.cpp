@@ -96,15 +96,15 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 
 #pragma region 三角形の回転
 
-	transform_.rotate.y += 0.03f;
-	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	*wvpData_ = worldMatrix_;
+	//transform_.rotate.y += 0.03f;
+	//worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+	//*wvpData_ = worldMatrix_;
 
 #pragma endregion
 
 	// 左下
 	vertexData_[0].position = leftBottom;
-	vertexData_[0].texcoord = { 1.0f,0.0f };
+	vertexData_[0].texcoord = { 0.0f,1.0f };
 	// 上:
 	vertexData_[1].position = top;
 	vertexData_[1].texcoord = { 0.5f,0.0f };

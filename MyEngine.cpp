@@ -97,6 +97,33 @@ IDxcBlob* MyEngine::CompileShader(
 
 }
 
+void MyEngine::CreateDescriptorRange() {
+	descriptorRange_[0].BaseShaderRegister = 0;
+	descriptorRange_[0].NumDescriptors = 1;
+	descriptorRange_[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRange_[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+}
+
+void MyEngine::CraeteDescriptorTable() {
+	rootParameters_[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters_[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters_[2].DescriptorTable.pDescriptorRanges = descriptorRange_;
+	rootParameters_[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange_);
+}
+
+void MyEngine::SettingSampler() {
+	staticSamplers_[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	staticSamplers_[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	staticSamplers_[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	staticSamplers_[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	staticSamplers_[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	staticSamplers_[0].MaxLOD = D3D12_FLOAT32_MAX;
+	staticSamplers_[0].ShaderRegister = 0;
+	staticSamplers_[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	descriptionRootSignature_.pStaticSamplers = staticSamplers_;
+	descriptionRootSignature_.NumStaticSamplers = _countof(staticSamplers_);
+}
+
 void MyEngine::CreateRootParameter() {
 	rootParameters_[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters_[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
@@ -104,6 +131,9 @@ void MyEngine::CreateRootParameter() {
 	rootParameters_[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters_[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 	rootParameters_[1].Descriptor.ShaderRegister = 0;
+	
+	CraeteDescriptorTable();
+	
 	descriptionRootSignature_.pParameters = rootParameters_;
 	descriptionRootSignature_.NumParameters = _countof(rootParameters_);
 }
@@ -116,6 +146,8 @@ void MyEngine::CreateRootSignature() {
 
 	// rootParameter生成
 	CreateRootParameter();
+	// samplerの設定
+	SettingSampler();
 
 	// シリアライズしてバイナリにする
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature_,
@@ -197,6 +229,8 @@ void MyEngine::CreatePSO() {
 }
 
 void MyEngine::PSO() {
+	CreateDescriptorRange();
+
 	CreateRootSignature();
 
 	CreateRootParameter();
@@ -300,20 +334,19 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	textureResource_ = textureManager_->CreateTextureResource(directXCommon_->GetDevice(), metadata);
 	textureManager_->UploadTextureData(textureResource_, mipImages);
 	// metaDataをもとにSRVの設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = metadata.format;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
+	srvDesc_.Format = metadata.format;
+	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc_.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc_.Texture2D.MipLevels = UINT(metadata.mipLevels);
 
 	// SRVを作成するDescriptorHeapの場所を決める
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU = directXCommon_->GetSrvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU = directXCommon_->GetSrvDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
+	textureSrvHandleCPU_ = directXCommon_->GetSrvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	textureSrvHandleGPU_ = directXCommon_->GetSrvDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
 	// 先頭はImGuiが使っているのでその次を使う
-	textureSrvHandleCPU.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	textureSrvHandleGPU.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleCPU_.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU_.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	// SRVの生成
-	directXCommon_->GetDevice()->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU);
+	directXCommon_->GetDevice()->CreateShaderResourceView(textureResource_, &srvDesc_, textureSrvHandleCPU_);
 
 	VariableInitialize();
 
@@ -331,6 +364,7 @@ void MyEngine::BeginFrame() {
 	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
 	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
+	directXCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
 	// カメラの設定
 	camera_.SettingCamera();
@@ -338,7 +372,7 @@ void MyEngine::BeginFrame() {
 
 void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,0.0f,0.0f,1.0f });
+		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f });
 	}
 	//for (int i = kMaxTriangle / 2; i < kMaxTriangle; i++) {
 	//	Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 0.0f,1.0f,0.0f,1.0f });

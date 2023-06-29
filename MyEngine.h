@@ -21,6 +21,15 @@ public:
 		IDxcCompiler3* dxcCompiler,
 		IDxcIncludeHandler* includeHandler);
 
+	// DescriptorRangeの生成
+	void CreateDescriptorRange();
+
+	// DescriptorTableの生成
+	void CraeteDescriptorTable();
+
+	// Samplerの設定
+	void SettingSampler();
+
 	// RootSignatureの生成
 	void CreateRootSignature();
 
@@ -99,10 +108,16 @@ private:
 	VertexData vertexTop_[kMaxTriangle];
 	VertexData vertexRight_[kMaxTriangle];
 
-	D3D12_ROOT_PARAMETER rootParameters_[2];
+	D3D12_ROOT_PARAMETER rootParameters_[3];
+	D3D12_DESCRIPTOR_RANGE descriptorRange_[1];
+	D3D12_STATIC_SAMPLER_DESC staticSamplers_[1];
 
 	Camera camera_;
 	ImGuiManager* imGuiManager_;
 	TextureManager* textureManager_;
 	ID3D12Resource* textureResource_;
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc_;
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
+
 };
