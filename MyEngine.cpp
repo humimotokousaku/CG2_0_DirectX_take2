@@ -14,6 +14,8 @@ void MyEngine::DXCInitialize() {
 	// 現時点でincludeはしないが、includeに対応するために設定を行っておく
 	hr = dxcUtils_->CreateDefaultIncludeHandler(&includeHandler_);
 	assert(SUCCEEDED(hr));
+
+	//DirectX::PrepareUpload()
 }
 
 IDxcBlob* MyEngine::CompileShader(
@@ -313,6 +315,12 @@ void MyEngine::VariableInitialize() {
 	}
 }
 
+void MyEngine::SettingHeapProperties() {
+	heapProperties_.Type = D3D12_HEAP_TYPE_CUSTOM;
+	heapProperties_.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+	heapProperties_.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+}
+
 void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
 	textureManager_->Initialize();
 	auto&& titleString = ConvertString(title);
@@ -328,11 +336,14 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 
 	CreateScissor();
 
-	// Textureの読み込み
-	DirectX::ScratchImage mipImages = textureManager_->LoadTexture("resources/uvChecker.png");
-	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
+	// Textureの転送
+	mipImages_ = textureManager_->LoadTexture("resources/uvChecker.png");
+	const DirectX::TexMetadata& metadata = mipImages_.GetMetadata();
 	textureResource_ = textureManager_->CreateTextureResource(directXCommon_->GetDevice(), metadata);
-	textureManager_->UploadTextureData(textureResource_, mipImages);
+	intermediateResource_ = textureManager_->UploadTextureData(textureResource_, mipImages_, directXCommon_->GetDevice(), directXCommon_->GetCommandList());
+
+	
+	
 	// metaDataをもとにSRVの設定
 	srvDesc_.Format = metadata.format;
 	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -359,13 +370,13 @@ void MyEngine::BeginFrame() {
 	imGuiManager_->Draw();
 
 	directXCommon_->PreDraw();
-
 	directXCommon_->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
 	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
 	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
 	directXCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
+	
 	// カメラの設定
 	camera_.SettingCamera();
 }
@@ -397,6 +408,7 @@ void MyEngine::Release() {
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
 	textureResource_->Release();
+	intermediateResource_->Release();
 
 	CloseWindow(WinApp::hwnd_);
 

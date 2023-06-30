@@ -1,4 +1,4 @@
-#include "DirIectXCommon.h"
+#include "DirectXCommon.h"
 #include "WinApp.h"
 #include "ConvertString.h"
 #include <d3d12.h>
@@ -223,16 +223,6 @@ void DirectXCommon::Initialize() {
 
 #pragma endregion
 	imGuiManager_.Initialize(device_, swapChainDesc_, rtvDesc_, srvDescriptorHeap_);
-	//IMGUI_CHECKVERSION();
-	//ImGui::CreateContext();
-	//ImGui::StyleColorsDark();
-	//ImGui_ImplWin32_Init(WinApp::hwnd_);
-	//ImGui_ImplDX12_Init(device_,
-	//	swapChainDesc_.BufferCount,
-	//	rtvDesc_.Format,
-	//	srvDescriptorHeap_,
-	//	srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart(),
-	//	srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart());
 }
 
 void DirectXCommon::PreDraw() {
@@ -271,8 +261,7 @@ void DirectXCommon::PreDraw() {
 }
 
 void DirectXCommon::PostDraw() {
-	//// 実際のcommandListのImGuiの描画コマンドを積む
-	//ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList_);
+	// 実際のcommandListのImGuiの描画コマンドを積む
 	imGuiManager_.PostDraw(commandList_);
 
 	HRESULT hr;

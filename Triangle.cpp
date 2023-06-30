@@ -5,7 +5,7 @@
 #include <cassert>
 #include "Vector4.h"
 #include "Matrix4x4.h"
-#include "DirIectXCommon.h"
+#include "DirectXCommon.h"
 
 Triangle::~Triangle() {
 	wvpResource_->Release();
@@ -13,7 +13,7 @@ Triangle::~Triangle() {
 	vertexResource_->Release();
 }
 
-ID3D12Resource* Triangle::CreateBufferResource(size_t sizeInBytes) {
+ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -33,7 +33,7 @@ ID3D12Resource* Triangle::CreateBufferResource(size_t sizeInBytes) {
 
 	ID3D12Resource* vertexResource;
 	// 実際に頂点リソースを作る
-	hr = directXCommon_->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 
@@ -41,7 +41,7 @@ ID3D12Resource* Triangle::CreateBufferResource(size_t sizeInBytes) {
 }
 
 void Triangle::CreateVertexResource() {
-	vertexResource_ = CreateBufferResource(sizeof(VertexData) * 3);
+	vertexResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(VertexData) * 3);
 }
 
 void Triangle::CreateVertexBufferView() {
@@ -54,7 +54,7 @@ void Triangle::CreateVertexBufferView() {
 }
 
 void Triangle::CreateMaterialResource() {
-	materialResource_ = CreateBufferResource(sizeof(Vector4));
+	materialResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4));
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
@@ -63,7 +63,7 @@ void Triangle::CreateMaterialResource() {
 
 void Triangle::CreateWvpResource() {
 	// 1つ分のサイズを用意する
-	wvpResource_ = CreateBufferResource(sizeof(Matrix4x4));
+	wvpResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Matrix4x4));
 	// 書き込むためのアドレスを取得
 	wvpResource_->Map(0, nullptr, reinterpret_cast<void**>(&wvpData_));
 	// 単位行列を書き込んでおく

@@ -10,12 +10,12 @@
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
 
-#include "DirIectXCommon.h"
+#include "DirectXCommon.h"
 #include "Vector4.h"
 #include "Matrix4x4.h"
 #include "Transform.h"
+#include "VertexData.h"
 #include "Camera.h"
-#include "TextureManager.h"
 
 class Triangle
 {
@@ -24,7 +24,7 @@ public:
 	~Triangle();
 
 	// Resource生成
-	ID3D12Resource* CreateBufferResource(size_t sizeInBytes);
+	ID3D12Resource* CreateBufferResource(ID3D12Device* device,size_t sizeInBytes);
 
 	// VertexResourceの生成
 	void CreateVertexResource();
