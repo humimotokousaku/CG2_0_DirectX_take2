@@ -3,9 +3,6 @@
 #include "ConvertString.h"
 #include <format>
 #include <cassert>
-#include "Vector4.h"
-#include "Matrix4x4.h"
-#include "DirectXCommon.h"
 
 Triangle::~Triangle() {
 	wvpResource_->Release();
@@ -92,13 +89,14 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	};
 }
 
-void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color) {
+void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData) {
 
 #pragma region 三角形の回転
 
-	//transform_.rotate.y += 0.03f;
-	//worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	//*wvpData_ = worldMatrix_;
+	transform_.rotate.y += 0.03f;
+	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+	worldMatrix_ = Multiply(worldMatrix_,transformationMatrixData);
+	*wvpData_ = worldMatrix_;
 
 #pragma endregion
 

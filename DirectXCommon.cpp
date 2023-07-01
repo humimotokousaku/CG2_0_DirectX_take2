@@ -134,7 +134,7 @@ void DirectXCommon::CreateSwapChain() {
 
 ID3D12DescriptorHeap* DirectXCommon::CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
 	HRESULT hr;
-	ID3D12DescriptorHeap* descriptorHeap = nullptr;
+	ID3D12DescriptorHeap* descriptorHeap;
 	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
 	rtvDescriptorHeapDesc.Type = heapType; // レンダーターゲットビュー用
 	rtvDescriptorHeapDesc.NumDescriptors = numDescriptors; // ダブルバッファ用に2つ。多くても別に構わない
@@ -222,10 +222,11 @@ void DirectXCommon::Initialize() {
 	assert(fenceEvent_ != nullptr);
 
 #pragma endregion
+	
 	imGuiManager_.Initialize(device_, swapChainDesc_, rtvDesc_, srvDescriptorHeap_);
 }
 
-void DirectXCommon::PreDraw() {
+void DirectXCommon::PreDraw(ID3D12DescriptorHeap* dsvDescriptorHeap) {
 
 	// これから書き込むバックバッファのインデックスを取得
 	backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
@@ -248,13 +249,17 @@ void DirectXCommon::PreDraw() {
 	commandList_->ResourceBarrier(1, &barrier_);
 
 #pragma endregion
-
-	// 描画先のRTVを確定する
-	commandList_->OMSetRenderTargets(1, &rtvHandles_[backBufferIndex_], false, nullptr);
+	
+	// 描画先のRTVとDSVを確定する
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	commandList_->OMSetRenderTargets(1, &rtvHandles_[backBufferIndex_], false, &dsvHandle);
 	// 指定した色で画面全体をクリアする
 	float clearColor[] = { 0.1f, 0.25f, 0.5f, 1.0f }; // 青っぽい色。RGBAの順
 	commandList_->ClearRenderTargetView(rtvHandles_[backBufferIndex_], clearColor, 0, nullptr);
 	
+	// 指定した深度で画面全体をクリアする
+	commandList_->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
 	// 描画用のDescriptorHeapの設定
 	ID3D12DescriptorHeap* descriptorHeaps[] = { srvDescriptorHeap_ };
 	commandList_->SetDescriptorHeaps(1, descriptorHeaps);

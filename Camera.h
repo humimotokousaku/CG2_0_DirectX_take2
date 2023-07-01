@@ -6,6 +6,9 @@
 class Camera
 {
 public:
+	// Getter
+	Matrix4x4* GetTransformationMatrixData() { return transformationMatrixData_; }
+
 	// カメラの初期化
 	void Initialize();
 

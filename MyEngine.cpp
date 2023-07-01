@@ -133,9 +133,9 @@ void MyEngine::CreateRootParameter() {
 	rootParameters_[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters_[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 	rootParameters_[1].Descriptor.ShaderRegister = 0;
-	
+
 	CraeteDescriptorTable();
-	
+
 	descriptionRootSignature_.pParameters = rootParameters_;
 	descriptionRootSignature_.NumParameters = _countof(rootParameters_);
 }
@@ -169,7 +169,7 @@ void MyEngine::SettingInputLayout() {
 	inputElementDescs_[0].SemanticIndex = 0;
 	inputElementDescs_[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	inputElementDescs_[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-	
+
 	inputElementDescs_[1].SemanticName = "TEXCOORD";
 	inputElementDescs_[1].SemanticIndex = 0;
 	inputElementDescs_[1].Format = DXGI_FORMAT_R32G32_FLOAT;
@@ -213,6 +213,10 @@ void MyEngine::CreatePSO() {
 	vertexShaderBlob_->GetBufferSize() }; // vertexShader
 	graphicsPipelineStateDescs_.PS = { pixelShaderBlob_->GetBufferPointer(),
 	pixelShaderBlob_->GetBufferSize() }; // pixelShader
+	// DepthStencilの設定
+	graphicsPipelineStateDescs_.DepthStencilState = textureManager_.GetDepthStencilDesc();
+	graphicsPipelineStateDescs_.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
 	graphicsPipelineStateDescs_.BlendState = blendDesc_; // blendState
 	graphicsPipelineStateDescs_.RasterizerState = rasterizerDesc_; // rasterizerState
 	// 書き込むRTVの情報
@@ -247,6 +251,8 @@ void MyEngine::PSO() {
 
 	PixelSharder();
 
+	textureManager_.SettingDepthStencilState();
+
 	CreatePSO();
 }
 
@@ -273,9 +279,9 @@ void MyEngine::VariableInitialize() {
 	vertexTop_[0].position = { 0.0f, 0.5f,0.0f,1.0f };
 	vertexRight_[0].position = { 0.5f, -0.5f,0.0f,1.0f };
 
-	//vertexLeft_[1] = { -0.2f, -0.8f,0.0f,1.0f };
-	//vertexTop_[1] = { 0.0f, -0.6f,0.0f,1.0f };
-	//vertexRight_[1] = { 0.2f, -0.8f,0.0f,1.0f };
+	vertexLeft_[1] = { -0.5f, -0.5f,0.5f,1.0f };
+	vertexTop_[1] = { 0.0f, 0.0f,0.0f,1.0f };
+	vertexRight_[1] = { 0.5f, -0.5f,-0.5f,1.0f };
 
 	//vertexLeft_[2] = { -0.2f, -0.6f,0.0f,1.0f };
 	//vertexTop_[2] = { 0.0f, -0.4f,0.0f,1.0f };
@@ -322,7 +328,7 @@ void MyEngine::SettingHeapProperties() {
 }
 
 void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
-	textureManager_->Initialize();
+	textureManager_.Initialize();
 	auto&& titleString = ConvertString(title);
 	WinApp::Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
@@ -337,13 +343,11 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	CreateScissor();
 
 	// Textureの転送
-	mipImages_ = textureManager_->LoadTexture("resources/uvChecker.png");
+	mipImages_ = textureManager_.LoadTexture("resources/uvChecker.png");
 	const DirectX::TexMetadata& metadata = mipImages_.GetMetadata();
-	textureResource_ = textureManager_->CreateTextureResource(directXCommon_->GetDevice(), metadata);
-	intermediateResource_ = textureManager_->UploadTextureData(textureResource_, mipImages_, directXCommon_->GetDevice(), directXCommon_->GetCommandList());
+	textureResource_ = textureManager_.CreateTextureResource(directXCommon_->GetDevice(), metadata);
+	intermediateResource_ = textureManager_.UploadTextureData(textureResource_, mipImages_, directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 
-	
-	
 	// metaDataをもとにSRVの設定
 	srvDesc_.Format = metadata.format;
 	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -359,6 +363,16 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	// SRVの生成
 	directXCommon_->GetDevice()->CreateShaderResourceView(textureResource_, &srvDesc_, textureSrvHandleCPU_);
 
+
+	// DSVの設定
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;		   // Format。基本的にはResourceに合わせる
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D; // 2DTexture
+
+	// DSVHeapの先頭にDSVを作る
+	textureManager_.CreateDepthStencilView(directXCommon_->GetDevice());
+	directXCommon_->GetDevice()->CreateDepthStencilView(textureManager_.GetDepthStencilResource(), &dsvDesc, textureManager_.GetDsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
+
 	VariableInitialize();
 
 	// カメラの初期化
@@ -369,21 +383,21 @@ void MyEngine::BeginFrame() {
 	// ImGui
 	imGuiManager_->Draw();
 
-	directXCommon_->PreDraw();
+	directXCommon_->PreDraw(textureManager_.GetDsvDescriptorHeap());
 	directXCommon_->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
 	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
 	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
 	directXCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
-	
+
 	// カメラの設定
 	camera_.SettingCamera();
 }
 
 void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f });
+		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_.GetTransformationMatrixData());
 	}
 	//for (int i = kMaxTriangle / 2; i < kMaxTriangle; i++) {
 	//	Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 0.0f,1.0f,0.0f,1.0f });
@@ -409,6 +423,7 @@ void MyEngine::Release() {
 	vertexShaderBlob_->Release();
 	textureResource_->Release();
 	intermediateResource_->Release();
+	textureManager_.Release();
 
 	CloseWindow(WinApp::hwnd_);
 
@@ -421,5 +436,5 @@ void MyEngine::Release() {
 		debug->Release();
 	}
 
-	textureManager_->Finalize();
+	textureManager_.Finalize();
 }

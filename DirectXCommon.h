@@ -4,10 +4,16 @@
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
 #include "imguiManager.h"
+#include "TextureManager.h"
 
 class DirectXCommon
 {
 public:
+	// Getter
+	ID3D12Device* GetDevice() { return this->device_; }
+	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
+	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return this->srvDescriptorHeap_; }
+
 	// 使用するアダプタを決定する
 	void GetAdapter();
 
@@ -29,6 +35,7 @@ public:
 	// DescriptorHeapの生成
 	ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
+	// 二つのswapChainResoucesを取得
 	void GetSwapChainResources();
 
 	// RTVを作る
@@ -38,15 +45,10 @@ public:
 	void Initialize();
 
 	// 描画前の処理
-	void PreDraw();
+	void PreDraw(ID3D12DescriptorHeap* dsvDescriptorHeap);
 
 	// 描画後の処理
 	void PostDraw();
-
-	// getter
-	ID3D12Device* GetDevice() { return this->device_; }
-	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
-	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return this->srvDescriptorHeap_; }
 
 	// 解放処理とリソースチェック
 	void Release();

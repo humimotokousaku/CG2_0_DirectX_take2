@@ -42,8 +42,8 @@ public:
 	void Initialize(DirectXCommon* directXCommon);
 
 	// 三角形描画
-	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color);
-private:
+	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData);
+public:
 	DirectXCommon* directXCommon_;
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
