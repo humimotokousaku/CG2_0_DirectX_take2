@@ -8,6 +8,7 @@
 class DirectXCommon
 {
 public:
+
 	// 使用するアダプタを決定する
 	void GetAdapter();
 

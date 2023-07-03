@@ -71,6 +71,34 @@ void TextureManager::UploadTextureData(ID3D12Resource* texture, const DirectX::S
 	}
 }
 
+void TextureManager::TransferTexture(ID3D12Device* device) {
+	mipImages_ = LoadTexture("resources/uvChecker.png");
+	metadata_ = mipImages_.GetMetadata();
+	textureResource_ = CreateTextureResource(device, metadata_);
+	UploadTextureData(textureResource_, mipImages_);
+}
+
+void TextureManager::CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap) {
+	// metaDataをもとにSRVの設定
+	srvDesc_.Format = metadata_.format;
+	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc_.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc_.Texture2D.MipLevels = UINT(metadata_.mipLevels);
+
+	// SRVを作成するDescriptorHeapの場所を決める
+	textureSrvHandleCPU_ = srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	textureSrvHandleGPU_ = srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	// 先頭はImGuiが使っているのでその次を使う
+	textureSrvHandleCPU_.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU_.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	// SRVの生成
+	device->CreateShaderResourceView(textureResource_, &srvDesc_, textureSrvHandleCPU_);
+}
+
+void TextureManager::Release() {
+	textureResource_->Release();
+}
+
 void TextureManager::Finalize() {
 	CoUninitialize();
 }

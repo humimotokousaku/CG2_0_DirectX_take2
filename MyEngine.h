@@ -114,10 +114,9 @@ private:
 
 	Camera camera_;
 	ImGuiManager* imGuiManager_;
-	TextureManager* textureManager_;
-	ID3D12Resource* textureResource_;
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc_;
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
-
+	TextureManager textureManager_;
+	//ID3D12Resource* textureResource_;
+	//D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc_;
+	//D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
+	//D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
 };
