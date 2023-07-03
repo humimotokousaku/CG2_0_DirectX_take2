@@ -20,6 +20,11 @@
 class Triangle
 {
 public:
+	// Getter
+	ID3D12Resource* GetMaterialResource() { return materialResource_; }
+
+	// Setter
+	void SetTextureSrvHandleGPU(D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) { textureSrvHandleGPU_ = textureSrvHandleGPU; }
 
 	~Triangle();
 
@@ -43,8 +48,11 @@ public:
 
 	// 三角形描画
 	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData);
+	
 public:
 	DirectXCommon* directXCommon_;
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
+
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	VertexData* vertexData_;

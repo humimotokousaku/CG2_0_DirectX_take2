@@ -1,10 +1,12 @@
 #include "TextureManager.h"
 #include "ConvertString.h"
 #include <vector>
-#include <d3d12.h>
 #include "WinApp.h"
 
-void TextureManager::Initialize() {
+#include <cassert>
+#include "DirectXCommon.h"
+
+void TextureManager::ComInit() {
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 }
 
@@ -37,7 +39,9 @@ ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, cons
 
 	// 利用するHeapの設定
 	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+	heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
+	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
 
 	// Resourceの生成
 	ID3D12Resource* resource = nullptr;
@@ -85,7 +89,7 @@ ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const
 	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 	DirectX::PrepareUpload(device, mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
 	uint64_t intermediateSize = GetRequiredIntermediateSize(texture, 0, UINT(subresources.size()));
-	ID3D12Resource* intermediateResource = CreateBufferResource(device,intermediateSize);
+	ID3D12Resource* intermediateResource = CreateBufferResource(device, intermediateSize);
 	UpdateSubresources(commandList, texture, intermediateResource, 0, 0, UINT(subresources.size()), subresources.data());
 	// textureへの転送後は利用できるように、D3D12_RESOURCE_STATE_COPY_DESTからD3D12_RESOURCE_STATE_GENERIC_READへResourceStateを変更する
 	D3D12_RESOURCE_BARRIER barrier{};
@@ -97,6 +101,24 @@ ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
 	commandList->ResourceBarrier(1, &barrier);
 	return intermediateResource;
+}
+
+// ShaderResourceViewを生成
+void TextureManager::CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap) {
+	// metaDataをもとにSRVの設定
+	srvDesc_.Format = metadata_.format;
+	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc_.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc_.Texture2D.MipLevels = UINT(metadata_.mipLevels);
+
+	// SRVを作成するDescriptorHeapの場所を決める
+	textureSrvHandleCPU_ = srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	textureSrvHandleGPU_ = srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	// 先頭はImGuiが使っているのでその次を使う
+	textureSrvHandleCPU_.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU_.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	// SRVの生成
+	device->CreateShaderResourceView(textureResource_, &srvDesc_, textureSrvHandleCPU_);
 }
 
 ID3D12Resource* TextureManager::CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height) {
@@ -170,9 +192,121 @@ void TextureManager::SettingDepthStencilState() {
 	depthStencilDesc_.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 }
 
+void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
+	// Textureの転送
+	mipImages_ = LoadTexture("resources/uvChecker.png");
+	metadata_ = mipImages_.GetMetadata();
+	textureResource_ = CreateTextureResource(device, metadata_);
+	intermediateResource_ = UploadTextureData(textureResource_, mipImages_, device, commandList);
+}
+//
+//void TextureManager::CreateDescriptorRange() {
+//
+//}
+//
+//void TextureManager::CreateDescriptorTable() {
+//
+//}
+
+
+
+
+
+
+
+
+void TextureManager::CreateVertexBufferViewSprite() {
+	// リソースの先頭のアッドレスから使う
+	vertexBufferViewSprite_.BufferLocation = vertexResourceSprit_->GetGPUVirtualAddress();
+	// 使用するリソースのサイズは頂点6つ分のサイズ
+	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 6;
+	// 1頂点当たりのサイズ
+	vertexBufferViewSprite_.StrideInBytes = sizeof(VertexData);
+}
+
+void TextureManager::CreateMaterialResource(ID3D12Device* device) {
+	materialResource_ = CreateBufferResource(device, sizeof(Vector4));
+	// マテリアルにデータを書き込む
+	//materialData_ = nullptr;
+	// 書き込むためのアドレスを取得
+	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
+}
+
+void TextureManager::VariableSpriteInitialize() {
+	// 一枚目の三角形
+	vertexDataSprite_[0].position = { 0.0f, 360.0f, 0.0f, 1.0f };// 左下
+	vertexDataSprite_[0].texcoord = { 0.0f,1.0f };
+	vertexDataSprite_[1].position = { 0.0f, 0.0f, 0.0f, 1.0f };// 左上
+	vertexDataSprite_[1].texcoord = { 0.0f,0.0f };
+	vertexDataSprite_[2].position = { 640.0f, 360.0f, 0.0f, 1.0f };// 右下
+	vertexDataSprite_[2].texcoord = { 1.0f,1.0f };
+	// 二枚目の三角形
+	vertexDataSprite_[3].position = { 0.0f, 0.0f, 0.0f, 1.0f };// 左上
+	vertexDataSprite_[3].texcoord = { 0.0f,0.0f };
+	vertexDataSprite_[4].position = { 640.0f, 0.0f, 0.0f, 1.0f };// 右上
+	vertexDataSprite_[4].texcoord = { 1.0f,0.0f };
+	vertexDataSprite_[5].position = { 640.0f, 360.0f, 0.0f, 1.0f };// 右下
+	vertexDataSprite_[5].texcoord = { 1.0f,1.0f };
+}
+
+void TextureManager::SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) {
+	// Sprite用のResource
+	vertexResourceSprit_ = CreateBufferResource(device, sizeof(VertexData) * 6);
+
+	CreateMaterialResource(device);
+
+	// Spriteの頂点データ
+	vertexResourceSprit_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
+
+	// wvpデータの生成
+	transformationMatrixResourceSprite_ = CreateBufferResource(device, sizeof(Matrix4x4));
+	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
+	*transformationMatrixDataSprite_ = MakeIdentity4x4();
+
+	// vertexBufferViewの生成
+	CreateVertexBufferViewSprite();
+
+	// 頂点データとuv座標
+	VariableSpriteInitialize();
+
+	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+
+	textureSrvHandleGPU_ = textureSrvHandleGPU;
+}
+
+void TextureManager::Draw(ID3D12Device* device) {
+	worldMatrixSprite_ = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
+	viewMatrixSprite_ = MakeIdentity4x4();
+	projectionMatrixSprite_ = MakeOrthographicMatrix(0.0f, 0.0f, float(WinApp::kClientWidth_), float(WinApp::kClientHeight_), 0.0f, 100.0f);
+	worldViewProjectionMatrixSprite_ = Multiply(worldMatrixSprite_, Multiply(viewMatrixSprite_, projectionMatrixSprite_));
+	transformationMatrixDataSprite_ = &worldViewProjectionMatrixSprite_;
+
+	*materialData_ = { 1.0f,1.0f,1.0f,1.0f };
+
+	// コマンドを積む
+	ID3D12GraphicsCommandList* commandList = directXCommon_->GetCommandList();
+	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_); // VBVを設定
+	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// マテリアルCBufferの場所を設定
+	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+	// wvp陽男のCBufferの場所を設定
+	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite_->GetGPUVirtualAddress());
+	// DescriptorTableの設定
+	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
+	commandList->DrawInstanced(6, 1, 0, 0);
+}
+
 void TextureManager::Release() {
-	depthStencilResource_->Release();
 	dsvDescriptorHeap_->Release();
+	depthStencilResource_->Release();
+
+	textureResource_->Release();
+	transformationMatrixResourceSprite_->Release();
+	vertexResourceSprit_->Release();
+	materialResource_->Release();
+	intermediateResource_->Release();
 }
 
 void TextureManager::Finalize() {
