@@ -8,6 +8,11 @@
 class DirectXCommon
 {
 public:
+	// Getter
+	ID3D12Device* GetDevice() { return this->device_; }
+	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
+	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return this->srvDescriptorHeap_; }
+
 	// 使用するアダプタを決定する
 	void GetAdapter();
 
@@ -42,11 +47,6 @@ public:
 
 	// 描画後の処理
 	void PostDraw();
-
-	// getter
-	ID3D12Device* GetDevice() { return this->device_; }
-	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
-	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return this->srvDescriptorHeap_; }
 
 	// 解放処理とリソースチェック
 	void Release();

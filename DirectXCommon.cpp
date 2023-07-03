@@ -281,7 +281,7 @@ void DirectXCommon::PostDraw() {
 	assert(SUCCEEDED(hr));
 
 #pragma region コマンドをキックする
-
+	 
 	// GPUにコマンドリストの実行を行わせる
 	ID3D12CommandList* commandLists[] = { commandList_ };
 	commandQueue_->ExecuteCommandLists(1, commandLists);

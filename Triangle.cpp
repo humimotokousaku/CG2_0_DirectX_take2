@@ -89,16 +89,17 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	{1.0f,1.0f,1.0f},
 	{0.0f,0.0f,0.0f},
 	{0.0f,0.0f,0.0f}
-	};
+	}; 
 }
 
-void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color) {
+void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData) {
 
 #pragma region 三角形の回転
 
-	//transform_.rotate.y += 0.03f;
-	//worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	//*wvpData_ = worldMatrix_;
+	transform_.rotate.y += 0.03f;
+	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+	worldMatrix_ = Multiply(worldMatrix_, transformationMatrixData);
+	*wvpData_ = worldMatrix_;
 
 #pragma endregion
 
@@ -126,7 +127,8 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 	// wvp陽男のCBufferの場所を設定
 	commandList->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
-
+	// DescriptorTableの設定
+	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
 	commandList->DrawInstanced(3, 1, 0, 0);
 }
