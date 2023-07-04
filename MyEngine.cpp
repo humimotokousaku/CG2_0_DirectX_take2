@@ -344,14 +344,16 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	VariableInitialize();
 
 	// Textureの転送
-	textureManager_.TransferTexture(directXCommon_->GetDevice(),directXCommon_->GetCommandList());
+	textureManager_.TransferTexture(directXCommon_->GetDevice(),directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
 
-	textureManager_.CreateShaderResourceView(directXCommon_->GetDevice(), directXCommon_->GetSrvDescriptorHeap());
+	// DSVの設定
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;		   // Format。基本的にはResourceに合わせる
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D; // 2DTexture
 
 	// DSVHeapの先頭にDSVを作る
 	textureManager_.CreateDepthStencilView(directXCommon_->GetDevice());
-
-	textureManager_.SpriteInitialize(directXCommon_->GetDevice(), textureManager_.GetTextureSrvHandleGPU());
+	directXCommon_->GetDevice()->CreateDepthStencilView(textureManager_.GetDepthStencilResource(), &dsvDesc, textureManager_.GetDsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
 
 	// カメラの初期化
 	camera_.Initialize();
@@ -359,6 +361,7 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->SetTextureSrvHandleGPU(textureManager_.GetTextureSrvHandleGPU());
 	}
+	textureManager_.SpriteInitialize(directXCommon_->GetDevice(),Triangle_[0]->textureSrvHandleGPU_);
 }
 
 void MyEngine::BeginFrame() {
@@ -367,7 +370,6 @@ void MyEngine::BeginFrame() {
 	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
 	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
-	//directXCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureManager_.GetTextureSrvHandleGPU());
 	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
 
 	// カメラの設定
@@ -375,10 +377,9 @@ void MyEngine::BeginFrame() {
 }
 void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
-		//Triangle_[i]->SetTextureSrvHandleGPU(textureManager_.GetTextureSrvHandleGPU());
 		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_.GetTransformationMatrixData());
 	}
-	textureManager_.Draw(directXCommon_->GetDevice());
+	textureManager_.DrawSprite(directXCommon_->GetDevice(),directXCommon_->GetCommandList());
 	//textureManager_.IntermediateResourceCommand(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 }
 
@@ -402,7 +403,6 @@ void MyEngine::Release() {
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
 	textureManager_.Release();
-	textureManager_.Release();
 
 	CloseWindow(WinApp::hwnd_);
 
@@ -415,5 +415,5 @@ void MyEngine::Release() {
 		debug->Release();
 	}
 
-	textureManager_.Finalize();
+	textureManager_.ComUninit();
 }

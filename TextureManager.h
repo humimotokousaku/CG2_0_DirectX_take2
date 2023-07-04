@@ -6,7 +6,6 @@
 #include "Matrix4x4.h"
 #include "VertexData.h"
 #include "Transform.h"
-#include "Triangle.h"
 #include <d3d12.h>
 
 class TextureManager
@@ -46,50 +45,44 @@ public:
 	void SettingDepthStencilState();
 
 	// textureを読んで転送する
-	void TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
-
-	void CreateDescriptorRange();
-
-	void CreateDescriptorTable();
+	void TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
 
 	// ShaderResourceViewを生成
-	void CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap);
+	void CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap, const DirectX::TexMetadata& metadata);
+	
+	// vertexResourceの生成
+	void CreateVertexResource(ID3D12Device* device);
 
+	// vertexBufferViewの生成
+	void CreateVertexBufferView();
 
-
-
-
-	void CreateVertexBufferViewSprite();
-	// マテリアルリソース
+	// materialResourceの生成
 	void CreateMaterialResource(ID3D12Device* device);
-	// 矩形に画像を張るための頂点データとuv座標
-	void VariableSpriteInitialize();
 
+	// wvpResourceの生成
+	void CreateWvpResource(ID3D12Device* device);
+
+	// スプライトの初期化
 	void SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU);
-
-	void Draw(ID3D12Device* device);
+	
+	//	スプライトの描画(今は三角形のtextureと同じ変えたい場合はtextureSrvHandleGPUを変える必要あり)
+	void DrawSprite(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
 
 	// 解放処理
 	void Release();
 
-	void Finalize();
+	// COMの終了処理
+	void ComUninit();
 public:
 	ID3D12Resource* depthStencilResource_;
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
 	ID3D12DescriptorHeap* dsvDescriptorHeap_;
-	DirectX::TexMetadata metadata_;
 	DirectX::ScratchImage mipImages_;
 	ID3D12Resource* textureResource_;
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc_;
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
 	ID3D12Resource* intermediateResource_;
-	//D3D12_HEAP_PROPERTIES heapProperties_;
-	D3D12_DESCRIPTOR_RANGE descriptorRange_[1];
-	D3D12_STATIC_SAMPLER_DESC staticSamplers_[1];
-
-	DirectXCommon* directXCommon_;
-	Triangle* triangle_;
 	ID3D12Resource* vertexResourceSprit_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite_;
 	VertexData* vertexDataSprite_;

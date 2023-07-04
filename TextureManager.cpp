@@ -1,10 +1,35 @@
 #include "TextureManager.h"
 #include "ConvertString.h"
-#include <vector>
 #include "WinApp.h"
-
+#include <vector>
 #include <cassert>
-#include "DirectXCommon.h"
+
+ID3D12Resource* TextureManager::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+	HRESULT hr;
+	// 頂点リソース用のヒープの設定
+	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
+	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD; // UploadHeapを使う
+	// 頂点リソースの設定
+	D3D12_RESOURCE_DESC vertexResourceDesc{};
+	// バッファソース。テクスチャの場合はまた別の設定をする
+	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	vertexResourceDesc.Width = sizeInBytes; // リソースのサイズ。今回はVector4を3頂点分
+	// バッファの場合はこれからは1にする決まり
+	vertexResourceDesc.Height = 1;
+	vertexResourceDesc.DepthOrArraySize = 1;
+	vertexResourceDesc.MipLevels = 1;
+	vertexResourceDesc.SampleDesc.Count = 1;
+	// バッファの場合はこれにする決まり
+	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+	ID3D12Resource* vertexResource;
+	// 実際に頂点リソースを作る
+	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
+	assert(SUCCEEDED(hr));
+
+	return vertexResource;
+}
 
 void TextureManager::ComInit() {
 	CoInitializeEx(0, COINIT_MULTITHREADED);
@@ -39,9 +64,7 @@ ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, cons
 
 	// 利用するHeapの設定
 	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
-	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 
 	// Resourceの生成
 	ID3D12Resource* resource = nullptr;
@@ -57,32 +80,6 @@ ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, cons
 	return resource;
 }
 
-ID3D12Resource* TextureManager::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
-	HRESULT hr;
-	// 頂点リソース用のヒープの設定
-	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD; // UploadHeapを使う
-	// 頂点リソースの設定
-	D3D12_RESOURCE_DESC vertexResourceDesc{};
-	// バッファソース。テクスチャの場合はまた別の設定をする
-	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	vertexResourceDesc.Width = sizeInBytes; // リソースのサイズ。今回はVector4を3頂点分
-	// バッファの場合はこれからは1にする決まり
-	vertexResourceDesc.Height = 1;
-	vertexResourceDesc.DepthOrArraySize = 1;
-	vertexResourceDesc.MipLevels = 1;
-	vertexResourceDesc.SampleDesc.Count = 1;
-	// バッファの場合はこれにする決まり
-	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	ID3D12Resource* vertexResource;
-	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
-		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
-	assert(SUCCEEDED(hr));
-
-	return vertexResource;
-}
 
 [[nodiscard]]
 ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages, ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
@@ -103,13 +100,21 @@ ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const
 	return intermediateResource;
 }
 
-// ShaderResourceViewを生成
-void TextureManager::CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap) {
+
+void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap) {
+	mipImages_ = LoadTexture("resources/uvChecker.png");
+	const DirectX::TexMetadata& metadata = mipImages_.GetMetadata();
+	textureResource_ = CreateTextureResource(device, metadata);
+	intermediateResource_ = UploadTextureData(textureResource_, mipImages_, device, commandList);
+	CreateShaderResourceView(device, srvDescriptorHeap, metadata);
+}
+
+void TextureManager::CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap, const DirectX::TexMetadata& metadata) {
 	// metaDataをもとにSRVの設定
-	srvDesc_.Format = metadata_.format;
+	srvDesc_.Format = metadata.format;
 	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc_.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc_.Texture2D.MipLevels = UINT(metadata_.mipLevels);
+	srvDesc_.Texture2D.MipLevels = UINT(metadata.mipLevels);
 
 	// SRVを作成するDescriptorHeapの場所を決める
 	textureSrvHandleCPU_ = srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -192,33 +197,14 @@ void TextureManager::SettingDepthStencilState() {
 	depthStencilDesc_.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 }
 
-void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
-	// Textureの転送
-	mipImages_ = LoadTexture("resources/uvChecker.png");
-	metadata_ = mipImages_.GetMetadata();
-	textureResource_ = CreateTextureResource(device, metadata_);
-	intermediateResource_ = UploadTextureData(textureResource_, mipImages_, device, commandList);
+void TextureManager::CreateVertexResource(ID3D12Device* device) {
+	vertexResourceSprit_ = CreateBufferResource(device, sizeof(VertexData) * 6);
 }
-//
-//void TextureManager::CreateDescriptorRange() {
-//
-//}
-//
-//void TextureManager::CreateDescriptorTable() {
-//
-//}
 
-
-
-
-
-
-
-
-void TextureManager::CreateVertexBufferViewSprite() {
-	// リソースの先頭のアッドレスから使う
+void TextureManager::CreateVertexBufferView() {
+	// リソースの先頭のアドレスから使う
 	vertexBufferViewSprite_.BufferLocation = vertexResourceSprit_->GetGPUVirtualAddress();
-	// 使用するリソースのサイズは頂点6つ分のサイズ
+	// 使用するリソースのサイズは頂点3つ分のサイズ
 	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 6;
 	// 1頂点当たりのサイズ
 	vertexBufferViewSprite_.StrideInBytes = sizeof(VertexData);
@@ -227,12 +213,44 @@ void TextureManager::CreateVertexBufferViewSprite() {
 void TextureManager::CreateMaterialResource(ID3D12Device* device) {
 	materialResource_ = CreateBufferResource(device, sizeof(Vector4));
 	// マテリアルにデータを書き込む
-	//materialData_ = nullptr;
+	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void TextureManager::VariableSpriteInitialize() {
+void TextureManager::CreateWvpResource(ID3D12Device* device) {
+	// 1つ分のサイズを用意する
+	transformationMatrixResourceSprite_ = CreateBufferResource(device, sizeof(Matrix4x4));
+	// 書き込むためのアドレスを取得
+	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
+	// 単位行列を書き込んでおく
+	*transformationMatrixDataSprite_ = MakeIdentity4x4();
+}
+
+void TextureManager::SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) {
+	CreateVertexResource(device);
+
+	CreateMaterialResource(device);
+
+	CreateWvpResource(device);
+
+	CreateVertexBufferView();
+
+	// 書き込むためのアドレスを取得
+	vertexResourceSprit_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
+
+	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+
+	textureSrvHandleGPU_ = textureSrvHandleGPU;
+}
+
+void TextureManager::DrawSprite(ID3D12Device* device,ID3D12GraphicsCommandList* commandList) {
+	worldMatrixSprite_ = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
+	viewMatrixSprite_ = MakeIdentity4x4();
+	projectionMatrixSprite_ = MakeOrthographicMatrix(0.0f, 0.0f, float(1280), float(720), 0.0f, 100.0f);
+	worldViewProjectionMatrixSprite_ = Multiply(worldMatrixSprite_, Multiply(viewMatrixSprite_, projectionMatrixSprite_));
+	*transformationMatrixDataSprite_ = worldViewProjectionMatrixSprite_;
+
 	// 一枚目の三角形
 	vertexDataSprite_[0].position = { 0.0f, 360.0f, 0.0f, 1.0f };// 左下
 	vertexDataSprite_[0].texcoord = { 0.0f,1.0f };
@@ -247,44 +265,10 @@ void TextureManager::VariableSpriteInitialize() {
 	vertexDataSprite_[4].texcoord = { 1.0f,0.0f };
 	vertexDataSprite_[5].position = { 640.0f, 360.0f, 0.0f, 1.0f };// 右下
 	vertexDataSprite_[5].texcoord = { 1.0f,1.0f };
-}
-
-void TextureManager::SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) {
-	// Sprite用のResource
-	vertexResourceSprit_ = CreateBufferResource(device, sizeof(VertexData) * 6);
-
-	CreateMaterialResource(device);
-
-	// Spriteの頂点データ
-	vertexResourceSprit_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
-
-	// wvpデータの生成
-	transformationMatrixResourceSprite_ = CreateBufferResource(device, sizeof(Matrix4x4));
-	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
-	*transformationMatrixDataSprite_ = MakeIdentity4x4();
-
-	// vertexBufferViewの生成
-	CreateVertexBufferViewSprite();
-
-	// 頂点データとuv座標
-	VariableSpriteInitialize();
-
-	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
-
-	textureSrvHandleGPU_ = textureSrvHandleGPU;
-}
-
-void TextureManager::Draw(ID3D12Device* device) {
-	worldMatrixSprite_ = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
-	viewMatrixSprite_ = MakeIdentity4x4();
-	projectionMatrixSprite_ = MakeOrthographicMatrix(0.0f, 0.0f, float(WinApp::kClientWidth_), float(WinApp::kClientHeight_), 0.0f, 100.0f);
-	worldViewProjectionMatrixSprite_ = Multiply(worldMatrixSprite_, Multiply(viewMatrixSprite_, projectionMatrixSprite_));
-	transformationMatrixDataSprite_ = &worldViewProjectionMatrixSprite_;
 
 	*materialData_ = { 1.0f,1.0f,1.0f,1.0f };
 
 	// コマンドを積む
-	ID3D12GraphicsCommandList* commandList = directXCommon_->GetCommandList();
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_); // VBVを設定
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -299,16 +283,15 @@ void TextureManager::Draw(ID3D12Device* device) {
 }
 
 void TextureManager::Release() {
-	dsvDescriptorHeap_->Release();
 	depthStencilResource_->Release();
-
-	textureResource_->Release();
 	transformationMatrixResourceSprite_->Release();
 	vertexResourceSprit_->Release();
 	materialResource_->Release();
+	dsvDescriptorHeap_->Release();
+	textureResource_->Release();
 	intermediateResource_->Release();
 }
 
-void TextureManager::Finalize() {
+void TextureManager::ComUninit() {
 	CoUninitialize();
 }
