@@ -321,14 +321,8 @@ void MyEngine::VariableInitialize() {
 	}
 }
 
-void MyEngine::SettingHeapProperties() {
-	heapProperties_.Type = D3D12_HEAP_TYPE_CUSTOM;
-	heapProperties_.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-	heapProperties_.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-}
-
 void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
-	textureManager_.Initialize();
+	textureManager_.ComInit();
 	auto&& titleString = ConvertString(title);
 	WinApp::Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
@@ -342,27 +336,8 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 
 	CreateScissor();
 
-	// Textureの転送
-	mipImages_ = textureManager_.LoadTexture("resources/uvChecker.png");
-	const DirectX::TexMetadata& metadata = mipImages_.GetMetadata();
-	textureResource_ = textureManager_.CreateTextureResource(directXCommon_->GetDevice(), metadata);
-	intermediateResource_ = textureManager_.UploadTextureData(textureResource_, mipImages_, directXCommon_->GetDevice(), directXCommon_->GetCommandList());
-
-	// metaDataをもとにSRVの設定
-	srvDesc_.Format = metadata.format;
-	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc_.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc_.Texture2D.MipLevels = UINT(metadata.mipLevels);
-
-	// SRVを作成するDescriptorHeapの場所を決める
-	textureSrvHandleCPU_ = directXCommon_->GetSrvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-	textureSrvHandleGPU_ = directXCommon_->GetSrvDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
-	// 先頭はImGuiが使っているのでその次を使う
-	textureSrvHandleCPU_.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	textureSrvHandleGPU_.ptr += directXCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	// SRVの生成
-	directXCommon_->GetDevice()->CreateShaderResourceView(textureResource_, &srvDesc_, textureSrvHandleCPU_);
-
+	// Textureを読んで転送し、shaderResourceViewの生成
+	textureManager_.TransferTexture(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
 
 	// DSVの設定
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
@@ -373,22 +348,26 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	textureManager_.CreateDepthStencilView(directXCommon_->GetDevice());
 	directXCommon_->GetDevice()->CreateDepthStencilView(textureManager_.GetDepthStencilResource(), &dsvDesc, textureManager_.GetDsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
 
+
+	// 三角形の頂点データ
 	VariableInitialize();
+
+	// それぞれの三角形にtextureSrvHandleGPUをset
+	for (int i = 0; i < kMaxTriangle; i++) {
+		Triangle_[i]->SetTextureSrvHandleGPU(textureManager_.GetTextureSrvHandleGPU());
+	}
 
 	// カメラの初期化
 	camera_.Initialize();
 }
 
 void MyEngine::BeginFrame() {
-	// ImGui
-	imGuiManager_->Draw();
-
+	// 描画前の処理
 	directXCommon_->PreDraw(textureManager_.GetDsvDescriptorHeap());
 	directXCommon_->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
 	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
 	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
-	directXCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
 
 	// カメラの設定
@@ -399,12 +378,13 @@ void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_.GetTransformationMatrixData());
 	}
-	//for (int i = kMaxTriangle / 2; i < kMaxTriangle; i++) {
-	//	Triangle_[i]->Draw(vertexLeft_[i], vertexTop_[i], vertexRight_[i], Vector4{ 0.0f,1.0f,0.0f,1.0f });
-	//}
 }
 
 void MyEngine::EndFrame() {
+	// ImGui
+	imGuiManager_->Draw();
+
+	// 描画後の処理
 	directXCommon_->PostDraw();
 }
 
@@ -421,8 +401,6 @@ void MyEngine::Release() {
 	rootSignature_->Release();
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
-	textureResource_->Release();
-	intermediateResource_->Release();
 	textureManager_.Release();
 
 	CloseWindow(WinApp::hwnd_);
@@ -436,5 +414,5 @@ void MyEngine::Release() {
 		debug->Release();
 	}
 
-	textureManager_.Finalize();
+	textureManager_.ComUninit();
 }

@@ -66,9 +66,6 @@ public:
 	// 頂点データの初期化
 	void VariableInitialize();
 
-	// heapの設定
-	void SettingHeapProperties();
-
 	// エンジンの初期化
 	void Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight);
 

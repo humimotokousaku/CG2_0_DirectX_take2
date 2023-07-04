@@ -20,6 +20,8 @@
 class Triangle
 {
 public:
+	// Setter
+	void SetTextureSrvHandleGPU(D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) { textureSrvHandleGPU_ = textureSrvHandleGPU; }
 
 	~Triangle();
 
@@ -54,4 +56,5 @@ public:
 	Matrix4x4* wvpData_;
 	Transform transform_;
 	Matrix4x4 worldMatrix_;
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
 };
