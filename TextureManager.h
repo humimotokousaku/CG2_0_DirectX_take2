@@ -68,6 +68,9 @@ public:
 	//	スプライトの描画(今は三角形のtextureと同じ変えたい場合はtextureSrvHandleGPUを変える必要あり)
 	void DrawSprite(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
 
+	// 球体の描画
+	void DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, const Matrix4x4& transformationMatrixData);
+
 	// 解放処理
 	void Release();
 
@@ -95,4 +98,22 @@ public:
 	Matrix4x4 worldViewProjectionMatrixSprite_;
 	ID3D12Resource* materialResource_;
 	Vector4* materialData_;
+	
+	Matrix4x4* transformationMatrixDataSphere_;
+	Transform transformSphere_;
+	Matrix4x4 worldMatrixSphere_;
+	Matrix4x4 viewMatrixSphere_;
+	Matrix4x4 projectionMatrixSphere_;
+	Matrix4x4 worldViewProjectionMatrixSphere_;
+	ID3D12Resource* wvpResourceSphere_;
+	Matrix4x4* wvpDataSphere_;
+	ID3D12Resource* vertexResourceSphere_;
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere_;
+	VertexData* vertexDataSphere_;
+	ID3D12Resource* materialResourceSphere_;
+	Vector4* materialDataSphere_;
+	const uint32_t kSubdivision = 16; //分割数
+	const uint32_t kLatIndex = 16;
+	const uint32_t kLonIndex = 16;
+	uint32_t startIndex = (kLatIndex * kSubdivision + kLonIndex) * 6;
 };

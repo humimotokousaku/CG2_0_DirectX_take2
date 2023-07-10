@@ -376,10 +376,12 @@ void MyEngine::BeginFrame() {
 	camera_.SettingCamera();
 }
 void MyEngine::Draw() {
+	textureManager_.DrawSphere(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), *camera_.GetTransformationMatrixData());
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_.GetTransformationMatrixData());
 	}
 	textureManager_.DrawSprite(directXCommon_->GetDevice(),directXCommon_->GetCommandList());
+
 	//textureManager_.IntermediateResourceCommand(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 }
 

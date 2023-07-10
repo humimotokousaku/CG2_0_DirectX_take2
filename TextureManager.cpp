@@ -3,6 +3,8 @@
 #include "WinApp.h"
 #include <vector>
 #include <cassert>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 ID3D12Resource* TextureManager::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
 	HRESULT hr;
@@ -199,6 +201,8 @@ void TextureManager::SettingDepthStencilState() {
 
 void TextureManager::CreateVertexResource(ID3D12Device* device) {
 	vertexResourceSprit_ = CreateBufferResource(device, sizeof(VertexData) * 6);
+
+	vertexResourceSphere_ = CreateBufferResource(device, sizeof(VertexData) * startIndex);
 }
 
 void TextureManager::CreateVertexBufferView() {
@@ -208,6 +212,13 @@ void TextureManager::CreateVertexBufferView() {
 	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 6;
 	// 1頂点当たりのサイズ
 	vertexBufferViewSprite_.StrideInBytes = sizeof(VertexData);
+
+	// リソースの先頭のアドレスから使う
+	vertexBufferViewSphere_.BufferLocation = vertexResourceSphere_->GetGPUVirtualAddress();
+	// 使用するリソースのサイズは頂点3つ分のサイズ
+	vertexBufferViewSphere_.SizeInBytes = sizeof(VertexData) * startIndex;
+	// 1頂点当たりのサイズ
+	vertexBufferViewSphere_.StrideInBytes = sizeof(VertexData);
 }
 
 void TextureManager::CreateMaterialResource(ID3D12Device* device) {
@@ -216,6 +227,12 @@ void TextureManager::CreateMaterialResource(ID3D12Device* device) {
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
+
+	materialResourceSphere_ = CreateBufferResource(device, sizeof(Vector4));
+	// マテリアルにデータを書き込む
+	materialDataSphere_ = nullptr;
+	// 書き込むためのアドレスを取得
+	materialResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSphere_));
 }
 
 void TextureManager::CreateWvpResource(ID3D12Device* device) {
@@ -225,6 +242,13 @@ void TextureManager::CreateWvpResource(ID3D12Device* device) {
 	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
 	// 単位行列を書き込んでおく
 	*transformationMatrixDataSprite_ = MakeIdentity4x4();
+
+	// 1つ分のサイズを用意する
+	wvpResourceSphere_ = CreateBufferResource(device, sizeof(Matrix4x4));
+	// 書き込むためのアドレスを取得
+	wvpResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere_));
+	// 単位行列を書き込んでおく
+	*wvpDataSphere_ = MakeIdentity4x4();
 }
 
 void TextureManager::SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) {
@@ -238,8 +262,10 @@ void TextureManager::SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR
 
 	// 書き込むためのアドレスを取得
 	vertexResourceSprit_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
+	vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
 
 	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+	transformSphere_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 	textureSrvHandleGPU_ = textureSrvHandleGPU;
 }
@@ -282,6 +308,87 @@ void TextureManager::DrawSprite(ID3D12Device* device,ID3D12GraphicsCommandList* 
 	commandList->DrawInstanced(6, 1, 0, 0);
 }
 
+void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, const Matrix4x4& transformationMatrixData) {
+	// カメラ
+	worldMatrixSphere_ = MakeAffineMatrix(transformSphere_.scale, transformSphere_.rotate, transformSphere_.translate);
+	worldMatrixSphere_ = Multiply(worldMatrixSphere_, transformationMatrixData);
+	*wvpDataSphere_ = worldMatrixSphere_;
+
+	const float kLonEvery = 2.0f * float(M_PI) / float(kSubdivision);//経度分割1つ分の角度
+	const float kLatEvery = float(M_PI) / float(kSubdivision);//緯度分割1つ分の角度
+	// 緯度の方向に分割
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+		float lat = float(- M_PI) / 2.0f + kLatEvery * latIndex;
+		// 経度の方向に分割しながら線を描く
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
+			float lon = lonIndex * kLonEvery;
+			float u = float(lonIndex) / float(kSubdivision);
+			float v = 1.0f - float(latIndex) / float(kSubdivision);
+			// 頂点データを入力する。
+#pragma region 1枚目
+			// 基準点a
+			vertexDataSphere_[start].position.x = cos(lat) * cos(lon);
+			vertexDataSphere_[start].position.y = sin(lat);
+			vertexDataSphere_[start].position.z = cos(lat) * sin(lon);
+			vertexDataSphere_[start].position.w = 1.0f;
+			vertexDataSphere_[start].texcoord = { u ,v + (1.0f / kSubdivision) };
+			// b
+			vertexDataSphere_[start + 1].position.x = cos(lat + kLatEvery) * cos(lon);
+			vertexDataSphere_[start + 1].position.y = sin(lat + kLatEvery);
+			vertexDataSphere_[start + 1].position.z = cos(lat + kLatEvery) * sin(lon);
+			vertexDataSphere_[start + 1].position.w = 1.0f;
+			vertexDataSphere_[start + 1].texcoord = { u,v/* + (1.0f / kSubdivision)*/ };
+			// c
+			vertexDataSphere_[start + 2].position.x = cos(lat) * cos(lon + kLonEvery);
+			vertexDataSphere_[start + 2].position.y = sin(lat);
+			vertexDataSphere_[start + 2].position.z = cos(lat) * sin(lon + kLonEvery);
+			vertexDataSphere_[start + 2].position.w = 1.0f;
+			vertexDataSphere_[start + 2].texcoord = { u + (1.0f / kSubdivision),v + (1.0f / kSubdivision) };
+			
+#pragma endregion
+
+#pragma region 2枚目
+
+			// b
+			vertexDataSphere_[start + 3].position.x = cos(lat + kLatEvery) * cos(lon);
+			vertexDataSphere_[start + 3].position.y = sin(lat + kLatEvery);
+			vertexDataSphere_[start + 3].position.z = cos(lat + kLatEvery) * sin(lon);
+			vertexDataSphere_[start + 3].position.w = 1.0f;
+			vertexDataSphere_[start + 3].texcoord = { u,v /*+ (1.0f / kSubdivision)*/ };
+			// d
+			vertexDataSphere_[start + 4].position.x = cos(lat + kLatEvery) * cos(lon + kLonEvery);
+			vertexDataSphere_[start + 4].position.y = sin(lat + kLatEvery);
+			vertexDataSphere_[start + 4].position.z = cos(lat + kLatEvery) * sin(lon + kLonEvery);
+			vertexDataSphere_[start + 4].position.w = 1.0f;
+			vertexDataSphere_[start + 4].texcoord = { u + (1.0f / kSubdivision),v/* + (1.0f / kSubdivision)*/ };
+			// c
+			vertexDataSphere_[start + 5].position.x = cos(lat) * cos(lon + kLonEvery);
+			vertexDataSphere_[start + 5].position.y = sin(lat);
+			vertexDataSphere_[start + 5].position.z = cos(lat) * sin(lon + kLonEvery);
+			vertexDataSphere_[start + 5].position.w = 1.0f;
+			vertexDataSphere_[start + 5].texcoord = { u + (1.0f / kSubdivision),v + (1.0f / kSubdivision) };
+
+#pragma endregion
+
+		}
+	}
+	*materialDataSphere_ = { 1.0f,1.0f,1.0f,1.0f };
+
+	// コマンドを積む
+	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSphere_); // VBVを設定
+	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// マテリアルCBufferの場所を設定
+	commandList->SetGraphicsRootConstantBufferView(0, materialResourceSphere_->GetGPUVirtualAddress());
+	// wvp陽男のCBufferの場所を設定
+	commandList->SetGraphicsRootConstantBufferView(1, wvpResourceSphere_->GetGPUVirtualAddress());
+	// DescriptorTableの設定
+	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+
+	commandList->DrawInstanced(startIndex, 1, 0, 0);
+}
+
 void TextureManager::Release() {
 	depthStencilResource_->Release();
 	transformationMatrixResourceSprite_->Release();
@@ -290,6 +397,10 @@ void TextureManager::Release() {
 	dsvDescriptorHeap_->Release();
 	textureResource_->Release();
 	intermediateResource_->Release();
+	wvpResourceSphere_->Release();
+	vertexResourceSphere_->Release();
+	materialResourceSphere_->Release();
+
 }
 
 void TextureManager::ComUninit() {
