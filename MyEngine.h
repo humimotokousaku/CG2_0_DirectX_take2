@@ -103,15 +103,12 @@ private:
 	ID3D12PipelineState* graphicsPipelineState_;
 	D3D12_VIEWPORT viewport_;
 	D3D12_RECT scissorRect_;
-
 	VertexData vertexLeft_[kMaxTriangle];
 	VertexData vertexTop_[kMaxTriangle];
 	VertexData vertexRight_[kMaxTriangle];
-
 	D3D12_ROOT_PARAMETER rootParameters_[3];
 	D3D12_DESCRIPTOR_RANGE descriptorRange_[1];
 	D3D12_STATIC_SAMPLER_DESC staticSamplers_[1];
-
 	Camera camera_;
 	ImGuiManager* imGuiManager_;
 	TextureManager textureManager_;

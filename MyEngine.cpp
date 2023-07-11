@@ -280,78 +280,45 @@ void MyEngine::VariableInitialize() {
 	vertexLeft_[1] = { -0.5f, -0.5f,0.5f,1.0f };
 	vertexTop_[1] = { 0.0f, 0.0f,0.0f,1.0f };
 	vertexRight_[1] = { 0.5f, -0.5f,-0.5f,1.0f };
-
-	//vertexLeft_[2] = { -0.2f, -0.6f,0.0f,1.0f };
-	//vertexTop_[2] = { 0.0f, -0.4f,0.0f,1.0f };
-	//vertexRight_[2] = { 0.2f, -0.6f,0.0f,1.0f };
-
-	//vertexLeft_[3] = { -0.2f, -0.4f,0.0f,1.0f };
-	//vertexTop_[3] = { 0.0f, -0.2f,0.0f,1.0f };
-	//vertexRight_[3] = { 0.2f, -0.4f,0.0f,1.0f };
-
-	//vertexLeft_[4] = { -0.2f, -0.2f,0.0f,1.0f };
-	//vertexTop_[4] = { 0.0f, 0.0f,0.0f,1.0f };
-	//vertexRight_[4] = { 0.2f, -0.2f,0.0f,1.0f };
-
-	//vertexLeft_[5] = { -0.2f, 0.0f,0.0f,1.0f };
-	//vertexTop_[5] = { 0.0f, 0.2f,0.0f,1.0f };
-	//vertexRight_[5] = { 0.2f, 0.0f,0.0f,1.0f };
-
-	//vertexLeft_[6] = { -0.2f, 0.2f,0.0f,1.0f };
-	//vertexTop_[6] = { 0.0f, 0.4f,0.0f,1.0f };
-	//vertexRight_[6] = { 0.2f, 0.2f,0.0f,1.0f };
-
-	//vertexLeft_[7] = { -0.2f, 0.4f,0.0f,1.0f };
-	//vertexTop_[7] = { 0.0f, 0.6f,0.0f,1.0f };
-	//vertexRight_[7] = { 0.2f, 0.4f,0.0f,1.0f };
-
-	//vertexLeft_[8] = { -0.2f, 0.6f,0.0f,1.0f };
-	//vertexTop_[8] = { 0.0f, 0.8f,0.0f,1.0f };
-	//vertexRight_[8] = { 0.2f, 0.6f,0.0f,1.0f };
-
-	//vertexLeft_[9] = { -0.2f, 0.8f,0.0f,1.0f };
-	//vertexTop_[9] = { 0.0f, 1.0f,0.0f,1.0f };
-	//vertexRight_[9] = { 0.2f, 0.8f,0.0f,1.0f };
-
-	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i] = new Triangle();
-		Triangle_[i]->Initialize(directXCommon_);
-	}
 }
 
 void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
 	textureManager_.ComInit();
+	// タイトルバーの変換
 	auto&& titleString = ConvertString(title);
+	// ウィンドウの初期化
 	WinApp::Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
+	// DirectXの初期化
 	directXCommon_->Initialize();
-
+	// DXCの初期化
 	DXCInitialize();
-
+	// PSOを生成
 	PSO();
-
+	// ビューポートの生成
 	CreateViewport();
-
+	// シザー矩形の生成
 	CreateScissor();
 
+	// Textureの初期化
+	textureManager_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
+	
 	// 三角形の頂点データ
 	VariableInitialize();
-
-	// Textureの転送
-	textureManager_.TransferTexture(directXCommon_->GetDevice(),directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
-
-	// DSVHeapの先頭にDSVを作る
-	textureManager_.CreateDepthStencilView(directXCommon_->GetDevice());
-	//directXCommon_->GetDevice()->CreateDepthStencilView(textureManager_.GetDepthStencilResource(), &dsvDesc, textureManager_.GetDsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
-	textureManager_.CreateDepthStencilView(directXCommon_->GetDevice());
+	// 三角形の生成
+	for (int i = 0; i < kMaxTriangle; i++) {
+		Triangle_[i] = new Triangle();
+		// 初期化
+		Triangle_[i]->Initialize(directXCommon_);
+		// 使う画像
+		Triangle_[i]->SetTextureSrvHandleGPU(textureManager_.GetTextureSrvHandleGPU());
+	}
 
 	// カメラの初期化
 	camera_.Initialize();
 
-	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->SetTextureSrvHandleGPU(textureManager_.GetTextureSrvHandleGPU());
-	}
-	textureManager_.SpriteInitialize(directXCommon_->GetDevice());
+	// ImGuiの初期化
+	imGuiManager_->Initialize(directXCommon_->GetDevice(), directXCommon_->GetSwapChainDesc(), directXCommon_->GetRtvDesc(), directXCommon_->GetSrvDescriptorHeap());
 }
 
 void MyEngine::BeginFrame() {
@@ -364,24 +331,34 @@ void MyEngine::BeginFrame() {
 
 	// カメラの設定
 	camera_.SettingCamera();
+
+	// ImGui
+	imGuiManager_->PreDraw();
 }
 void MyEngine::Draw() {
-	// ImGui
-	imGuiManager_->Draw();
-	// 
+	// 三角形
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_.GetTransformationMatrixData());
 	}
+	// 球
 	textureManager_.DrawSphere(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), *camera_.GetTransformationMatrixData());
-	textureManager_.DrawSprite(directXCommon_->GetDevice(),directXCommon_->GetCommandList());
+	// スプライト
+	textureManager_.DrawSprite(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 }
 
 void MyEngine::EndFrame() {
+	// ImGui
+	imGuiManager_->PostDraw(directXCommon_->GetCommandList());
+	// DirectX
 	directXCommon_->PostDraw();
 }
 
 void MyEngine::Release() {
+	// DirectX
 	directXCommon_->Release();
+	// ImGui
+	imGuiManager_->Release();
+	// 三角形
 	for (int i = 0; i < kMaxTriangle; i++) {
 		delete Triangle_[i];
 	}
@@ -405,6 +382,6 @@ void MyEngine::Release() {
 		debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
 		debug->Release();
 	}
-
+	// Textureのゲーム終了処理
 	textureManager_.ComUninit();
 }

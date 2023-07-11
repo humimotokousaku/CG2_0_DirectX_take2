@@ -52,7 +52,6 @@ public:
 public:
 	DirectXCommon* directXCommon_;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
-
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	VertexData* vertexData_;

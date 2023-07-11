@@ -168,13 +168,13 @@ void DirectXCommon::CreateRTV() {
 	rtvDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 出力結果をSRGBに変換して書き込む
 	rtvDesc_.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D; // 2Dテクスチャとして書き込む
 	// ディスクリプタの先頭を取得する
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = GetCPUDescriptorHandle(rtvDescriptorHeap_, descriptorSizeRTV, 0);//rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = TextureManager::GetCPUDescriptorHandle(rtvDescriptorHeap_, descriptorSizeRTV, 0);//rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
 	// RTVを2つ作るのでディスクリプタを2つ用意
 	// まず一つ目を作る一つ目は最初のところに作る。作る場所をこちらで指定してあげる必要がある
 	rtvHandles_[0] = rtvStartHandle;
 	device_->CreateRenderTargetView(swapChainResources_[0], &rtvDesc_, rtvHandles_[0]);
 	// 二つ目のディスクリプタハンドルを得る(自力で)
-	rtvHandles_[1] = GetCPUDescriptorHandle(rtvDescriptorHeap_, descriptorSizeRTV, 1);//rtvHandles_[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	rtvHandles_[1] = TextureManager::GetCPUDescriptorHandle(rtvDescriptorHeap_, descriptorSizeRTV, 1);//rtvHandles_[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	// 2つ目を作る
 	device_->CreateRenderTargetView(swapChainResources_[1], &rtvDesc_, rtvHandles_[1]);
 }
@@ -224,7 +224,6 @@ void DirectXCommon::Initialize() {
 
 #pragma endregion
 	
-	imGuiManager_.Initialize(device_, swapChainDesc_, rtvDesc_, srvDescriptorHeap_);
 }
 
 void DirectXCommon::PreDraw(ID3D12DescriptorHeap* dsvDescriptorHeap) {
@@ -252,7 +251,7 @@ void DirectXCommon::PreDraw(ID3D12DescriptorHeap* dsvDescriptorHeap) {
 #pragma endregion
 	const uint32_t descriptorSizeRTV = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	// 描画先のRTVとDSVを確定する
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = GetCPUDescriptorHandle(dsvDescriptorHeap, descriptorSizeRTV, 0);//dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = TextureManager::GetCPUDescriptorHandle(dsvDescriptorHeap, descriptorSizeRTV, 0);//dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	commandList_->OMSetRenderTargets(1, &rtvHandles_[backBufferIndex_], false, &dsvHandle);
 	// 指定した色で画面全体をクリアする
 	float clearColor[] = { 0.1f, 0.25f, 0.5f, 1.0f }; // 青っぽい色。RGBAの順
@@ -267,8 +266,6 @@ void DirectXCommon::PreDraw(ID3D12DescriptorHeap* dsvDescriptorHeap) {
 }
 
 void DirectXCommon::PostDraw() {
-	// 実際のcommandListのImGuiの描画コマンドを積む
-	imGuiManager_.PostDraw(commandList_);
 
 	HRESULT hr;
 #pragma region 画面表示できるようにする
@@ -340,8 +337,6 @@ void DirectXCommon::Release() {
 	device_->Release();
 	useAdapter_->Release();
 	dxgiFactory_->Release();
-
-	imGuiManager_.Release();
 
 #pragma endregion
 }

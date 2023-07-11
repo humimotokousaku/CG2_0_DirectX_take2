@@ -7,13 +7,13 @@
 #include <math.h>
 #include "ImGuiManager.h"
 
-D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
 	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	handleCPU.ptr += (descriptorSize * index);
 	return handleCPU;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
 	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
 	handleGPU.ptr += (descriptorSize * index);
 	return handleGPU;
@@ -95,7 +95,6 @@ ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, cons
 	return resource;
 }
 
-
 [[nodiscard]]
 ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages, ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
 	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
@@ -114,7 +113,6 @@ ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const
 	commandList->ResourceBarrier(1, &barrier);
 	return intermediateResource;
 }
-
 
 void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap) {
 	mipImages_ = LoadTexture("resources/uvChecker.png");
@@ -136,8 +134,6 @@ void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommand
 	// SRVの生成
 	device->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU_);
 
-
-
 	mipImages2_ = LoadTexture("resources/monsterBall.png");
 	const DirectX::TexMetadata& metadata2 = mipImages2_.GetMetadata();
 	textureResource2_ = CreateTextureResource(device, metadata2);
@@ -153,24 +149,6 @@ void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommand
 	textureSrvHandleGPU2_ = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 2);
 	// SRVの生成
 	device->CreateShaderResourceView(textureResource2_, &srvDesc2, textureSrvHandleCPU2_);
-}
-
-void TextureManager::CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap, const DirectX::TexMetadata& metadata, D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandle) {
-	// DescriptorSizeを取得
-	const uint32_t descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	// metaDataをもとにSRVの設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = metadata.format;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
-
-	// SRVを作成するDescriptorHeapの場所を決める
-	textureSrvHandleCPU_ = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
-	textureSrvHandleGPU_ = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
-	// SRVの生成
-	device->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU_);
 }
 
 ID3D12Resource* TextureManager::CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height) {
@@ -297,7 +275,11 @@ void TextureManager::CreateWvpResource(ID3D12Device* device) {
 	*wvpDataSphere_ = MakeIdentity4x4();
 }
 
-void TextureManager::SpriteInitialize(ID3D12Device* device) {
+void TextureManager::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap) {
+	TransferTexture(device, commandList, srvDescriptorHeap);
+
+	CreateDepthStencilView(device);
+
 	CreateVertexResource(device);
 
 	CreateMaterialResource(device);
@@ -439,18 +421,18 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 }
 
 void TextureManager::Release() {
-	depthStencilResource_->Release();
-	dsvDescriptorHeap_->Release();
+	wvpResourceSphere_->Release();
+	transformationMatrixResourceSprite_->Release();
+	materialResourceSphere_->Release();
+	materialResource_->Release();
 	vertexResourceSprit_->Release();
 	vertexResourceSphere_->Release();
-	materialResource_->Release();
-	materialResourceSphere_->Release();
 	textureResource_->Release();
 	textureResource2_->Release();
 	intermediateResource_->Release();
 	intermediateResource2_->Release();
-	transformationMatrixResourceSprite_->Release();
-	wvpResourceSphere_->Release();
+	depthStencilResource_->Release();
+	dsvDescriptorHeap_->Release();
 }
 
 void TextureManager::ComUninit() {

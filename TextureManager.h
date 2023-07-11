@@ -8,13 +8,13 @@
 #include "Transform.h"
 #include <d3d12.h>
 
-D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
-
-D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
 
 class TextureManager
 {
 public:
+	static D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
+	static D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
+
 	// Getter
 	ID3D12DescriptorHeap* GetDsvDescriptorHeap() { return dsvDescriptorHeap_; }
 	ID3D12Resource* GetDepthStencilResource() { return depthStencilResource_; }
@@ -34,14 +34,14 @@ public:
 	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
 
 	// TextureResourceにデータを転送する
-	ID3D12Resource* UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages, ID3D12Device* device,ID3D12GraphicsCommandList* commandList);
+	ID3D12Resource* UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages, ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
 
 	// DepthStenciltextureの生成
 	ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height);
 
 	// dsvDescriptorHeapの生成
 	ID3D12DescriptorHeap* CreateDsvDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
-	
+
 	// CPUで書き込む用のTextureResourceを作りコマンドを積む
 	void CreateDepthStencilView(ID3D12Device* device);
 
@@ -51,9 +51,6 @@ public:
 	// textureを読んで転送する
 	void TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
 
-	// ShaderResourceViewを生成
-	void CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap, const DirectX::TexMetadata& metadata, D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandle);
-	
 	// vertexResourceの生成
 	void CreateVertexResource(ID3D12Device* device);
 
@@ -67,8 +64,8 @@ public:
 	void CreateWvpResource(ID3D12Device* device);
 
 	// スプライトの初期化
-	void SpriteInitialize(ID3D12Device* device);
-	
+	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
+
 	//	スプライトの描画(今は三角形のtextureと同じ変えたい場合はtextureSrvHandleGPUを変える必要あり)
 	void DrawSprite(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
 
@@ -81,55 +78,77 @@ public:
 	// COMの終了処理
 	void ComUninit();
 public:
+	// Spriteで使っている画像はuvChecker.png
+	// Sphereで使っている画像はuvChecker.pngとmonsterBall.png。初期に読み込んでいるのはmonsterBall.png
 
-	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
-
+	// Sprite(textureSrvHandleGPUは三角形にも使用)
 	DirectX::ScratchImage mipImages_;
-	DirectX::ScratchImage mipImages2_;
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
+	ID3D12Resource* textureResource_;
+	ID3D12Resource* intermediateResource_;
+	// Sphere
+	DirectX::ScratchImage mipImages2_;
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2_;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2_;
+	ID3D12Resource* textureResource2_;
+	ID3D12Resource* intermediateResource2_;
+
+#pragma region Depth
+
+	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
 	ID3D12Resource* depthStencilResource_;
 	ID3D12DescriptorHeap* dsvDescriptorHeap_;
-	ID3D12Resource* textureResource_;
-	ID3D12Resource* textureResource2_;
-	ID3D12Resource* transformationMatrixResourceSprite_;
+
+#pragma endregion
+
+#pragma region Material
+	// Spriteと三角形
+	Vector4* materialData_;
 	ID3D12Resource* materialResource_;
-	ID3D12Resource* intermediateResource_;
-	ID3D12Resource* intermediateResource2_;
-	ID3D12Resource* vertexResourceSprit_;
-	ID3D12Resource* wvpResourceSphere_;
-	ID3D12Resource* vertexResourceSphere_;
+	// Sphere
+	Vector4* materialDataSphere_;
 	ID3D12Resource* materialResourceSphere_;
+
+#pragma endregion
+
+#pragma region Vertex
+	// Sprite
+	ID3D12Resource* vertexResourceSprit_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite_;
 	VertexData* vertexDataSprite_;
+	// Sphere
+	ID3D12Resource* vertexResourceSphere_;
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere_;
+	VertexData* vertexDataSphere_;
 
+#pragma endregion
+
+#pragma region カメラ
+	// Sprite
+	ID3D12Resource* transformationMatrixResourceSprite_;
 	Matrix4x4* transformationMatrixDataSprite_;
 	Transform transformSprite_;
 	Matrix4x4 worldMatrixSprite_;
 	Matrix4x4 viewMatrixSprite_;
 	Matrix4x4 projectionMatrixSprite_;
 	Matrix4x4 worldViewProjectionMatrixSprite_;
-
-	Vector4* materialData_;
-	
+	// Sphere
+	ID3D12Resource* wvpResourceSphere_;
+	Matrix4x4* wvpDataSphere_;
 	Transform transformSphere_;
 	Matrix4x4 worldMatrixSphere_;
 	Matrix4x4 viewMatrixSphere_;
 	Matrix4x4 projectionMatrixSphere_;
 	Matrix4x4 worldViewProjectionMatrixSphere_;
 
-	Matrix4x4* wvpDataSphere_;
+#pragma endregion
 
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere_;
-	VertexData* vertexDataSphere_;
-
-	Vector4* materialDataSphere_;
 	const uint32_t kSubdivision = 16; //分割数
 	const uint32_t kLatIndex = 16;
 	const uint32_t kLonIndex = 16;
 	uint32_t startIndex = (kLatIndex * kSubdivision + kLonIndex) * 6;
 
+	// Sphereの画像切り替え
 	bool useMonsterBall_ = true;
 };

@@ -13,6 +13,8 @@ public:
 	ID3D12Device* GetDevice() { return this->device_; }
 	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
 	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return this->srvDescriptorHeap_; }
+	D3D12_RENDER_TARGET_VIEW_DESC GetRtvDesc() { return rtvDesc_; }
+	DXGI_SWAP_CHAIN_DESC1 GetSwapChainDesc() { return swapChainDesc_; }
 
 	// 使用するアダプタを決定する
 	void GetAdapter();

@@ -13,7 +13,7 @@ void ImGuiManager::Initialize(ID3D12Device* device, DXGI_SWAP_CHAIN_DESC1 swapCh
 		srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 }
 
-void ImGuiManager::Draw() {
+void ImGuiManager::PreDraw() {
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
