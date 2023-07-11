@@ -85,7 +85,6 @@ private:
 	// 三角形を描画できる最大数
 	static const int kMaxTriangle = 2;
 	Triangle* Triangle_[kMaxTriangle];
-	//Vector4* materialData_;
 	DirectXCommon* directXCommon_;
 	IDxcUtils* dxcUtils_;
 	IDxcCompiler3* dxcCompiler_;
@@ -116,11 +115,4 @@ private:
 	Camera camera_;
 	ImGuiManager* imGuiManager_;
 	TextureManager textureManager_;
-	//DirectX::ScratchImage mipImages_;
-	//ID3D12Resource* textureResource_;
-	//D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc_;
-	//D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
-	//D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
-	//ID3D12Resource* intermediateResource_;
-	//D3D12_HEAP_PROPERTIES heapProperties_;
 };

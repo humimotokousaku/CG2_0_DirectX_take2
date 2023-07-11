@@ -4,6 +4,7 @@
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
 #include "imguiManager.h"
+#include "TextureManager.h"
 
 class DirectXCommon
 {

@@ -5,6 +5,19 @@
 #include <cassert>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "ImGuiManager.h"
+
+D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	handleCPU.ptr += (descriptorSize * index);
+	return handleCPU;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	handleGPU.ptr += (descriptorSize * index);
+	return handleGPU;
+}
 
 ID3D12Resource* TextureManager::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
 	HRESULT hr;
@@ -108,24 +121,56 @@ void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommand
 	const DirectX::TexMetadata& metadata = mipImages_.GetMetadata();
 	textureResource_ = CreateTextureResource(device, metadata);
 	intermediateResource_ = UploadTextureData(textureResource_, mipImages_, device, commandList);
-	CreateShaderResourceView(device, srvDescriptorHeap, metadata);
+
+	// DescriptorSizeを取得
+	const uint32_t descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	// metaDataをもとにSRVの設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = metadata.format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
+	// SRVを作成するDescriptorHeapの場所を決める
+	textureSrvHandleCPU_ = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
+	textureSrvHandleGPU_ = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
+	// SRVの生成
+	device->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU_);
+
+
+
+	mipImages2_ = LoadTexture("resources/monsterBall.png");
+	const DirectX::TexMetadata& metadata2 = mipImages2_.GetMetadata();
+	textureResource2_ = CreateTextureResource(device, metadata2);
+	intermediateResource2_ = UploadTextureData(textureResource2_, mipImages2_, device, commandList);
+
+	// metaDataをもとにSRVの設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc2{};
+	srvDesc2.Format = metadata2.format;
+	srvDesc2.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc2.Texture2D.MipLevels = UINT(metadata2.mipLevels);
+	textureSrvHandleCPU2_ = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 2);
+	textureSrvHandleGPU2_ = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 2);
+	// SRVの生成
+	device->CreateShaderResourceView(textureResource2_, &srvDesc2, textureSrvHandleCPU2_);
 }
 
-void TextureManager::CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap, const DirectX::TexMetadata& metadata) {
+void TextureManager::CreateShaderResourceView(ID3D12Device* device, ID3D12DescriptorHeap* srvDescriptorHeap, const DirectX::TexMetadata& metadata, D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandle) {
+	// DescriptorSizeを取得
+	const uint32_t descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 	// metaDataをもとにSRVの設定
-	srvDesc_.Format = metadata.format;
-	srvDesc_.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc_.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc_.Texture2D.MipLevels = UINT(metadata.mipLevels);
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = metadata.format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
 
 	// SRVを作成するDescriptorHeapの場所を決める
-	textureSrvHandleCPU_ = srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	textureSrvHandleGPU_ = srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
-	// 先頭はImGuiが使っているのでその次を使う
-	textureSrvHandleCPU_.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	textureSrvHandleGPU_.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleCPU_ = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
+	textureSrvHandleGPU_ = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
 	// SRVの生成
-	device->CreateShaderResourceView(textureResource_, &srvDesc_, textureSrvHandleCPU_);
+	device->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU_);
 }
 
 ID3D12Resource* TextureManager::CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height) {
@@ -187,7 +232,8 @@ void TextureManager::CreateDepthStencilView(ID3D12Device* device) {
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-	device->CreateDepthStencilView(depthStencilResource_, &dsvDesc, dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart());
+	const uint32_t descriptorSizeDSV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	device->CreateDepthStencilView(depthStencilResource_, &dsvDesc, GetCPUDescriptorHandle(dsvDescriptorHeap_, descriptorSizeDSV, 0));
 }
 
 void TextureManager::SettingDepthStencilState() {
@@ -251,7 +297,7 @@ void TextureManager::CreateWvpResource(ID3D12Device* device) {
 	*wvpDataSphere_ = MakeIdentity4x4();
 }
 
-void TextureManager::SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) {
+void TextureManager::SpriteInitialize(ID3D12Device* device) {
 	CreateVertexResource(device);
 
 	CreateMaterialResource(device);
@@ -266,11 +312,9 @@ void TextureManager::SpriteInitialize(ID3D12Device* device, D3D12_GPU_DESCRIPTOR
 
 	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 	transformSphere_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
-
-	textureSrvHandleGPU_ = textureSrvHandleGPU;
 }
 
-void TextureManager::DrawSprite(ID3D12Device* device,ID3D12GraphicsCommandList* commandList) {
+void TextureManager::DrawSprite(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
 	worldMatrixSprite_ = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
 	viewMatrixSprite_ = MakeIdentity4x4();
 	projectionMatrixSprite_ = MakeOrthographicMatrix(0.0f, 0.0f, float(1280), float(720), 0.0f, 100.0f);
@@ -310,6 +354,7 @@ void TextureManager::DrawSprite(ID3D12Device* device,ID3D12GraphicsCommandList* 
 
 void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, const Matrix4x4& transformationMatrixData) {
 	// カメラ
+	transformSphere_.rotate.y += 0.006f;
 	worldMatrixSphere_ = MakeAffineMatrix(transformSphere_.scale, transformSphere_.rotate, transformSphere_.translate);
 	worldMatrixSphere_ = Multiply(worldMatrixSphere_, transformationMatrixData);
 	*wvpDataSphere_ = worldMatrixSphere_;
@@ -318,7 +363,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 	const float kLatEvery = float(M_PI) / float(kSubdivision);//緯度分割1つ分の角度
 	// 緯度の方向に分割
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
-		float lat = float(- M_PI) / 2.0f + kLatEvery * latIndex;
+		float lat = float(-M_PI) / 2.0f + kLatEvery * latIndex;
 		// 経度の方向に分割しながら線を描く
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
 			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
@@ -345,7 +390,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 			vertexDataSphere_[start + 2].position.z = cos(lat) * sin(lon + kLonEvery);
 			vertexDataSphere_[start + 2].position.w = 1.0f;
 			vertexDataSphere_[start + 2].texcoord = { u + (1.0f / kSubdivision),v + (1.0f / kSubdivision) };
-			
+
 #pragma endregion
 
 #pragma region 2枚目
@@ -375,6 +420,10 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 	}
 	*materialDataSphere_ = { 1.0f,1.0f,1.0f,1.0f };
 
+	ImGui::Text("Sphere");
+	ImGui::Checkbox("useMonsterBall", &useMonsterBall_);
+	ImGui::SliderFloat3("Sphere.Transform", &transformSphere_.translate.x, -2,2);
+
 	// コマンドを積む
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSphere_); // VBVを設定
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
@@ -384,23 +433,24 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 	// wvp陽男のCBufferの場所を設定
 	commandList->SetGraphicsRootConstantBufferView(1, wvpResourceSphere_->GetGPUVirtualAddress());
 	// DescriptorTableの設定
-	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+	commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall_ ? textureSrvHandleGPU2_ : textureSrvHandleGPU_);
 
 	commandList->DrawInstanced(startIndex, 1, 0, 0);
 }
 
 void TextureManager::Release() {
 	depthStencilResource_->Release();
-	transformationMatrixResourceSprite_->Release();
-	vertexResourceSprit_->Release();
-	materialResource_->Release();
 	dsvDescriptorHeap_->Release();
-	textureResource_->Release();
-	intermediateResource_->Release();
-	wvpResourceSphere_->Release();
+	vertexResourceSprit_->Release();
 	vertexResourceSphere_->Release();
+	materialResource_->Release();
 	materialResourceSphere_->Release();
-
+	textureResource_->Release();
+	textureResource2_->Release();
+	intermediateResource_->Release();
+	intermediateResource2_->Release();
+	transformationMatrixResourceSprite_->Release();
+	wvpResourceSphere_->Release();
 }
 
 void TextureManager::ComUninit() {

@@ -319,12 +319,6 @@ void MyEngine::VariableInitialize() {
 	}
 }
 
-//void MyEngine::SettingHeapProperties() {
-//	heapProperties_.Type = D3D12_HEAP_TYPE_DEFAULT;
-//	heapProperties_.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-//	heapProperties_.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-//}
-
 void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
 	textureManager_.ComInit();
 	auto&& titleString = ConvertString(title);
@@ -346,14 +340,10 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	// Textureの転送
 	textureManager_.TransferTexture(directXCommon_->GetDevice(),directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
 
-	// DSVの設定
-	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;		   // Format。基本的にはResourceに合わせる
-	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D; // 2DTexture
-
 	// DSVHeapの先頭にDSVを作る
 	textureManager_.CreateDepthStencilView(directXCommon_->GetDevice());
-	directXCommon_->GetDevice()->CreateDepthStencilView(textureManager_.GetDepthStencilResource(), &dsvDesc, textureManager_.GetDsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
+	//directXCommon_->GetDevice()->CreateDepthStencilView(textureManager_.GetDepthStencilResource(), &dsvDesc, textureManager_.GetDsvDescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
+	textureManager_.CreateDepthStencilView(directXCommon_->GetDevice());
 
 	// カメラの初期化
 	camera_.Initialize();
@@ -361,7 +351,7 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->SetTextureSrvHandleGPU(textureManager_.GetTextureSrvHandleGPU());
 	}
-	textureManager_.SpriteInitialize(directXCommon_->GetDevice(),Triangle_[0]->textureSrvHandleGPU_);
+	textureManager_.SpriteInitialize(directXCommon_->GetDevice());
 }
 
 void MyEngine::BeginFrame() {
@@ -376,18 +366,17 @@ void MyEngine::BeginFrame() {
 	camera_.SettingCamera();
 }
 void MyEngine::Draw() {
-	textureManager_.DrawSphere(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), *camera_.GetTransformationMatrixData());
+	// ImGui
+	imGuiManager_->Draw();
+	// 
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_.GetTransformationMatrixData());
 	}
+	textureManager_.DrawSphere(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), *camera_.GetTransformationMatrixData());
 	textureManager_.DrawSprite(directXCommon_->GetDevice(),directXCommon_->GetCommandList());
-
-	//textureManager_.IntermediateResourceCommand(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 }
 
 void MyEngine::EndFrame() {
-	// ImGui
-	imGuiManager_->Draw();
 	directXCommon_->PostDraw();
 }
 

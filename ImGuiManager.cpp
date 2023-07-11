@@ -18,10 +18,10 @@ void ImGuiManager::Draw() {
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 	ImGui::ShowDemoWindow();
-	ImGui::Render();
 }
 
 void ImGuiManager::PostDraw(ID3D12GraphicsCommandList* commandList) {
+	ImGui::Render();
 	// 実際のcommandListのImGuiの描画コマンドを積む
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 }
