@@ -16,6 +16,8 @@
 #include "Transform.h"
 #include "VertexData.h"
 #include "Camera.h"
+#include "Material.h"
+#include "TransformationMatrix.h"
 
 class Triangle
 {
@@ -56,9 +58,9 @@ public:
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	VertexData* vertexData_;
 	ID3D12Resource* materialResource_;
-	Vector4* materialData_;
+	Material* materialData_;
 	ID3D12Resource* wvpResource_;
-	Matrix4x4* wvpData_;
+	TransformationMatrix* wvpData_;
 	Transform transform_;
-	Matrix4x4 worldMatrix_;
+	//Matrix4x4 worldMatrix_;
 };

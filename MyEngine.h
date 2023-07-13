@@ -93,7 +93,7 @@ private:
 	ID3DBlob* signatureBlob_;
 	ID3DBlob* errorBlob_;
 	ID3D12RootSignature* rootSignature_;
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[2];
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[3];
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc_;
 	D3D12_BLEND_DESC blendDesc_;
 	D3D12_RASTERIZER_DESC rasterizerDesc_;
@@ -106,7 +106,7 @@ private:
 	VertexData vertexLeft_[kMaxTriangle];
 	VertexData vertexTop_[kMaxTriangle];
 	VertexData vertexRight_[kMaxTriangle];
-	D3D12_ROOT_PARAMETER rootParameters_[3];
+	D3D12_ROOT_PARAMETER rootParameters_[4];
 	D3D12_DESCRIPTOR_RANGE descriptorRange_[1];
 	D3D12_STATIC_SAMPLER_DESC staticSamplers_[1];
 	Camera camera_;

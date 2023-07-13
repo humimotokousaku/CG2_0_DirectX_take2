@@ -124,6 +124,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ConvertString.h" />
+    <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="DirectXCommon.h" />
     <ClInclude Include="externals\ImGui\imconfig.h" />
     <ClInclude Include="externals\ImGui\imgui.h" />
@@ -134,10 +135,12 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\ImGui\imstb_textedit.h" />
     <ClInclude Include="externals\ImGui\imstb_truetype.h" />
     <ClInclude Include="ImGuiManager.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Matrix4x4.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="TransformationMatrix.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="MyEngine.h" />
     <ClInclude Include="Vector2.h" />

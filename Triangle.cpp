@@ -51,7 +51,7 @@ void Triangle::CreateVertexBufferView() {
 }
 
 void Triangle::CreateMaterialResource() {
-	materialResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4));
+	materialResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Material));
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
@@ -60,11 +60,11 @@ void Triangle::CreateMaterialResource() {
 
 void Triangle::CreateWvpResource() {
 	// 1つ分のサイズを用意する
-	wvpResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Matrix4x4));
+	wvpResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(TransformationMatrix));
 	// 書き込むためのアドレスを取得
 	wvpResource_->Map(0, nullptr, reinterpret_cast<void**>(&wvpData_));
 	// 単位行列を書き込んでおく
-	*wvpData_ = MakeIdentity4x4();
+	wvpData_->WVP = MakeIdentity4x4();
 }
 
 void Triangle::Initialize(DirectXCommon* directXCommon) {
@@ -87,6 +87,8 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	{0.0f,0.0f,0.0f},
 	{0.0f,0.0f,0.0f}
 	};
+
+	materialData_->enableLighting = false;
 }
 
 void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData) {
@@ -94,9 +96,9 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 #pragma region 三角形の回転
 
 	transform_.rotate.y += 0.03f;
-	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	worldMatrix_ = Multiply(worldMatrix_,transformationMatrixData);
-	*wvpData_ = worldMatrix_;
+	wvpData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+	wvpData_->World = Multiply(wvpData_->World,transformationMatrixData);
+	wvpData_->WVP = wvpData_->World;
 
 #pragma endregion
 
@@ -111,7 +113,7 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	vertexData_[2].texcoord = {1.0f,1.0f};
 
 	// 赤色にする
-	*materialData_ = color;
+	materialData_->color = color;
 
 	// コマンドを積む
 	ID3D12GraphicsCommandList* commandList = directXCommon_->GetCommandList();

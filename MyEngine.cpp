@@ -134,6 +134,10 @@ void MyEngine::CreateRootParameter() {
 
 	CraeteDescriptorTable();
 
+	rootParameters_[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters_[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters_[3].Descriptor.ShaderRegister = 1;
+
 	descriptionRootSignature_.pParameters = rootParameters_;
 	descriptionRootSignature_.NumParameters = _countof(rootParameters_);
 }
@@ -172,6 +176,12 @@ void MyEngine::SettingInputLayout() {
 	inputElementDescs_[1].SemanticIndex = 0;
 	inputElementDescs_[1].Format = DXGI_FORMAT_R32G32_FLOAT;
 	inputElementDescs_[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+
+	inputElementDescs_[2].SemanticName = "NORMAL";
+	inputElementDescs_[2].SemanticIndex = 0;
+	inputElementDescs_[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	inputElementDescs_[2].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+
 	inputLayoutDesc_.pInputElementDescs = inputElementDescs_;
 	inputLayoutDesc_.NumElements = _countof(inputElementDescs_);
 }

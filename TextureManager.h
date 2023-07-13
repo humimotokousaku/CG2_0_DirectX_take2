@@ -7,7 +7,9 @@
 #include "VertexData.h"
 #include "Transform.h"
 #include <d3d12.h>
-
+#include "Material.h"
+#include "TransformationMatrix.h"
+#include "DirectionalLight.h"
 
 class TextureManager
 {
@@ -63,6 +65,8 @@ public:
 	// wvpResourceの生成
 	void CreateWvpResource(ID3D12Device* device);
 
+	void CreateDirectionalResource(ID3D12Device* device);
+
 	// スプライトの初期化
 	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
 
@@ -104,10 +108,10 @@ public:
 
 #pragma region Material
 	// Spriteと三角形
-	Vector4* materialData_;
+	Material* materialData_;
 	ID3D12Resource* materialResource_;
 	// Sphere
-	Vector4* materialDataSphere_;
+	Material* materialDataSphere_;
 	ID3D12Resource* materialResourceSphere_;
 
 #pragma endregion
@@ -127,26 +131,29 @@ public:
 #pragma region カメラ
 	// Sprite
 	ID3D12Resource* transformationMatrixResourceSprite_;
-	Matrix4x4* transformationMatrixDataSprite_;
+	TransformationMatrix* transformationMatrixDataSprite_;
 	Transform transformSprite_;
-	Matrix4x4 worldMatrixSprite_;
+	//Matrix4x4 worldMatrixSprite_;
 	Matrix4x4 viewMatrixSprite_;
 	Matrix4x4 projectionMatrixSprite_;
 	Matrix4x4 worldViewProjectionMatrixSprite_;
 	// Sphere
 	ID3D12Resource* wvpResourceSphere_;
-	Matrix4x4* wvpDataSphere_;
+	TransformationMatrix* wvpDataSphere_;
 	Transform transformSphere_;
-	Matrix4x4 worldMatrixSphere_;
+	//Matrix4x4 worldMatrixSphere_;
 	Matrix4x4 viewMatrixSphere_;
 	Matrix4x4 projectionMatrixSphere_;
 	Matrix4x4 worldViewProjectionMatrixSphere_;
 
 #pragma endregion
 
-	const uint32_t kSubdivision = 16; //分割数
-	const uint32_t kLatIndex = 16;
-	const uint32_t kLonIndex = 16;
+	ID3D12Resource* directionalLightResource_;
+	DirectionalLight* directionalLightData_;
+
+	const uint32_t kSubdivision = 32; //分割数
+	const uint32_t kLatIndex = 32;
+	const uint32_t kLonIndex = 32;
 	uint32_t startIndex = (kLatIndex * kSubdivision + kLonIndex) * 6;
 
 	// Sphereの画像切り替え
