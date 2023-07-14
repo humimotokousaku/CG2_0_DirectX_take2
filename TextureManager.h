@@ -151,10 +151,8 @@ public:
 	ID3D12Resource* directionalLightResource_;
 	DirectionalLight* directionalLightData_;
 
-	const uint32_t kSubdivision = 32; //分割数
-	const uint32_t kLatIndex = 32;
-	const uint32_t kLonIndex = 32;
-	uint32_t startIndex = (kLatIndex * kSubdivision + kLonIndex) * 6;
+	const uint32_t kSubdivision = 16; //分割数
+	uint32_t vertexIndex = kSubdivision * kSubdivision * 6;
 
 	// Sphereの画像切り替え
 	bool useMonsterBall_ = true;
