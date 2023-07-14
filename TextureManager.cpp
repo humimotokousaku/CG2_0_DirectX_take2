@@ -224,23 +224,23 @@ void TextureManager::SettingDepthStencilState() {
 }
 
 void TextureManager::CreateVertexResource(ID3D12Device* device) {
-	vertexResourceSprit_ = CreateBufferResource(device, sizeof(VertexData) * 6);
+	vertexResourceSprit_ = CreateBufferResource(device, sizeof(VertexData) * 4);
 
-	vertexResourceSphere_ = CreateBufferResource(device, sizeof(VertexData) * startIndex);
+	vertexResourceSphere_ = CreateBufferResource(device, sizeof(VertexData) * vertexIndex);
 }
 
 void TextureManager::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
 	vertexBufferViewSprite_.BufferLocation = vertexResourceSprit_->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 6;
+	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 4;
 	// 1頂点当たりのサイズ
 	vertexBufferViewSprite_.StrideInBytes = sizeof(VertexData);
 
 	// リソースの先頭のアドレスから使う
 	vertexBufferViewSphere_.BufferLocation = vertexResourceSphere_->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferViewSphere_.SizeInBytes = sizeof(VertexData) * startIndex;
+	vertexBufferViewSphere_.SizeInBytes = sizeof(VertexData) * vertexIndex;
 	// 1頂点当たりのサイズ
 	vertexBufferViewSphere_.StrideInBytes = sizeof(VertexData);
 }
@@ -289,25 +289,35 @@ void TextureManager::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList*
 	CreateDepthStencilView(device);
 
 	CreateVertexResource(device);
+	indexResourceSprite_ = CreateBufferResource(device, sizeof(uint32_t) * 6);
+
+	indexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite_));
+
 
 	CreateMaterialResource(device);
 
 	CreateWvpResource(device);
 
 	CreateVertexBufferView();
+	indexBufferViewSprite_.BufferLocation = indexResourceSprite_->GetGPUVirtualAddress();
+	indexBufferViewSprite_.SizeInBytes = sizeof(uint32_t) * 6;
+	indexBufferViewSprite_.Format = DXGI_FORMAT_R32_UINT;
 
 	CreateDirectionalResource(device);
 
 	// 書き込むためのアドレスを取得
 	vertexResourceSprit_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
+	indexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite_));
 	vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
 
 	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 	transformSphere_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
+	// Lightingするか
 	materialData_->enableLighting = false;
 	materialDataSphere_->enableLighting = true;
 
+	// Lightingのデフォ値
 	directionalLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	directionalLightData_->direction = { 0.0f, -1.0f, 0.0f };
 	directionalLightData_->intensity = 1.0f;
@@ -330,45 +340,49 @@ void TextureManager::DrawSprite(ID3D12Device* device, ID3D12GraphicsCommandList*
 	vertexDataSprite_[2].position = { 640.0f, 360.0f, 0.0f, 1.0f };// 右下
 	vertexDataSprite_[2].texcoord = { 1.0f,1.0f };
 	vertexDataSprite_[2].normal = { 0.0f,0.0f,-1.0f };
-	// 二枚目の三角形
-	vertexDataSprite_[3].position = { 0.0f, 0.0f, 0.0f, 1.0f };// 左上
-	vertexDataSprite_[3].texcoord = { 0.0f,0.0f };
+
+	vertexDataSprite_[3].position = { 640.0f, 0.0f, 0.0f, 1.0f };// 右上
+	vertexDataSprite_[3].texcoord = { 1.0f,0.0f };
 	vertexDataSprite_[3].normal = { 0.0f,0.0f,-1.0f };
-	vertexDataSprite_[4].position = { 640.0f, 0.0f, 0.0f, 1.0f };// 右上
-	vertexDataSprite_[4].texcoord = { 1.0f,0.0f };
-	vertexDataSprite_[4].normal = { 0.0f,0.0f,-1.0f };
-	vertexDataSprite_[5].position = { 640.0f, 360.0f, 0.0f, 1.0f };// 右下
-	vertexDataSprite_[5].texcoord = { 1.0f,1.0f };
-	vertexDataSprite_[5].normal = { 0.0f,0.0f,-1.0f };
+
+
+	indexDataSprite_[0] = 0;
+	indexDataSprite_[1] = 1;
+	indexDataSprite_[2] = 2;
+	indexDataSprite_[3] = 1;
+	indexDataSprite_[4] = 3;
+	indexDataSprite_[5] = 2;
 
 	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
 	// コマンドを積む
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_); // VBVを設定
+
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetIndexBuffer(&indexBufferViewSprite_);
+	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 	// マテリアルCBufferの場所を設定
 	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 	// wvp陽男のCBufferの場所を設定
 	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite_->GetGPUVirtualAddress());
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
+
 	// DescriptorTableの設定
 	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
-	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
-	commandList->DrawInstanced(6, 1, 0, 0);
+
+	// 描画(DrawCall/ドローコール)。6頂点で1つのインスタンス
+	commandList-> DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
 void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, const Matrix4x4& transformationMatrixData) {
 	// カメラ
 	transformSphere_.rotate.y += 0.006f;
 	wvpDataSphere_->World = MakeAffineMatrix(transformSphere_.scale, transformSphere_.rotate, transformSphere_.translate);
-	wvpDataSphere_->World = Multiply(wvpDataSphere_->World, transformationMatrixData);
-	wvpDataSphere_->WVP = wvpDataSphere_->World;
-	
+	wvpDataSphere_->WVP = Multiply(wvpDataSphere_->World, transformationMatrixData);
+	wvpDataSphere_->World = MakeIdentity4x4();
+
 	const float kLonEvery = 2.0f * float(M_PI) / float(kSubdivision);//経度分割1つ分の角度
 	const float kLatEvery = float(M_PI) / float(kSubdivision);//緯度分割1つ分の角度
-	float u;
-	float v;
 	// 緯度の方向に分割
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
 		float lat = float(-M_PI) / 2.0f + kLatEvery * latIndex;
@@ -376,8 +390,6 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
 			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
 			float lon = lonIndex * kLonEvery;
-			u = float(lonIndex) / float(kSubdivision);
-			v = 1.0f - float(latIndex) / float(kSubdivision);
 			// 頂点データを入力する。
 #pragma region 1枚目
 			// 基準点a
@@ -385,7 +397,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 			vertexDataSphere_[start].position.y = sin(lat);
 			vertexDataSphere_[start].position.z = cos(lat) * sin(lon);
 			vertexDataSphere_[start].position.w = 1.0f;
-			vertexDataSphere_[start].texcoord = { u ,v + (1.0f / kSubdivision) };
+			vertexDataSphere_[start].texcoord = { float(lonIndex) / float(kSubdivision) ,1.0f - float(latIndex) / float(kSubdivision)};
 			vertexDataSphere_[start].normal.x = vertexDataSphere_[start].position.x;
 			vertexDataSphere_[start].normal.y = vertexDataSphere_[start].position.y;
 			vertexDataSphere_[start].normal.z = vertexDataSphere_[start].position.z;
@@ -394,7 +406,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 			vertexDataSphere_[start + 1].position.y = sin(lat + kLatEvery);
 			vertexDataSphere_[start + 1].position.z = cos(lat + kLatEvery) * sin(lon);
 			vertexDataSphere_[start + 1].position.w = 1.0f;
-			vertexDataSphere_[start + 1].texcoord = { u,v };
+			vertexDataSphere_[start + 1].texcoord = { vertexDataSphere_[start].texcoord.x,vertexDataSphere_[start].texcoord.y - (1.0f / kSubdivision)};
 			vertexDataSphere_[start + 1].normal.x = vertexDataSphere_[start + 1].position.x;
 			vertexDataSphere_[start + 1].normal.y = vertexDataSphere_[start + 1].position.y;
 			vertexDataSphere_[start + 1].normal.z = vertexDataSphere_[start + 1].position.z;
@@ -403,7 +415,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 			vertexDataSphere_[start + 2].position.y = sin(lat);
 			vertexDataSphere_[start + 2].position.z = cos(lat) * sin(lon + kLonEvery);
 			vertexDataSphere_[start + 2].position.w = 1.0f;
-			vertexDataSphere_[start + 2].texcoord = { u + (1.0f / kSubdivision),v + (1.0f / kSubdivision) };
+			vertexDataSphere_[start + 2].texcoord = { vertexDataSphere_[start].texcoord.x + (1.0f / (float)kSubdivision),vertexDataSphere_[start].texcoord.y };
 			vertexDataSphere_[start + 2].normal.x = vertexDataSphere_[start + 2].position.x;
 			vertexDataSphere_[start + 2].normal.y = vertexDataSphere_[start + 2].position.y;
 			vertexDataSphere_[start + 2].normal.z = vertexDataSphere_[start + 2].position.z;
@@ -417,7 +429,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 			vertexDataSphere_[start + 3].position.y = sin(lat + kLatEvery);
 			vertexDataSphere_[start + 3].position.z = cos(lat + kLatEvery) * sin(lon);
 			vertexDataSphere_[start + 3].position.w = 1.0f;
-			vertexDataSphere_[start + 3].texcoord = { u,v };
+			vertexDataSphere_[start + 3].texcoord = { vertexDataSphere_[start].texcoord.x,vertexDataSphere_[start].texcoord.y - (1.0f / (float)kSubdivision)};
 			vertexDataSphere_[start + 3].normal.x = vertexDataSphere_[start + 3].position.x;
 			vertexDataSphere_[start + 3].normal.y = vertexDataSphere_[start + 3].position.y;
 			vertexDataSphere_[start + 3].normal.z = vertexDataSphere_[start + 3].position.z;
@@ -426,7 +438,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 			vertexDataSphere_[start + 4].position.y = sin(lat + kLatEvery);
 			vertexDataSphere_[start + 4].position.z = cos(lat + kLatEvery) * sin(lon + kLonEvery);
 			vertexDataSphere_[start + 4].position.w = 1.0f;
-			vertexDataSphere_[start + 4].texcoord = { u + (1.0f / kSubdivision),v };
+			vertexDataSphere_[start + 4].texcoord = { vertexDataSphere_[start].texcoord.x + (1.0f / (float)kSubdivision),vertexDataSphere_[start].texcoord.y - (1.0f / (float)kSubdivision)};
 			vertexDataSphere_[start + 4].normal.x = vertexDataSphere_[start + 4].position.x;
 			vertexDataSphere_[start + 4].normal.y = vertexDataSphere_[start + 4].position.y;
 			vertexDataSphere_[start + 4].normal.z = vertexDataSphere_[start + 4].position.z;
@@ -435,7 +447,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 			vertexDataSphere_[start + 5].position.y = sin(lat);
 			vertexDataSphere_[start + 5].position.z = cos(lat) * sin(lon + kLonEvery);
 			vertexDataSphere_[start + 5].position.w = 1.0f;
-			vertexDataSphere_[start + 5].texcoord = { u + (1.0f / kSubdivision),v + (1.0f / kSubdivision) };
+			vertexDataSphere_[start + 5].texcoord = { vertexDataSphere_[start].texcoord.x + (1.0f / (float)kSubdivision),vertexDataSphere_[start].texcoord.y };
 			vertexDataSphere_[start + 5].normal.x = vertexDataSphere_[start + 5].position.x;
 			vertexDataSphere_[start + 5].normal.y = vertexDataSphere_[start + 5].position.y;
 			vertexDataSphere_[start + 5].normal.z = vertexDataSphere_[start + 5].position.z;
@@ -449,10 +461,12 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 
 	ImGui::Text("Sphere");
 	ImGui::Checkbox("useMonsterBall", &useMonsterBall_);
-	ImGui::SliderFloat3("Sphere.Transform", &transformSphere_.translate.x, -2,2);
+	ImGui::SliderFloat3("Sphere.Translate", &transformSphere_.translate.x, -2,2);
+	ImGui::SliderFloat3("Sphere.Rotate", &transformSphere_.rotate.x, -1, 1);
 
 	ImGui::Text("Ligting");
-	ImGui::SliderFloat3("Lighting.direction", &directionalLightData_->direction.x, -3, 3);
+	ImGui::SliderFloat3("Lighting.direction", &directionalLightData_->direction.x, -1, 1);
+	ImGui::SliderFloat("Lighting.intensity", &directionalLightData_->intensity, 0, 1);
 
 	// コマンドを積む
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSphere_); // VBVを設定
@@ -468,7 +482,7 @@ void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList*
 
 	// マテリアルCBufferの場所を設定
 	commandList->SetGraphicsRootConstantBufferView(0, materialResourceSphere_->GetGPUVirtualAddress());
-	commandList->DrawInstanced(startIndex, 1, 0, 0);
+	commandList->DrawInstanced(vertexIndex, 1, 0, 0);
 }
 
 void TextureManager::Release() {
@@ -485,6 +499,7 @@ void TextureManager::Release() {
 	depthStencilResource_->Release();
 	dsvDescriptorHeap_->Release();
 	directionalLightResource_->Release();
+	indexResourceSprite_->Release();
 }
 
 void TextureManager::ComUninit() {

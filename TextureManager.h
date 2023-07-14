@@ -22,6 +22,7 @@ public:
 	ID3D12Resource* GetDepthStencilResource() { return depthStencilResource_; }
 	D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc() { return depthStencilDesc_; }
 	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureSrvHandleGPU() { return textureSrvHandleGPU_; }
+	ID3D12Resource* GetDirectionalLightResource() { return directionalLightResource_; }
 
 	// COMの初期化
 	void ComInit();
@@ -107,7 +108,7 @@ public:
 #pragma endregion
 
 #pragma region Material
-	// Spriteと三角形
+	// Sprite
 	Material* materialData_;
 	ID3D12Resource* materialResource_;
 	// Sphere
@@ -125,6 +126,15 @@ public:
 	ID3D12Resource* vertexResourceSphere_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere_;
 	VertexData* vertexDataSphere_;
+
+#pragma endregion
+
+#pragma region Index
+
+	// index
+	ID3D12Resource* indexResourceSprite_;
+	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite_;
+	uint32_t* indexDataSprite_ = nullptr;
 
 #pragma endregion
 
@@ -151,10 +161,8 @@ public:
 	ID3D12Resource* directionalLightResource_;
 	DirectionalLight* directionalLightData_;
 
-	const uint32_t kSubdivision = 32; //分割数
-	const uint32_t kLatIndex = 32;
-	const uint32_t kLonIndex = 32;
-	uint32_t startIndex = (kLatIndex * kSubdivision + kLonIndex) * 6;
+	const uint32_t kSubdivision = 16; //分割数
+	uint32_t vertexIndex = kSubdivision * kSubdivision * 6;
 
 	// Sphereの画像切り替え
 	bool useMonsterBall_ = true;

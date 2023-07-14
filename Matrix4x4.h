@@ -40,3 +40,12 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 
 // ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
+
+// 内積
+float Dot(const Vector3& v1, const Vector3& v2);
+
+// 長さ(ノルム)
+float Length(const Vector3& v);
+
+// 正規化
+Vector3 Normalize(const Vector3& v);

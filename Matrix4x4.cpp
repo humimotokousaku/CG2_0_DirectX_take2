@@ -354,3 +354,29 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 
 	return result;
 }
+
+// 内積
+float Dot(const Vector3& v1, const Vector3& v2) {
+	float result{};
+	result = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	return result;
+}
+
+// 長さ(ノルム)
+float Length(const Vector3& v) {
+	float result{};
+	result = sqrt(Dot(v, v));
+	return result;
+}
+
+// 正規化
+Vector3 Normalize(const Vector3& v) {
+	Vector3 result{};
+	float length = Length(v);
+	if (length != 0.0f) {
+		result.x = v.x / length;
+		result.y = v.y / length;
+		result.z = v.z / length;
+	}
+	return result;
+}
