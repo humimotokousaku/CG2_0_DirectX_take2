@@ -62,4 +62,7 @@ public:
 	ID3D12Resource* wvpResource_;
 	TransformationMatrix* wvpData_;
 	Transform transform_;
+
+	Transform uvTransform_;
+	Matrix4x4 uvTransformMatrix_;
 };

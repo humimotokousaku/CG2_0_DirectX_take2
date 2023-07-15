@@ -312,7 +312,8 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 
 	// Textureの初期化
 	textureManager_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
-	
+	sprite_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
+	sphere_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 	// 三角形の頂点データ
 	VariableInitialize();
 	// 三角形の生成
@@ -321,8 +322,10 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 		// 初期化
 		Triangle_[i]->Initialize(directXCommon_);
 		// 使う画像
-		Triangle_[i]->SetTextureSrvHandleGPU(textureManager_.GetTextureSrvHandleGPU());
+		Triangle_[i]->SetTextureSrvHandleGPU(*textureManager_.GetTextureSrvHandleGPU());
 	}
+	// ライトの設定
+	light_.Initialize(directXCommon_->GetDevice());
 
 	// カメラの初期化
 	camera_.Initialize();
@@ -351,9 +354,12 @@ void MyEngine::Draw() {
 		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_.GetTransformationMatrixData());
 	}
 	// 球
-	textureManager_.DrawSphere(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), *camera_.GetTransformationMatrixData());
+	sphere_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), *camera_.GetTransformationMatrixData(), light_.GetDirectionalLightResource());
 	// スプライト
-	textureManager_.DrawSprite(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
+	sprite_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), light_.GetDirectionalLightResource());
+
+	// ライトのImGui
+	light_.DrawDebugParameter();
 }
 
 void MyEngine::EndFrame() {
@@ -381,6 +387,9 @@ void MyEngine::Release() {
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
 	textureManager_.Release();
+	sprite_.Release();
+	sphere_.Release();
+	light_.Release();
 
 	CloseWindow(WinApp::hwnd_);
 

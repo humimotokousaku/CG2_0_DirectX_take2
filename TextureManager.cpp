@@ -115,40 +115,33 @@ ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const
 }
 
 void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap) {
-	mipImages_ = LoadTexture("resources/uvChecker.png");
-	const DirectX::TexMetadata& metadata = mipImages_.GetMetadata();
-	textureResource_ = CreateTextureResource(device, metadata);
-	intermediateResource_ = UploadTextureData(textureResource_, mipImages_, device, commandList);
+	mipImages_[0] = LoadTexture("resources/uvChecker.png");
+	mipImages_[1] = LoadTexture("resources/monsterBall.png");
+	DirectX::TexMetadata metadata[2]{};
+	for (uint32_t i = 0; i < 2; i++) {
+		metadata[i] = mipImages_[i].GetMetadata();
+		textureResource_[i] = CreateTextureResource(device, metadata[i]);
+		intermediateResource_[i] = UploadTextureData(textureResource_[i], mipImages_[i], device, commandList);
+	}
 
 	// DescriptorSizeを取得
-	const uint32_t descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	uint32_t descriptorSizeSRV[2]{};
+	for (uint32_t i = 0; i < 2; i++) {
+		descriptorSizeSRV[i] = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
 	// metaDataをもとにSRVの設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = metadata.format;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
-	// SRVを作成するDescriptorHeapの場所を決める
-	textureSrvHandleCPU_ = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
-	textureSrvHandleGPU_ = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 1);
-	// SRVの生成
-	device->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU_);
-
-	mipImages2_ = LoadTexture("resources/monsterBall.png");
-	const DirectX::TexMetadata& metadata2 = mipImages2_.GetMetadata();
-	textureResource2_ = CreateTextureResource(device, metadata2);
-	intermediateResource2_ = UploadTextureData(textureResource2_, mipImages2_, device, commandList);
-
-	// metaDataをもとにSRVの設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc2{};
-	srvDesc2.Format = metadata2.format;
-	srvDesc2.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc2.Texture2D.MipLevels = UINT(metadata2.mipLevels);
-	textureSrvHandleCPU2_ = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 2);
-	textureSrvHandleGPU2_ = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 2);
-	// SRVの生成
-	device->CreateShaderResourceView(textureResource2_, &srvDesc2, textureSrvHandleCPU2_);
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc[2]{};
+	for (uint32_t i = 0; i < 2; i++) {
+		srvDesc[i].Format = metadata[i].format;
+		srvDesc[i].Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc[i].ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc[i].Texture2D.MipLevels = UINT(metadata[i].mipLevels);
+		// SRVを作成するDescriptorHeapの場所を決める
+		textureSrvHandleCPU_[i] = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV[i], i + 1);
+		textureSrvHandleGPU_[i] = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV[i], i + 1);
+		// SRVの生成
+		device->CreateShaderResourceView(textureResource_[i], &srvDesc[i], textureSrvHandleCPU_[i]);
+	}
 }
 
 ID3D12Resource* TextureManager::CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height) {
@@ -223,283 +216,20 @@ void TextureManager::SettingDepthStencilState() {
 	depthStencilDesc_.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 }
 
-void TextureManager::CreateVertexResource(ID3D12Device* device) {
-	vertexResourceSprit_ = CreateBufferResource(device, sizeof(VertexData) * 4);
-
-	vertexResourceSphere_ = CreateBufferResource(device, sizeof(VertexData) * vertexIndex);
-}
-
-void TextureManager::CreateVertexBufferView() {
-	// リソースの先頭のアドレスから使う
-	vertexBufferViewSprite_.BufferLocation = vertexResourceSprit_->GetGPUVirtualAddress();
-	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 4;
-	// 1頂点当たりのサイズ
-	vertexBufferViewSprite_.StrideInBytes = sizeof(VertexData);
-
-	// リソースの先頭のアドレスから使う
-	vertexBufferViewSphere_.BufferLocation = vertexResourceSphere_->GetGPUVirtualAddress();
-	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferViewSphere_.SizeInBytes = sizeof(VertexData) * vertexIndex;
-	// 1頂点当たりのサイズ
-	vertexBufferViewSphere_.StrideInBytes = sizeof(VertexData);
-}
-
-void TextureManager::CreateMaterialResource(ID3D12Device* device) {
-	materialResource_ = CreateBufferResource(device, sizeof(Material));
-	// マテリアルにデータを書き込む
-	materialData_ = nullptr;
-	// 書き込むためのアドレスを取得
-	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
-
-	materialResourceSphere_ = CreateBufferResource(device, sizeof(Material));
-	// マテリアルにデータを書き込む
-	materialDataSphere_ = nullptr;
-	// 書き込むためのアドレスを取得
-	materialResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSphere_));
-}
-
-void TextureManager::CreateWvpResource(ID3D12Device* device) {
-	// 1つ分のサイズを用意する
-	transformationMatrixResourceSprite_ = CreateBufferResource(device, sizeof(TransformationMatrix));
-	// 書き込むためのアドレスを取得
-	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
-	// 単位行列を書き込んでおく
-	transformationMatrixDataSprite_->WVP = MakeIdentity4x4();
-
-	// 1つ分のサイズを用意する
-	wvpResourceSphere_ = CreateBufferResource(device, sizeof(TransformationMatrix));
-	// 書き込むためのアドレスを取得
-	wvpResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere_));
-	// 単位行列を書き込んでおく
-	wvpDataSphere_->WVP = MakeIdentity4x4();
-}
-
-void TextureManager::CreateDirectionalResource(ID3D12Device* device) {
-	directionalLightResource_ = CreateBufferResource(device, sizeof(DirectionalLight));
-	// マテリアルにデータを書き込む
-	directionalLightData_ = nullptr;
-	// 書き込むためのアドレスを取得
-	directionalLightResource_->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData_));
-}
-
 void TextureManager::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap) {
 	TransferTexture(device, commandList, srvDescriptorHeap);
 
 	CreateDepthStencilView(device);
-
-	CreateVertexResource(device);
-	indexResourceSprite_ = CreateBufferResource(device, sizeof(uint32_t) * 6);
-
-	indexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite_));
-
-
-	CreateMaterialResource(device);
-
-	CreateWvpResource(device);
-
-	CreateVertexBufferView();
-	indexBufferViewSprite_.BufferLocation = indexResourceSprite_->GetGPUVirtualAddress();
-	indexBufferViewSprite_.SizeInBytes = sizeof(uint32_t) * 6;
-	indexBufferViewSprite_.Format = DXGI_FORMAT_R32_UINT;
-
-	CreateDirectionalResource(device);
-
-	// 書き込むためのアドレスを取得
-	vertexResourceSprit_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
-	indexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite_));
-	vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
-
-	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
-	transformSphere_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
-
-	// Lightingするか
-	materialData_->enableLighting = false;
-	materialDataSphere_->enableLighting = true;
-
-	// Lightingのデフォ値
-	directionalLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	directionalLightData_->direction = { 0.0f, -1.0f, 0.0f };
-	directionalLightData_->intensity = 1.0f;
 }
 
-void TextureManager::DrawSprite(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
-	transformationMatrixDataSprite_->World = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
-	viewMatrixSprite_ = MakeIdentity4x4();
-	projectionMatrixSprite_ = MakeOrthographicMatrix(0.0f, 0.0f, float(1280), float(720), 0.0f, 100.0f);
-	worldViewProjectionMatrixSprite_ = Multiply(transformationMatrixDataSprite_->World, Multiply(viewMatrixSprite_, projectionMatrixSprite_));
-	transformationMatrixDataSprite_->WVP = worldViewProjectionMatrixSprite_;
-
-	// 一枚目の三角形
-	vertexDataSprite_[0].position = { 0.0f, 360.0f, 0.0f, 1.0f };// 左下
-	vertexDataSprite_[0].texcoord = { 0.0f,1.0f };
-	vertexDataSprite_[0].normal = { 0.0f,0.0f,-1.0f };
-	vertexDataSprite_[1].position = { 0.0f, 0.0f, 0.0f, 1.0f };// 左上
-	vertexDataSprite_[1].texcoord = { 0.0f,0.0f };
-	vertexDataSprite_[1].normal = { 0.0f,0.0f,-1.0f };
-	vertexDataSprite_[2].position = { 640.0f, 360.0f, 0.0f, 1.0f };// 右下
-	vertexDataSprite_[2].texcoord = { 1.0f,1.0f };
-	vertexDataSprite_[2].normal = { 0.0f,0.0f,-1.0f };
-
-	vertexDataSprite_[3].position = { 640.0f, 0.0f, 0.0f, 1.0f };// 右上
-	vertexDataSprite_[3].texcoord = { 1.0f,0.0f };
-	vertexDataSprite_[3].normal = { 0.0f,0.0f,-1.0f };
-
-
-	indexDataSprite_[0] = 0;
-	indexDataSprite_[1] = 1;
-	indexDataSprite_[2] = 2;
-	indexDataSprite_[3] = 1;
-	indexDataSprite_[4] = 3;
-	indexDataSprite_[5] = 2;
-
-	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
-
-	// コマンドを積む
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_); // VBVを設定
-
-	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	commandList->IASetIndexBuffer(&indexBufferViewSprite_);
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
-	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
-	// wvp陽男のCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite_->GetGPUVirtualAddress());
-
-	// DescriptorTableの設定
-	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
-
-	// 描画(DrawCall/ドローコール)。6頂点で1つのインスタンス
-	commandList-> DrawIndexedInstanced(6, 1, 0, 0, 0);
-}
-
-void TextureManager::DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, const Matrix4x4& transformationMatrixData) {
-	// カメラ
-	transformSphere_.rotate.y += 0.006f;
-	wvpDataSphere_->World = MakeAffineMatrix(transformSphere_.scale, transformSphere_.rotate, transformSphere_.translate);
-	wvpDataSphere_->WVP = Multiply(wvpDataSphere_->World, transformationMatrixData);
-	wvpDataSphere_->World = MakeIdentity4x4();
-
-	const float kLonEvery = 2.0f * float(M_PI) / float(kSubdivision);//経度分割1つ分の角度
-	const float kLatEvery = float(M_PI) / float(kSubdivision);//緯度分割1つ分の角度
-	// 緯度の方向に分割
-	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
-		float lat = float(-M_PI) / 2.0f + kLatEvery * latIndex;
-		// 経度の方向に分割しながら線を描く
-		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
-			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
-			float lon = lonIndex * kLonEvery;
-			// 頂点データを入力する。
-#pragma region 1枚目
-			// 基準点a
-			vertexDataSphere_[start].position.x = cos(lat) * cos(lon);
-			vertexDataSphere_[start].position.y = sin(lat);
-			vertexDataSphere_[start].position.z = cos(lat) * sin(lon);
-			vertexDataSphere_[start].position.w = 1.0f;
-			vertexDataSphere_[start].texcoord = { float(lonIndex) / float(kSubdivision) ,1.0f - float(latIndex) / float(kSubdivision)};
-			vertexDataSphere_[start].normal.x = vertexDataSphere_[start].position.x;
-			vertexDataSphere_[start].normal.y = vertexDataSphere_[start].position.y;
-			vertexDataSphere_[start].normal.z = vertexDataSphere_[start].position.z;
-			// b
-			vertexDataSphere_[start + 1].position.x = cos(lat + kLatEvery) * cos(lon);
-			vertexDataSphere_[start + 1].position.y = sin(lat + kLatEvery);
-			vertexDataSphere_[start + 1].position.z = cos(lat + kLatEvery) * sin(lon);
-			vertexDataSphere_[start + 1].position.w = 1.0f;
-			vertexDataSphere_[start + 1].texcoord = { vertexDataSphere_[start].texcoord.x,vertexDataSphere_[start].texcoord.y - (1.0f / kSubdivision)};
-			vertexDataSphere_[start + 1].normal.x = vertexDataSphere_[start + 1].position.x;
-			vertexDataSphere_[start + 1].normal.y = vertexDataSphere_[start + 1].position.y;
-			vertexDataSphere_[start + 1].normal.z = vertexDataSphere_[start + 1].position.z;
-			// c
-			vertexDataSphere_[start + 2].position.x = cos(lat) * cos(lon + kLonEvery);
-			vertexDataSphere_[start + 2].position.y = sin(lat);
-			vertexDataSphere_[start + 2].position.z = cos(lat) * sin(lon + kLonEvery);
-			vertexDataSphere_[start + 2].position.w = 1.0f;
-			vertexDataSphere_[start + 2].texcoord = { vertexDataSphere_[start].texcoord.x + (1.0f / (float)kSubdivision),vertexDataSphere_[start].texcoord.y };
-			vertexDataSphere_[start + 2].normal.x = vertexDataSphere_[start + 2].position.x;
-			vertexDataSphere_[start + 2].normal.y = vertexDataSphere_[start + 2].position.y;
-			vertexDataSphere_[start + 2].normal.z = vertexDataSphere_[start + 2].position.z;
-
-#pragma endregion
-
-#pragma region 2枚目
-
-			// b
-			vertexDataSphere_[start + 3].position.x = cos(lat + kLatEvery) * cos(lon);
-			vertexDataSphere_[start + 3].position.y = sin(lat + kLatEvery);
-			vertexDataSphere_[start + 3].position.z = cos(lat + kLatEvery) * sin(lon);
-			vertexDataSphere_[start + 3].position.w = 1.0f;
-			vertexDataSphere_[start + 3].texcoord = { vertexDataSphere_[start].texcoord.x,vertexDataSphere_[start].texcoord.y - (1.0f / (float)kSubdivision)};
-			vertexDataSphere_[start + 3].normal.x = vertexDataSphere_[start + 3].position.x;
-			vertexDataSphere_[start + 3].normal.y = vertexDataSphere_[start + 3].position.y;
-			vertexDataSphere_[start + 3].normal.z = vertexDataSphere_[start + 3].position.z;
-			// d
-			vertexDataSphere_[start + 4].position.x = cos(lat + kLatEvery) * cos(lon + kLonEvery);
-			vertexDataSphere_[start + 4].position.y = sin(lat + kLatEvery);
-			vertexDataSphere_[start + 4].position.z = cos(lat + kLatEvery) * sin(lon + kLonEvery);
-			vertexDataSphere_[start + 4].position.w = 1.0f;
-			vertexDataSphere_[start + 4].texcoord = { vertexDataSphere_[start].texcoord.x + (1.0f / (float)kSubdivision),vertexDataSphere_[start].texcoord.y - (1.0f / (float)kSubdivision)};
-			vertexDataSphere_[start + 4].normal.x = vertexDataSphere_[start + 4].position.x;
-			vertexDataSphere_[start + 4].normal.y = vertexDataSphere_[start + 4].position.y;
-			vertexDataSphere_[start + 4].normal.z = vertexDataSphere_[start + 4].position.z;
-			// c
-			vertexDataSphere_[start + 5].position.x = cos(lat) * cos(lon + kLonEvery);
-			vertexDataSphere_[start + 5].position.y = sin(lat);
-			vertexDataSphere_[start + 5].position.z = cos(lat) * sin(lon + kLonEvery);
-			vertexDataSphere_[start + 5].position.w = 1.0f;
-			vertexDataSphere_[start + 5].texcoord = { vertexDataSphere_[start].texcoord.x + (1.0f / (float)kSubdivision),vertexDataSphere_[start].texcoord.y };
-			vertexDataSphere_[start + 5].normal.x = vertexDataSphere_[start + 5].position.x;
-			vertexDataSphere_[start + 5].normal.y = vertexDataSphere_[start + 5].position.y;
-			vertexDataSphere_[start + 5].normal.z = vertexDataSphere_[start + 5].position.z;
-
-#pragma endregion
-
-		}
-	}
-
-	materialDataSphere_->color = { 1.0f,1.0f,1.0f,1.0f };
-
-	ImGui::Text("Sphere");
-	ImGui::Checkbox("useMonsterBall", &useMonsterBall_);
-	ImGui::SliderFloat3("Sphere.Translate", &transformSphere_.translate.x, -2,2);
-	ImGui::SliderFloat3("Sphere.Rotate", &transformSphere_.rotate.x, -1, 1);
-
-	ImGui::Text("Ligting");
-	ImGui::SliderFloat3("Lighting.direction", &directionalLightData_->direction.x, -1, 1);
-	ImGui::SliderFloat("Lighting.intensity", &directionalLightData_->intensity, 0, 1);
-
-	// コマンドを積む
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSphere_); // VBVを設定
-	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	// DescriptorTableの設定
-	commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall_ ? textureSrvHandleGPU2_ : textureSrvHandleGPU_);
-
-	// wvpのCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, wvpResourceSphere_->GetGPUVirtualAddress());
-
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
-
-	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResourceSphere_->GetGPUVirtualAddress());
-	commandList->DrawInstanced(vertexIndex, 1, 0, 0);
-}
 
 void TextureManager::Release() {
-	wvpResourceSphere_->Release();
-	transformationMatrixResourceSprite_->Release();
-	materialResourceSphere_->Release();
-	materialResource_->Release();
-	vertexResourceSprit_->Release();
-	vertexResourceSphere_->Release();
-	textureResource_->Release();
-	textureResource2_->Release();
-	intermediateResource_->Release();
-	intermediateResource2_->Release();
+	for (uint32_t i = 0; i < 2; i++) {
+		textureResource_[i]->Release();
+		intermediateResource_[i]->Release();
+	}
 	depthStencilResource_->Release();
 	dsvDescriptorHeap_->Release();
-	directionalLightResource_->Release();
-	indexResourceSprite_->Release();
 }
 
 void TextureManager::ComUninit() {

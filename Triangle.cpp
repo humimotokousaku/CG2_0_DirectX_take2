@@ -87,11 +87,22 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	{0.0f,0.0f,0.0f},
 	{0.0f,0.0f,0.0f}
 	};
+	uvTransform_ = {
+	{1.0f,1.0f,1.0f},
+	{0.0f,0.0f,0.0f},
+	{0.0f,0.0f,0.0f}
+	};
+
+	materialData_->uvTransform = MakeIdentity4x4();
 
 	materialData_->enableLighting = false;
 }
 
 void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData) {
+	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
+	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
+	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
+	materialData_->uvTransform = uvTransformMatrix_;
 
 #pragma region 三角形の回転
 

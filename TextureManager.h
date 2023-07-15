@@ -10,6 +10,7 @@
 #include "Material.h"
 #include "TransformationMatrix.h"
 #include "DirectionalLight.h"
+#include "Light.h"
 
 class TextureManager
 {
@@ -21,8 +22,7 @@ public:
 	ID3D12DescriptorHeap* GetDsvDescriptorHeap() { return dsvDescriptorHeap_; }
 	ID3D12Resource* GetDepthStencilResource() { return depthStencilResource_; }
 	D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc() { return depthStencilDesc_; }
-	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureSrvHandleGPU() { return textureSrvHandleGPU_; }
-	ID3D12Resource* GetDirectionalLightResource() { return directionalLightResource_; }
+	D3D12_GPU_DESCRIPTOR_HANDLE* GetTextureSrvHandleGPU() { return textureSrvHandleGPU_; }
 
 	// COMの初期化
 	void ComInit();
@@ -54,28 +54,8 @@ public:
 	// textureを読んで転送する
 	void TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
 
-	// vertexResourceの生成
-	void CreateVertexResource(ID3D12Device* device);
-
-	// vertexBufferViewの生成
-	void CreateVertexBufferView();
-
-	// materialResourceの生成
-	void CreateMaterialResource(ID3D12Device* device);
-
-	// wvpResourceの生成
-	void CreateWvpResource(ID3D12Device* device);
-
-	void CreateDirectionalResource(ID3D12Device* device);
-
 	// スプライトの初期化
 	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
-
-	//	スプライトの描画(今は三角形のtextureと同じ変えたい場合はtextureSrvHandleGPUを変える必要あり)
-	void DrawSprite(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
-
-	// 球体の描画
-	void DrawSphere(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, const Matrix4x4& transformationMatrixData);
 
 	// 解放処理
 	void Release();
@@ -83,87 +63,14 @@ public:
 	// COMの終了処理
 	void ComUninit();
 public:
-	// Spriteで使っている画像はuvChecker.png
-	// Sphereで使っている画像はuvChecker.pngとmonsterBall.png。初期に読み込んでいるのはmonsterBall.png
-
-	// Sprite(textureSrvHandleGPUは三角形にも使用)
-	DirectX::ScratchImage mipImages_;
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
-	ID3D12Resource* textureResource_;
-	ID3D12Resource* intermediateResource_;
-	// Sphere
-	DirectX::ScratchImage mipImages2_;
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2_;
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2_;
-	ID3D12Resource* textureResource2_;
-	ID3D12Resource* intermediateResource2_;
-
-#pragma region Depth
-
+	// [0]はSpriteに使用しているuvChecker.png(textureSrvHandleGPUは三角形にも使用)[1]はSphereに使用しているmonsterBall.png
+	DirectX::ScratchImage mipImages_[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_[2];
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_[2];
+	ID3D12Resource* textureResource_[2];
+	ID3D12Resource* intermediateResource_[2];
+	// Depth
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
 	ID3D12Resource* depthStencilResource_;
 	ID3D12DescriptorHeap* dsvDescriptorHeap_;
-
-#pragma endregion
-
-#pragma region Material
-	// Sprite
-	Material* materialData_;
-	ID3D12Resource* materialResource_;
-	// Sphere
-	Material* materialDataSphere_;
-	ID3D12Resource* materialResourceSphere_;
-
-#pragma endregion
-
-#pragma region Vertex
-	// Sprite
-	ID3D12Resource* vertexResourceSprit_;
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite_;
-	VertexData* vertexDataSprite_;
-	// Sphere
-	ID3D12Resource* vertexResourceSphere_;
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere_;
-	VertexData* vertexDataSphere_;
-
-#pragma endregion
-
-#pragma region Index
-
-	// index
-	ID3D12Resource* indexResourceSprite_;
-	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite_;
-	uint32_t* indexDataSprite_ = nullptr;
-
-#pragma endregion
-
-#pragma region カメラ
-	// Sprite
-	ID3D12Resource* transformationMatrixResourceSprite_;
-	TransformationMatrix* transformationMatrixDataSprite_;
-	Transform transformSprite_;
-	//Matrix4x4 worldMatrixSprite_;
-	Matrix4x4 viewMatrixSprite_;
-	Matrix4x4 projectionMatrixSprite_;
-	Matrix4x4 worldViewProjectionMatrixSprite_;
-	// Sphere
-	ID3D12Resource* wvpResourceSphere_;
-	TransformationMatrix* wvpDataSphere_;
-	Transform transformSphere_;
-	//Matrix4x4 worldMatrixSphere_;
-	Matrix4x4 viewMatrixSphere_;
-	Matrix4x4 projectionMatrixSphere_;
-	Matrix4x4 worldViewProjectionMatrixSphere_;
-
-#pragma endregion
-
-	ID3D12Resource* directionalLightResource_;
-	DirectionalLight* directionalLightData_;
-
-	const uint32_t kSubdivision = 16; //分割数
-	uint32_t vertexIndex = kSubdivision * kSubdivision * 6;
-
-	// Sphereの画像切り替え
-	bool useMonsterBall_ = true;
 };

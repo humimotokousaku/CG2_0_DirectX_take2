@@ -4,6 +4,9 @@
 #include "Triangle.h"
 #include "ImGuiManager.h"
 #include "TextureManager.h"
+#include "Light.h"
+#include "Sprite.h"
+#include "Sphere.h"
 
 class MyEngine {
 public:
@@ -86,6 +89,9 @@ private:
 	static const int kMaxTriangle = 2;
 	Triangle* Triangle_[kMaxTriangle];
 	DirectXCommon* directXCommon_;
+	Light light_;
+	Sprite sprite_;
+	Sphere sphere_;
 	IDxcUtils* dxcUtils_;
 	IDxcCompiler3* dxcCompiler_;
 	IDxcIncludeHandler* includeHandler_;
