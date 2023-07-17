@@ -310,11 +310,13 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	// シザー矩形の生成
 	CreateScissor();
 
+	// objの初期化
+	objModel_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 	// Textureの初期化
-	textureManager_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
+	textureManager_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap(), objModel_.GetModelData());
 	sprite_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 	sphere_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
-	objModel_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetModelData());
+
 	// 三角形の頂点データ
 	VariableInitialize();
 	// 三角形の生成

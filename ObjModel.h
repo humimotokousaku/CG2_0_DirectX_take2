@@ -8,9 +8,11 @@
 #include <d3d12.h>
 #include "TextureManager.h"
 
-class DrawObj
+class ObjModel
 {
 public:
+	ModelData GetModelData() { return modelData_; }
+
 	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
 
 	void CreateVertexResource(ID3D12Device* device);
@@ -21,7 +23,9 @@ public:
 
 	void CreateWvpResource(ID3D12Device* device);
 
-	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ModelData modelData);
+	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+
+	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
 
 	void Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, ID3D12Resource* directionalLightResource);
 

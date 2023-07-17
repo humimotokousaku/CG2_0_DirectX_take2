@@ -34,7 +34,7 @@ public:
 	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
 	// objファイルの読み込み
-	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+	//ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 
 	// DirectX12のTextureResourceを作る
 	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
@@ -59,9 +59,9 @@ public:
 
 	// textureを読んで転送する
 	void TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
-
+	        
 	// スプライトの初期化
-	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap);
+	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap, ModelData modelData);
 
 	// 解放処理
 	void Release();
@@ -70,11 +70,12 @@ public:
 	void ComUninit();
 public:
 	// [0]はSpriteに使用しているuvChecker.png(textureSrvHandleGPUは三角形にも使用)[1]はSphereに使用しているmonsterBall.png
-	DirectX::ScratchImage mipImages_[2];
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_[2];
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_[2];
-	ID3D12Resource* textureResource_[2];
-	ID3D12Resource* intermediateResource_[2];
+	static const uint32_t kMaxImages = 3;
+	DirectX::ScratchImage mipImages_[kMaxImages];
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_[kMaxImages];
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_[kMaxImages];
+	ID3D12Resource* textureResource_[kMaxImages];
+	ID3D12Resource* intermediateResource_[kMaxImages];
 	// Depth
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
 	ID3D12Resource* depthStencilResource_;

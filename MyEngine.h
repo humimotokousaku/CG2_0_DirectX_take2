@@ -7,7 +7,7 @@
 #include "Light.h"
 #include "Sprite.h"
 #include "Sphere.h"
-#include "DrawObj.h"
+#include "ObjModel.h"
 
 class MyEngine {
 public:
@@ -119,5 +119,5 @@ private:
 	Camera camera_;
 	ImGuiManager* imGuiManager_;
 	TextureManager textureManager_;
-	DrawObj objModel_;
+	ObjModel objModel_;
 };
