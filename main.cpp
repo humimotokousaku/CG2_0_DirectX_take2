@@ -30,8 +30,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 	}
 	// 解放処理
-	engine->Release();
-//	CoUninitialize();
+	engine->Finalize();
 #pragma endregion
 
 	return 0;

@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-ID3D12Resource* Sphere::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+const Microsoft::WRL::ComPtr<ID3D12Resource> Sphere::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -31,8 +31,8 @@ ID3D12Resource* Sphere::CreateBufferResource(ID3D12Device* device, size_t sizeIn
 	return vertexResource;
 }
 
-void Sphere::CreateVertexResource(ID3D12Device* device) {
-	vertexResource_ = CreateBufferResource(device, sizeof(VertexData) * vertexIndex);
+void Sphere::CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+	vertexResource_ = CreateBufferResource(device.Get(), sizeof(VertexData) * vertexIndex).Get();
 }
 
 void Sphere::CreateVertexBufferView() {
@@ -44,7 +44,7 @@ void Sphere::CreateVertexBufferView() {
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-void Sphere::CreateMaterialResource(ID3D12Device* device) {
+void Sphere::CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
 	materialResource_ = CreateBufferResource(device, sizeof(Material));
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
@@ -52,21 +52,21 @@ void Sphere::CreateMaterialResource(ID3D12Device* device) {
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void Sphere::CreateWvpResource(ID3D12Device* device) {
+void Sphere::CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
 	// 1つ分のサイズを用意する
-	transformationMatrixResource_ = CreateBufferResource(device, sizeof(TransformationMatrix));
+	transformationMatrixResource_ = CreateBufferResource(device.Get(), sizeof(TransformationMatrix)).Get();
 	// 書き込むためのアドレスを取得
 	transformationMatrixResource_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData_));
 	// 単位行列を書き込んでおく
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
 
-void Sphere::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
-	CreateVertexResource(device);
+void Sphere::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
+	CreateVertexResource(device.Get());
 
-	CreateMaterialResource(device);
+	CreateMaterialResource(device.Get());
 
-	CreateWvpResource(device);
+	CreateWvpResource(device.Get());
 
 	CreateVertexBufferView();
 
@@ -87,7 +87,7 @@ void Sphere::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command
 	materialData_->uvTransform = MakeIdentity4x4();
 }
 
-void Sphere::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, ID3D12Resource* directionalLightResource) {
+void Sphere::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource) {
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
@@ -190,17 +190,17 @@ void Sphere::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, 
 	commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall_ ? textureSrvHandleGPU[1] : textureSrvHandleGPU[0]);
 
 	// wvpのCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
 
 	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
 	commandList->DrawInstanced(vertexIndex, 1, 0, 0);
 }
 
 void Sphere::Release() {
-	transformationMatrixResource_->Release();
-	materialResource_->Release();
-	vertexResource_->Release();
+	//transformationMatrixResource_->Release();
+	//materialResource_->Release();
+	//vertexResource_->Release();
 }

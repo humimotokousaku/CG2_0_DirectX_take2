@@ -340,26 +340,3 @@ void DirectXCommon::Release() {
 
 #pragma endregion
 }
-
-#pragma region 静的メンバ変数
-
-UINT DirectXCommon::backBufferIndex_;
-IDXGIFactory7* DirectXCommon::dxgiFactory_;
-IDXGIAdapter4* DirectXCommon::useAdapter_;
-ID3D12Device* DirectXCommon::device_;
-ID3D12InfoQueue* DirectXCommon::infoQueue_;
-ID3D12CommandQueue* DirectXCommon::commandQueue_;
-ID3D12CommandAllocator* DirectXCommon::commandAllocator_;
-ID3D12GraphicsCommandList* DirectXCommon::commandList_;
-IDXGISwapChain4* DirectXCommon::swapChain_;
-DXGI_SWAP_CHAIN_DESC1 DirectXCommon::swapChainDesc_;
-D3D12_RENDER_TARGET_VIEW_DESC DirectXCommon::rtvDesc_;
-ID3D12DescriptorHeap* DirectXCommon::rtvDescriptorHeap_;
-ID3D12DescriptorHeap* DirectXCommon::srvDescriptorHeap_;
-ID3D12Resource* DirectXCommon::swapChainResources_[2];
-D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::rtvHandles_[2];
-ID3D12Fence* DirectXCommon::fence_;
-uint64_t DirectXCommon::fenceValue_;
-HANDLE DirectXCommon::fenceEvent_;
-D3D12_RESOURCE_BARRIER DirectXCommon::barrier_;
-#pragma endregion

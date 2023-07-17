@@ -5,12 +5,12 @@
 #include <cassert>
 
 Triangle::~Triangle() {
-	wvpResource_->Release();
-	materialResource_->Release();
-	vertexResource_->Release();
+	//wvpResource_->Release();
+	//materialResource_->Release();
+	//vertexResource_->Release();
 }
 
-ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+const Microsoft::WRL::ComPtr<ID3D12Resource> Triangle::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -30,7 +30,7 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 
 	ID3D12Resource* vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 

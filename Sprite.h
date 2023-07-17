@@ -5,42 +5,43 @@
 #include "TransformationMatrix.h"
 #include "Material.h"
 #include <d3d12.h>
+#include <wrl.h>
 
 class Sprite
 {
 public:
-	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
+	const Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes);
 
-	void CreateVertexResource(ID3D12Device* device);
+	void CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
 
 	void CreateVertexBufferView();
 
-	void CreateMaterialResource(ID3D12Device* device);
+	void CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
 
-	void CreateWvpResource(ID3D12Device* device);
+	void CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
 
-	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
+	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
 
-	void Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, ID3D12Resource* directionalLightResource);
+	void Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource);
 
 	void Release();
 
 public:	
 	// Material
 	Material* materialData_;
-	ID3D12Resource* materialResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
 	Transform uvTransform_;
 	Matrix4x4 uvTransformMatrix_;
 	// Vertex
-	ID3D12Resource* vertexResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	VertexData* vertexData_;
 	// index
-	ID3D12Resource* indexResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> indexResource_;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView_;
 	uint32_t* indexData_ = nullptr;
 	// Sprite
-	ID3D12Resource* transformationMatrixResource_;
+	Microsoft::WRL::ComPtr <ID3D12Resource> transformationMatrixResource_;
 	TransformationMatrix* transformationMatrixData_;
 	Transform transform_;
 	Matrix4x4 viewMatrix_;

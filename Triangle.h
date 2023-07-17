@@ -18,12 +18,13 @@
 #include "Camera.h"
 #include "Material.h"
 #include "TransformationMatrix.h"
+#include <wrl.h>
 
 class Triangle
 {
 public:
 	// Getter
-	ID3D12Resource* GetMaterialResource() { return materialResource_; }
+	const Microsoft::WRL::ComPtr<ID3D12Resource> GetMaterialResource() { return materialResource_; }
 
 	// Setter
 	void SetTextureSrvHandleGPU(D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) { textureSrvHandleGPU_ = textureSrvHandleGPU; }
@@ -31,7 +32,7 @@ public:
 	~Triangle();
 
 	// Resource生成
-	ID3D12Resource* CreateBufferResource(ID3D12Device* device,size_t sizeInBytes);
+	const Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes);
 
 	// VertexResourceの生成
 	void CreateVertexResource();
@@ -54,12 +55,12 @@ public:
 public:
 	DirectXCommon* directXCommon_;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
-	ID3D12Resource* vertexResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	VertexData* vertexData_;
-	ID3D12Resource* materialResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
 	Material* materialData_;
-	ID3D12Resource* wvpResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> wvpResource_;
 	TransformationMatrix* wvpData_;
 	Transform transform_;
 

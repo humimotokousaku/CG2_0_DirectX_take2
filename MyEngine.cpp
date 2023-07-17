@@ -300,6 +300,7 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	WinApp::Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
 	// DirectXの初期化
+	directXCommon_ = new DirectXCommon();
 	directXCommon_->Initialize();
 	// DXCの初期化
 	DXCInitialize();
@@ -314,7 +315,7 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	textureManager_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
 	sprite_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 	sphere_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
-	objModel_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetModelData());
+	objModel_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 	// 三角形の頂点データ
 	VariableInitialize();
 	// 三角形の生成
@@ -357,7 +358,6 @@ void MyEngine::Draw() {
 	// 球
 	sphere_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), *camera_.GetTransformationMatrixData(), light_.GetDirectionalLightResource());
 	// スプライト
-	//sprite_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), light_.GetDirectionalLightResource());
 	objModel_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), *camera_.GetTransformationMatrixData(), light_.GetDirectionalLightResource());
 
 
@@ -374,8 +374,9 @@ void MyEngine::EndFrame() {
 	directXCommon_->PostDraw();
 }
 
-void MyEngine::Release() {
+void MyEngine::Finalize() {
 	// DirectX
+	delete directXCommon_;
 	directXCommon_->Release();
 	// ImGui
 	imGuiManager_->Release();

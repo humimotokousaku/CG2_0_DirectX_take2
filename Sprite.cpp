@@ -2,7 +2,7 @@
 #include "ImGuiManager.h"
 #include <cassert>
 
-ID3D12Resource* Sprite::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+const Microsoft::WRL::ComPtr<ID3D12Resource> Sprite::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -22,15 +22,15 @@ ID3D12Resource* Sprite::CreateBufferResource(ID3D12Device* device, size_t sizeIn
 
 	ID3D12Resource* vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 
 	return vertexResource;
 }
 
-void Sprite::CreateVertexResource(ID3D12Device* device) {
-	vertexResource_ = CreateBufferResource(device, sizeof(VertexData) * 4);
+void Sprite::CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+	vertexResource_ = CreateBufferResource(device.Get(), sizeof(VertexData) * 4).Get();
 }
 
 void Sprite::CreateVertexBufferView() {
@@ -42,7 +42,7 @@ void Sprite::CreateVertexBufferView() {
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-void Sprite::CreateMaterialResource(ID3D12Device* device) {
+void Sprite::CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
 	materialResource_ = CreateBufferResource(device, sizeof(Material));
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
@@ -50,7 +50,7 @@ void Sprite::CreateMaterialResource(ID3D12Device* device) {
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void Sprite::CreateWvpResource(ID3D12Device* device) {
+void Sprite::CreateWvpResource(const Microsoft::WRL::ComPtr <ID3D12Device>& device) {
 	// 1つ分のサイズを用意する
 	transformationMatrixResource_ = CreateBufferResource(device, sizeof(TransformationMatrix));
 	// 書き込むためのアドレスを取得
@@ -59,17 +59,17 @@ void Sprite::CreateWvpResource(ID3D12Device* device) {
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
 
-void Sprite::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
-	CreateVertexResource(device);
-	indexResource_ = CreateBufferResource(device, sizeof(uint32_t) * 6);
+void Sprite::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr <ID3D12GraphicsCommandList>& commandList) {
+	CreateVertexResource(device.Get());
+	indexResource_ = CreateBufferResource(device.Get(), sizeof(uint32_t) * 6);
 	indexResource_->Map(0, nullptr, reinterpret_cast<void**>(&indexData_));
 
-	CreateMaterialResource(device);
+	CreateMaterialResource(device.Get());
 
-	CreateWvpResource(device);
+	CreateWvpResource(device.Get());
 
 	CreateVertexBufferView();
-	indexBufferView_.BufferLocation = indexResource_->GetGPUVirtualAddress();
+	indexBufferView_.BufferLocation = indexResource_.Get()->GetGPUVirtualAddress();
 	indexBufferView_.SizeInBytes = sizeof(uint32_t) * 6;
 	indexBufferView_.Format = DXGI_FORMAT_R32_UINT;
 
@@ -91,7 +91,7 @@ void Sprite::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command
 	materialData_->uvTransform = MakeIdentity4x4();
 }
 
-void Sprite::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, ID3D12Resource* directionalLightResource) {
+void Sprite::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Microsoft::WRL::ComPtr <ID3D12Resource>& directionalLightResource) {
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
@@ -137,11 +137,11 @@ void Sprite::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, 
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetIndexBuffer(&indexBufferView_);
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
 	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
 	// wvp陽男のCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
 	// DescriptorTableの設定
 	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU[0]);
@@ -151,8 +151,8 @@ void Sprite::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, 
 }
 
 void Sprite::Release() {
-	transformationMatrixResource_->Release();
-	indexResource_->Release();
-	vertexResource_->Release();
-	materialResource_->Release();
+	//transformationMatrixResource_->Release();
+	//indexResource_->Release();
+	//vertexResource_->Release();
+	//materialResource_->Release();
 }

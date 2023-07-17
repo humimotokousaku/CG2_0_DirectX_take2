@@ -21,7 +21,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetGPUDescriptorHandle(ID3D12Descrip
 	return handleGPU;
 }
 
-ID3D12Resource* TextureManager::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -68,79 +68,7 @@ DirectX::ScratchImage TextureManager::LoadTexture(const std::string& filePath) {
 	return mipImages;
 }
 
-ModelData TextureManager::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
-	ModelData modelData;
-	std::vector<Vector4> positions;
-	std::vector<Vector3> normals;
-	std::vector<Vector2> texcoords;
-	std::string line;
-	// ファイルを開く
-	std::ifstream file(directoryPath + "/" + filename);
-	assert(file.is_open());
-
-	while (std::getline(file, line)) {
-		std::string identifier;
-		std::istringstream s(line);
-		s >> identifier;
-		// 頂点情報を読む
-		if (identifier == "v") {
-			Vector4 position;
-			s >> position.x >> position.y >> position.z;
-			position.z *= -1.0f;
-			position.w = 1.0f;
-			positions.push_back(position);
-		}
-		else if (identifier == "vt") {
-			Vector2 texcoord{};
-			s >> texcoord.x >> texcoord.y;
-			texcoord.y = 1.0f - texcoord.y;
-			texcoords.push_back(texcoord);
-		}
-		else if (identifier == "vn") {
-			Vector3 normal;
-			s >> normal.x >> normal.y >> normal.z;
-			normal.z *= -1.0f;
-			normals.push_back(normal);
-		}
-		else if (identifier == "f") {
-			VertexData triangle[3];
-			for (int32_t faceVertex = 0; faceVertex < 3; ++faceVertex) {
-				std::string vertexDefinition;
-				s >> vertexDefinition;
-				// 頂点要素へのIndexを取得
-				std::istringstream v(vertexDefinition);
-				uint32_t elementIndices[3];
-				for (int32_t element = 0; element < 3; ++element) {
-					std::string index;
-					// /区切りで読んでいく
-					std::getline(v, index, '/');
-					elementIndices[element] = std::stoi(index);
-				}
-				// 要素へのIndexから、実際の値を取得して、頂点を構築する
-				Vector4 position = positions[elementIndices[0] - 1];
-				Vector2 texcoord = texcoords[elementIndices[1] - 1];
-				Vector3 normal = normals[elementIndices[2] - 1];
-				VertexData vertex = { position, texcoord, normal };
-				modelData.vertices.push_back(vertex);
-				triangle[faceVertex] = { position,texcoord,normal };
-			}
-			modelData.vertices.push_back(triangle[2]);
-			modelData.vertices.push_back(triangle[1]);
-			modelData.vertices.push_back(triangle[0]);
-		}
-		else if (identifier == "mtllib") {
-			// materilTemplateLibraryファイルの名前を取得
-			std::string materialFilename;
-			s >> materialFilename;
-			// 基本的にobjファイルと同一階層にmtlは存在させるので、ディレクトリ名とファイル名を渡す
-			modelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
-		}
-	}
-	
-	return modelData;
-}
-
-ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata) {
+const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateTextureResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const DirectX::TexMetadata& metadata) {
 	// metadataをもとにResourceの設定
 	D3D12_RESOURCE_DESC resourceDesc{};
 	resourceDesc.Width = UINT(metadata.width);
@@ -157,7 +85,7 @@ ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, cons
 
 	// Resourceの生成
 	ID3D12Resource* resource = nullptr;
-	HRESULT hr = device->CreateCommittedResource(
+	HRESULT hr = device.Get()->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
@@ -170,38 +98,38 @@ ID3D12Resource* TextureManager::CreateTextureResource(ID3D12Device* device, cons
 }
 
 [[nodiscard]]
-ID3D12Resource* TextureManager::UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages, ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
+Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, const DirectX::ScratchImage& mipImages, const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
 	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
-	DirectX::PrepareUpload(device, mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
-	uint64_t intermediateSize = GetRequiredIntermediateSize(texture, 0, UINT(subresources.size()));
-	ID3D12Resource* intermediateResource = CreateBufferResource(device, intermediateSize);
-	UpdateSubresources(commandList, texture, intermediateResource, 0, 0, UINT(subresources.size()), subresources.data());
+	DirectX::PrepareUpload(device.Get(), mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
+	uint64_t intermediateSize = GetRequiredIntermediateSize(texture.Get(), 0, UINT(subresources.size()));
+	ID3D12Resource* intermediateResource = CreateBufferResource(device.Get(), intermediateSize).Get();
+	UpdateSubresources(commandList.Get(), texture.Get(), intermediateResource, 0, 0, UINT(subresources.size()), subresources.data());
 	// textureへの転送後は利用できるように、D3D12_RESOURCE_STATE_COPY_DESTからD3D12_RESOURCE_STATE_GENERIC_READへResourceStateを変更する
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = texture;
+	barrier.Transition.pResource = texture.Get();
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
-	commandList->ResourceBarrier(1, &barrier);
+	commandList.Get()->ResourceBarrier(1, &barrier);
 	return intermediateResource;
 }
 
-void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap) {
+void TextureManager::TransferTexture(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap) {
 	mipImages_[0] = LoadTexture("resources/uvChecker.png");
 	mipImages_[1] = LoadTexture("resources/monsterBall.png");
 	DirectX::TexMetadata metadata[2]{};
 	for (uint32_t i = 0; i < 2; i++) {
 		metadata[i] = mipImages_[i].GetMetadata();
-		textureResource_[i] = CreateTextureResource(device, metadata[i]);
-		intermediateResource_[i] = UploadTextureData(textureResource_[i], mipImages_[i], device, commandList);
+		textureResource_[i] = CreateTextureResource(device.Get(), metadata[i]).Get();
+		intermediateResource_[i] = UploadTextureData(textureResource_[i].Get(), mipImages_[i], device.Get(), commandList.Get()).Get();
 	}
 
 	// DescriptorSizeを取得
 	uint32_t descriptorSizeSRV[2]{};
 	for (uint32_t i = 0; i < 2; i++) {
-		descriptorSizeSRV[i] = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		descriptorSizeSRV[i] = device.Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 	// metaDataをもとにSRVの設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc[2]{};
@@ -211,14 +139,14 @@ void TextureManager::TransferTexture(ID3D12Device* device, ID3D12GraphicsCommand
 		srvDesc[i].ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc[i].Texture2D.MipLevels = UINT(metadata[i].mipLevels);
 		// SRVを作成するDescriptorHeapの場所を決める
-		textureSrvHandleCPU_[i] = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV[i], i + 1);
-		textureSrvHandleGPU_[i] = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV[i], i + 1);
+		textureSrvHandleCPU_[i] = GetCPUDescriptorHandle(srvDescriptorHeap.Get(), descriptorSizeSRV[i], i + 1);
+		textureSrvHandleGPU_[i] = GetGPUDescriptorHandle(srvDescriptorHeap.Get(), descriptorSizeSRV[i], i + 1);
 		// SRVの生成
-		device->CreateShaderResourceView(textureResource_[i], &srvDesc[i], textureSrvHandleCPU_[i]);
+		device.Get()->CreateShaderResourceView(textureResource_[i].Get(), &srvDesc[i], textureSrvHandleCPU_[i]);
 	}
 }
 
-ID3D12Resource* TextureManager::CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height) {
+const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateDepthStencilTextureResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, int32_t width, int32_t height) {
 	// 生成するResourceの設定
 	D3D12_RESOURCE_DESC resourceDesc{};
 	resourceDesc.Width = width;									  // Textureの幅
@@ -241,7 +169,7 @@ ID3D12Resource* TextureManager::CreateDepthStencilTextureResource(ID3D12Device* 
 
 	// Resourceの生成
 	ID3D12Resource* resource = nullptr;
-	HRESULT hr = device->CreateCommittedResource(
+	HRESULT hr = device.Get()->CreateCommittedResource(
 		&heapProperties,				  // Heapの設定
 		D3D12_HEAP_FLAG_NONE,			  // Heapの特殊な設定。特になし
 		&resourceDesc,					  // Resourceの設定
@@ -255,7 +183,7 @@ ID3D12Resource* TextureManager::CreateDepthStencilTextureResource(ID3D12Device* 
 	return resource;
 }
 
-ID3D12DescriptorHeap* TextureManager::CreateDsvDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
+const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> TextureManager::CreateDsvDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
 	HRESULT hr;
 	ID3D12DescriptorHeap* descriptorHeap;
 	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
@@ -269,16 +197,16 @@ ID3D12DescriptorHeap* TextureManager::CreateDsvDescriptorHeap(ID3D12Device* devi
 	return descriptorHeap;
 }
 
-void TextureManager::CreateDepthStencilView(ID3D12Device* device) {
-	depthStencilResource_ = CreateDepthStencilTextureResource(device, WinApp::kClientWidth_, WinApp::kClientHeight_);
+void TextureManager::CreateDepthStencilView(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+	depthStencilResource_ = CreateDepthStencilTextureResource(device.Get(), WinApp::kClientWidth_, WinApp::kClientHeight_).Get();
 
-	dsvDescriptorHeap_ = CreateDsvDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
+	dsvDescriptorHeap_ = CreateDsvDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false).Get();
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
 	const uint32_t descriptorSizeDSV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	device->CreateDepthStencilView(depthStencilResource_, &dsvDesc, GetCPUDescriptorHandle(dsvDescriptorHeap_, descriptorSizeDSV, 0));
+	device.Get()->CreateDepthStencilView(depthStencilResource_.Get(), &dsvDesc, GetCPUDescriptorHandle(dsvDescriptorHeap_.Get(), descriptorSizeDSV, 0));
 }
 
 void TextureManager::SettingDepthStencilState() {
@@ -290,22 +218,19 @@ void TextureManager::SettingDepthStencilState() {
 	depthStencilDesc_.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 }
 
-void TextureManager::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ID3D12DescriptorHeap* srvDescriptorHeap) {
-	// モデルを読み込み
-	modelData_ = LoadObjFile("resources/05_02", "plane.obj");
+void TextureManager::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap) {
+	TransferTexture(device.Get(), commandList.Get(), srvDescriptorHeap.Get());
 
-	TransferTexture(device, commandList, srvDescriptorHeap);
-
-	CreateDepthStencilView(device);
+	CreateDepthStencilView(device.Get());
 }
 
 void TextureManager::Release() {
-	for (uint32_t i = 0; i < 2; i++) {
-		textureResource_[i]->Release();
-		intermediateResource_[i]->Release();
-	}
-	depthStencilResource_->Release();
-	dsvDescriptorHeap_->Release();
+	//for (uint32_t i = 0; i < 2; i++) {
+	//	textureResource_[i]->Release();
+	//	intermediateResource_[i]->Release();
+	//}
+	//depthStencilResource_->Release();
+	//dsvDescriptorHeap_->Release();
 }
 
 void TextureManager::ComUninit() {

@@ -3,7 +3,6 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
-#include "imguiManager.h"
 #include "TextureManager.h"
 
 class DirectXCommon
@@ -55,27 +54,25 @@ public:
 	// 解放処理とリソースチェック
 	void Release();
 
-private:
-	static UINT backBufferIndex_;
-	static IDXGIFactory7* dxgiFactory_;
-	static IDXGIAdapter4* useAdapter_;
-	static ID3D12Device* device_;
-	static ID3D12InfoQueue* infoQueue_;
-	static ID3D12CommandQueue* commandQueue_;
-	static ID3D12CommandAllocator* commandAllocator_;
-	static ID3D12GraphicsCommandList* commandList_;
-	static IDXGISwapChain4* swapChain_;
-	static DXGI_SWAP_CHAIN_DESC1 swapChainDesc_;
-	static D3D12_RENDER_TARGET_VIEW_DESC rtvDesc_;
-	static ID3D12DescriptorHeap* rtvDescriptorHeap_;
-	static ID3D12DescriptorHeap* srvDescriptorHeap_;
-	static ID3D12Resource* swapChainResources_[2];
-	static D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
-	static ID3D12Fence* fence_;
-	static uint64_t fenceValue_;
-	static HANDLE fenceEvent_;
-	static D3D12_RESOURCE_BARRIER barrier_;
-
-	ImGuiManager imGuiManager_;
+public:
+	UINT backBufferIndex_;
+	IDXGIFactory7* dxgiFactory_;
+	IDXGIAdapter4* useAdapter_;
+	ID3D12Device* device_;
+	ID3D12InfoQueue* infoQueue_;
+	ID3D12CommandQueue* commandQueue_;
+	ID3D12CommandAllocator* commandAllocator_;
+	ID3D12GraphicsCommandList* commandList_;
+	IDXGISwapChain4* swapChain_;
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc_;
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc_;
+	ID3D12DescriptorHeap* rtvDescriptorHeap_;
+	ID3D12DescriptorHeap* srvDescriptorHeap_;
+	ID3D12Resource* swapChainResources_[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
+	ID3D12Fence* fence_;
+	uint64_t fenceValue_;
+	HANDLE fenceEvent_;
+	D3D12_RESOURCE_BARRIER barrier_;
 };
 

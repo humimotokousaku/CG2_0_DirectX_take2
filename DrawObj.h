@@ -21,7 +21,9 @@ public:
 
 	void CreateWvpResource(ID3D12Device* device);
 
-	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ModelData modelData);
+	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+
+	void Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
 
 	void Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, ID3D12Resource* directionalLightResource);
 

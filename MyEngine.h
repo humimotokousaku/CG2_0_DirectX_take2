@@ -83,7 +83,7 @@ public:
 	void EndFrame();
 
 	// 解放処理
-	void Release();
+	void Finalize();
 
 private:
 	// 三角形を描画できる最大数
