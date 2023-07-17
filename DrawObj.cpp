@@ -1,8 +1,11 @@
-#include "Sprite.h"
+#include "DrawObj.h"
+#include "Sphere.h"
 #include "ImGuiManager.h"
 #include <cassert>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
-ID3D12Resource* Sprite::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+ID3D12Resource* DrawObj::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -29,20 +32,20 @@ ID3D12Resource* Sprite::CreateBufferResource(ID3D12Device* device, size_t sizeIn
 	return vertexResource;
 }
 
-void Sprite::CreateVertexResource(ID3D12Device* device) {
-	vertexResource_ = CreateBufferResource(device, sizeof(VertexData) * 4);
+void DrawObj::CreateVertexResource(ID3D12Device* device) {
+	vertexResource_ = CreateBufferResource(device, sizeof(VertexData) * modelData_.vertices.size());
 }
 
-void Sprite::CreateVertexBufferView() {
+void DrawObj::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView_.SizeInBytes = sizeof(VertexData) * 4;
+	vertexBufferView_.SizeInBytes = sizeof(VertexData) * UINT(modelData_.vertices.size());
 	// 1頂点当たりのサイズ
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-void Sprite::CreateMaterialResource(ID3D12Device* device) {
+void DrawObj::CreateMaterialResource(ID3D12Device* device) {
 	materialResource_ = CreateBufferResource(device, sizeof(Material));
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
@@ -50,7 +53,7 @@ void Sprite::CreateMaterialResource(ID3D12Device* device) {
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void Sprite::CreateWvpResource(ID3D12Device* device) {
+void DrawObj::CreateWvpResource(ID3D12Device* device) {
 	// 1つ分のサイズを用意する
 	transformationMatrixResource_ = CreateBufferResource(device, sizeof(TransformationMatrix));
 	// 書き込むためのアドレスを取得
@@ -59,23 +62,19 @@ void Sprite::CreateWvpResource(ID3D12Device* device) {
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
 
-void Sprite::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
+void DrawObj::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, ModelData modelData) {
+	modelData_ = modelData;
 	CreateVertexResource(device);
-	indexResource_ = CreateBufferResource(device, sizeof(uint32_t) * 6);
-	indexResource_->Map(0, nullptr, reinterpret_cast<void**>(&indexData_));
 
 	CreateMaterialResource(device);
 
 	CreateWvpResource(device);
 
 	CreateVertexBufferView();
-	indexBufferView_.BufferLocation = indexResource_->GetGPUVirtualAddress();
-	indexBufferView_.SizeInBytes = sizeof(uint32_t) * 6;
-	indexBufferView_.Format = DXGI_FORMAT_R32_UINT;
 
 	// 書き込むためのアドレスを取得
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
-	indexResource_->Map(0, nullptr, reinterpret_cast<void**>(&indexData_));
+	std::memcpy(vertexData_, modelData_.vertices.data(), sizeof(VertexData) * modelData_.vertices.size());
 
 	transform_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 	uvTransform_ = {
@@ -85,74 +84,49 @@ void Sprite::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* command
 	};
 
 	// Lightingするか
-	materialData_->enableLighting = false;
+	materialData_->enableLighting = true;
 
 	// uvTransform行列の初期化
 	materialData_->uvTransform = MakeIdentity4x4();
 }
 
-void Sprite::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, ID3D12Resource* directionalLightResource) {
+void DrawObj::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, ID3D12Resource* directionalLightResource) {
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
 	materialData_->uvTransform = uvTransformMatrix_;
 
+	// カメラ
+	//transform_.rotate.y += 0.006f;
 	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	viewMatrix_ = MakeIdentity4x4();
-	projectionMatrix_ = MakeOrthographicMatrix(0.0f, 0.0f, float(1280), float(720), 0.0f, 100.0f);
-	worldViewProjectionMatrix_ = Multiply(transformationMatrixData_->World, Multiply(viewMatrix_, projectionMatrix_));
-	transformationMatrixData_->WVP = worldViewProjectionMatrix_;
-
-	// 矩形のデータ
-	vertexData_[0].position = { 0.0f, 360.0f, 0.0f, 1.0f };// 左下
-	vertexData_[0].texcoord = { 0.0f,1.0f };
-	vertexData_[0].normal = { 0.0f,0.0f,-1.0f };
-	vertexData_[1].position = { 0.0f, 0.0f, 0.0f, 1.0f };// 左上
-	vertexData_[1].texcoord = { 0.0f,0.0f };
-	vertexData_[1].normal = { 0.0f,0.0f,-1.0f };
-	vertexData_[2].position = { 640.0f, 360.0f, 0.0f, 1.0f };// 右下
-	vertexData_[2].texcoord = { 1.0f,1.0f };
-	vertexData_[2].normal = { 0.0f,0.0f,-1.0f };
-	vertexData_[3].position = { 640.0f, 0.0f, 0.0f, 1.0f };// 右上
-	vertexData_[3].texcoord = { 1.0f,0.0f };
-	vertexData_[3].normal = { 0.0f,0.0f,-1.0f };
-
-	indexData_[0] = 0;
-	indexData_[1] = 1;
-	indexData_[2] = 2;
-	indexData_[3] = 1;
-	indexData_[4] = 3;
-	indexData_[5] = 2;
+	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, transformationMatrixData);
+	transformationMatrixData_->World = MakeIdentity4x4();
 
 	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
-	ImGui::Text("uvTransform");
-	ImGui::SliderFloat2("uvTransform.Translate", &uvTransform_.translate.x, -2, 2);
-	ImGui::SliderFloat2("uvTransform.Scale", &uvTransform_.scale.x, -1, 1);
-	ImGui::SliderAngle("uvTransform.Rotate.z", &uvTransform_.rotate.z);
+	ImGui::Text("objModel");
+	ImGui::SliderFloat3(".Translate ", &transform_.translate.x, -2, 2);
+	ImGui::SliderAngle(".Rotate.y ", &transform_.rotate.y);
 
 	// コマンドを積む
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
-
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	commandList->IASetIndexBuffer(&indexBufferView_);
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
-	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
-	// wvp陽男のCBufferの場所を設定
+	// DescriptorTableの設定
+	commandList->SetGraphicsRootDescriptorTable(2,textureSrvHandleGPU[1]);
+
+	// wvpのCBufferの場所を設定
 	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_->GetGPUVirtualAddress());
 
-	// DescriptorTableの設定
-	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU[0]);
+	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
 
-	// 描画(DrawCall/ドローコール)。6頂点で1つのインスタンス
-	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	// マテリアルCBufferの場所を設定
+	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+	commandList->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
 }
 
-void Sprite::Release() {
+void DrawObj::Release() {
 	transformationMatrixResource_->Release();
-	indexResource_->Release();
-	vertexResource_->Release();
 	materialResource_->Release();
+	vertexResource_->Release();
 }

@@ -106,7 +106,7 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 
 #pragma region 三角形の回転
 
-	transform_.rotate.y += 0.03f;
+	//transform_.rotate.y += 0.03f;
 	wvpData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 	wvpData_->World = Multiply(wvpData_->World,transformationMatrixData);
 	wvpData_->WVP = wvpData_->World;

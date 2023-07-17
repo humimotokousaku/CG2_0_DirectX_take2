@@ -60,6 +60,7 @@ void Sphere::CreateWvpResource(ID3D12Device* device) {
 	// 単位行列を書き込んでおく
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
+
 void Sphere::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
 	CreateVertexResource(device);
 
@@ -93,7 +94,7 @@ void Sphere::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, 
 	materialData_->uvTransform = uvTransformMatrix_;
 
 	// カメラ
-	transform_.rotate.y += 0.006f;
+	//transform_.rotate.y += 0.006f;
 	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, transformationMatrixData);
 	transformationMatrixData_->World = MakeIdentity4x4();
@@ -179,7 +180,7 @@ void Sphere::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, 
 	ImGui::Text("");
 	ImGui::Checkbox("useMonsterBall", &useMonsterBall_);
 	ImGui::SliderFloat3(".Translate", &transform_.translate.x, -2, 2);
-	ImGui::SliderFloat3(".Rotate", &transform_.rotate.x, -1, 1);
+	ImGui::SliderAngle(".Rotate.y", &transform_.rotate.y);
 
 	// コマンドを積む
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定

@@ -11,6 +11,8 @@
 #include "TransformationMatrix.h"
 #include "DirectionalLight.h"
 #include "Light.h"
+#include "ModelData.h"
+#include "MaterialData.h"
 
 class TextureManager
 {
@@ -23,12 +25,16 @@ public:
 	ID3D12Resource* GetDepthStencilResource() { return depthStencilResource_; }
 	D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc() { return depthStencilDesc_; }
 	D3D12_GPU_DESCRIPTOR_HANDLE* GetTextureSrvHandleGPU() { return textureSrvHandleGPU_; }
+	ModelData GetModelData() { return modelData_; }
 
 	// COMの初期化
 	void ComInit();
 
 	// Textureを読む
 	DirectX::ScratchImage LoadTexture(const std::string& filePath);
+
+	// objファイルの読み込み
+	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 
 	// DirectX12のTextureResourceを作る
 	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
@@ -73,4 +79,6 @@ public:
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
 	ID3D12Resource* depthStencilResource_;
 	ID3D12DescriptorHeap* dsvDescriptorHeap_;
+
+	ModelData modelData_;
 };

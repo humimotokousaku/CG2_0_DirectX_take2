@@ -314,6 +314,7 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	textureManager_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), directXCommon_->GetSrvDescriptorHeap());
 	sprite_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 	sphere_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
+	objModel_.Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetModelData());
 	// 三角形の頂点データ
 	VariableInitialize();
 	// 三角形の生成
@@ -356,8 +357,12 @@ void MyEngine::Draw() {
 	// 球
 	sphere_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), *camera_.GetTransformationMatrixData(), light_.GetDirectionalLightResource());
 	// スプライト
-	sprite_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), light_.GetDirectionalLightResource());
+	//sprite_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), light_.GetDirectionalLightResource());
+	objModel_.Draw(directXCommon_->GetDevice(), directXCommon_->GetCommandList(), textureManager_.GetTextureSrvHandleGPU(), *camera_.GetTransformationMatrixData(), light_.GetDirectionalLightResource());
 
+
+	// カメラのImGui
+	camera_.DrawDebugParameter();
 	// ライトのImGui
 	light_.DrawDebugParameter();
 }
@@ -387,6 +392,7 @@ void MyEngine::Release() {
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
 	textureManager_.Release();
+	objModel_.Release();
 	sprite_.Release();
 	sphere_.Release();
 	light_.Release();

@@ -9,15 +9,18 @@ public:
 	// Getter
 	Matrix4x4* GetTransformationMatrixData() { return transformationMatrixData_; }
 
+	// カメラの設定
+	void SettingCamera();
+
 	// カメラの初期化
 	void Initialize();
 
-	// カメラの設定
-	void SettingCamera();
+	void DrawDebugParameter();
 
 private:
 	Matrix4x4 worldMatrix_;
 	Matrix4x4 cameraMatrix_;
+	Transform worldTransform_;
 	Transform cameraTransform_;
 	Matrix4x4 viewMatrix_;
 	Matrix4x4 projectionMatrix_;
