@@ -32,10 +32,10 @@ public:
 	void CreateMaterialResource();
 
 	// 初期化
-	void Initialize(DirectXCommon* directXCommon);
+	void Initialize(DirectXCommon* directXCommon, const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom);
 
 	// 三角形描画
-	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom);
+	void Draw();
 
 public:
 	DirectXCommon* directXCommon_;

@@ -33,27 +33,7 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 	return vertexResource;
 }
 
-void Triangle::CreateVertexResource() {
-	//HRESULT hr;
-	//// 頂点リソース用のヒープの設定
-	//D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-	//uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD; // UploadHeapを使う
-	//// 頂点リソースの設定
-	//D3D12_RESOURCE_DESC vertexResourceDesc{};
-	//// バッファソース。テクスチャの場合はまた別の設定をする
-	//vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	//vertexResourceDesc.Width = sizeof(Vector4) * 3; // リソースのサイズ。今回はVector4を3頂点分
-	//// バッファの場合はこれからは1にする決まり
-	//vertexResourceDesc.Height = 1;
-	//vertexResourceDesc.DepthOrArraySize = 1;
-	//vertexResourceDesc.MipLevels = 1;
-	//vertexResourceDesc.SampleDesc.Count = 1;
-	//// バッファの場合はこれにする決まり
-	//vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	//// 実際に頂点リソースを作る
-	//hr = directXCommon_->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
-	//	&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource_));
-	//assert(SUCCEEDED(hr));	
+void Triangle::CreateVertexResource() {	
 	vertexResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4) * 3);
 }
 
@@ -64,7 +44,6 @@ void Triangle::CreateVertexBufferView() {
 	vertexBufferView_.SizeInBytes = sizeof(Vector4) * 3;
 	// 1頂点当たりのサイズ
 	vertexBufferView_.StrideInBytes = sizeof(Vector4);
-
 }
 
 void Triangle::CreateMaterialResource() {
@@ -77,7 +56,7 @@ void Triangle::CreateMaterialResource() {
 	*materialData_ = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
-void Triangle::Initialize(DirectXCommon* directXCommon) {
+void Triangle::Initialize(DirectXCommon* directXCommon, const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom) {
 	directXCommon_ = directXCommon;
 
 	CreateVertexResource();
@@ -88,16 +67,16 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 
 	// 書き込むためのアドレスを取得
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
-}
 
-void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom) {
 	// 左下
 	vertexData_[0] = leftBottom;
 	// 上
 	vertexData_[1] = top;
 	// 右下
 	vertexData_[2] = rightBottom;
+}
 
+void Triangle::Draw() {
 	// コマンドを積む
 	ID3D12GraphicsCommandList* commandList = directXCommon_->GetCommandList();
 
