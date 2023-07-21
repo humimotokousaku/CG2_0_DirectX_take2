@@ -2,7 +2,7 @@
 #include <cassert>
 #include "ImGuiManager.h"
 
-ID3D12Resource* Light::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> Light::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -20,25 +20,29 @@ ID3D12Resource* Light::CreateBufferResource(ID3D12Device* device, size_t sizeInB
 	// バッファの場合はこれにする決まり
 	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	ID3D12Resource* vertexResource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 
 	return vertexResource;
 }
 
-void Light::CreateDirectionalResource(ID3D12Device* device) {
-	directionalLightResource_ = CreateBufferResource(device, sizeof(DirectionalLight));
+void Light::CreateDirectionalResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+	directionalLightResource_ = CreateBufferResource(device.Get(), sizeof(DirectionalLight)).Get();
 	// マテリアルにデータを書き込む
 	directionalLightData_ = nullptr;
 	// 書き込むためのアドレスを取得
 	directionalLightResource_->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData_));
 }
 
-void Light::Initialize(ID3D12Device* device) {
-	CreateDirectionalResource(device);
+Light::~Light() {
+
+}
+
+void Light::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+	CreateDirectionalResource(device.Get());
 
 	// Lightingのデフォ値
 	directionalLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -53,5 +57,5 @@ void Light::DrawDebugParameter() {
 }
 
 void Light::Release() {
-	directionalLightResource_->Release();
+	//directionalLightResource_->Release();
 }

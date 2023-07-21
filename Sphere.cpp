@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-const Microsoft::WRL::ComPtr<ID3D12Resource> Sphere::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> Sphere::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -22,9 +22,9 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> Sphere::CreateBufferResource(const 
 	// バッファの場合はこれにする決まり
 	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	ID3D12Resource* vertexResource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 
@@ -37,7 +37,7 @@ void Sphere::CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& de
 
 void Sphere::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
-	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
+	vertexBufferView_.BufferLocation = vertexResource_.Get()->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
 	vertexBufferView_.SizeInBytes = sizeof(VertexData) * vertexIndex;
 	// 1頂点当たりのサイズ
@@ -45,7 +45,7 @@ void Sphere::CreateVertexBufferView() {
 }
 
 void Sphere::CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
-	materialResource_ = CreateBufferResource(device, sizeof(Material));
+	materialResource_ = CreateBufferResource(device.Get(), sizeof(Material)).Get();
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
@@ -59,6 +59,10 @@ void Sphere::CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& devic
 	transformationMatrixResource_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData_));
 	// 単位行列を書き込んでおく
 	transformationMatrixData_->WVP = MakeIdentity4x4();
+}
+
+Sphere::~Sphere() {
+
 }
 
 void Sphere::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
@@ -183,20 +187,20 @@ void Sphere::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Micr
 	ImGui::SliderAngle(".Rotate.y", &transform_.rotate.y);
 
 	// コマンドを積む
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// DescriptorTableの設定
-	commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall_ ? textureSrvHandleGPU[1] : textureSrvHandleGPU[0]);
+	commandList.Get()->SetGraphicsRootDescriptorTable(2, useMonsterBall_ ? textureSrvHandleGPU[1] : textureSrvHandleGPU[0]);
 
 	// wvpのCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
+	commandList.Get()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
+	commandList.Get()->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
 
 	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
-	commandList->DrawInstanced(vertexIndex, 1, 0, 0);
+	commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+	commandList.Get()->DrawInstanced(vertexIndex, 1, 0, 0);
 }
 
 void Sphere::Release() {

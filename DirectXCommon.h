@@ -4,14 +4,20 @@
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
 #include "TextureManager.h"
+#include <wrl.h>
 
 class DirectXCommon
 {
 public:
+
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index);
+
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index);
+
 	// Getter
-	ID3D12Device* GetDevice() { return this->device_; }
-	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
-	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return this->srvDescriptorHeap_; }
+	Microsoft::WRL::ComPtr<ID3D12Device> GetDevice() { return this->device_.Get(); }
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetCommandList() { return this->commandList_.Get(); }
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetSrvDescriptorHeap() { return this->srvDescriptorHeap_.Get(); }
 	D3D12_RENDER_TARGET_VIEW_DESC GetRtvDesc() { return rtvDesc_; }
 	DXGI_SWAP_CHAIN_DESC1 GetSwapChainDesc() { return swapChainDesc_; }
 
@@ -31,10 +37,10 @@ public:
 	void CreateComandList();
 
 	// SwapChainの生成
-	void CreateSwapChain();
+	void CreateSwapChain(HWND hwnd);
 
 	// DescriptorHeapの生成
-	ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
 	// 二つのswapChainResoucesを取得
 	void GetSwapChainResources();
@@ -42,11 +48,13 @@ public:
 	// RTVを作る
 	void CreateRTV();
 
+	~DirectXCommon();
+
 	// メインループ前の初期化
-	void Initialize();
+	void Initialize(HWND hwnd);
 
 	// 描画前の処理
-	void PreDraw(ID3D12DescriptorHeap* dsvDescriptorHeap);
+	void PreDraw(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& dsvDescriptorHeap);
 
 	// 描画後の処理
 	void PostDraw();
@@ -56,21 +64,21 @@ public:
 
 public:
 	UINT backBufferIndex_;
-	IDXGIFactory7* dxgiFactory_;
-	IDXGIAdapter4* useAdapter_;
-	ID3D12Device* device_;
-	ID3D12InfoQueue* infoQueue_;
-	ID3D12CommandQueue* commandQueue_;
-	ID3D12CommandAllocator* commandAllocator_;
-	ID3D12GraphicsCommandList* commandList_;
-	IDXGISwapChain4* swapChain_;
+	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory_;
+	Microsoft::WRL::ComPtr<IDXGIAdapter4> useAdapter_;
+	Microsoft::WRL::ComPtr<ID3D12Device> device_;
+	Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue_;
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue_;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator_;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
+	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain_;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc_;
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc_;
-	ID3D12DescriptorHeap* rtvDescriptorHeap_;
-	ID3D12DescriptorHeap* srvDescriptorHeap_;
-	ID3D12Resource* swapChainResources_[2];
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap_;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvDescriptorHeap_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[2];
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
-	ID3D12Fence* fence_;
+	Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
 	uint64_t fenceValue_;
 	HANDLE fenceEvent_;
 	D3D12_RESOURCE_BARRIER barrier_;

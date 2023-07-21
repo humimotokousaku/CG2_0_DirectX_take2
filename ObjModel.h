@@ -4,12 +4,15 @@
 #include "Transform.h"
 #include "TransformationMatrix.h"
 #include "Material.h"
+#include "MaterialData.h"
 #include <d3d12.h>
 #include "TextureManager.h"
 
-class Sphere
+class ObjModel
 {
 public:
+	ModelData GetModelData() { return modelData_; }
+
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes);
 
 	void CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
@@ -20,11 +23,13 @@ public:
 
 	void CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
 
-	~Sphere();
+	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+
+	
 
 	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
 
-	void Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU,const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource);
+	void Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource);
 
 	void Release();
 
@@ -45,11 +50,6 @@ public:
 	Matrix4x4 viewMatrix_;
 	Matrix4x4 projectionMatrix_;
 	Matrix4x4 worldViewProjectionMatrix_;
-	 //分割数
-	const uint32_t kSubdivision = 16;
-	// 頂点数
-	uint32_t vertexIndex = kSubdivision * kSubdivision * 6;
 
-	// Sphereの画像切り替え
-	bool useMonsterBall_ = true;
+	ModelData modelData_;
 };

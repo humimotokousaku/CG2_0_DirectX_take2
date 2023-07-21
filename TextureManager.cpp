@@ -9,19 +9,19 @@
 #include <fstream>
 #include <sstream>
 
-D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	handleCPU.ptr += (descriptorSize * index);
 	return handleCPU;
-}
+} 
 
-D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
-	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetGPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap.Get()->GetGPUDescriptorHandleForHeapStart();
 	handleGPU.ptr += (descriptorSize * index);
 	return handleGPU;
 }
 
-const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -39,10 +39,10 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateBufferResourc
 	// バッファの場合はこれにする決まり
 	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	ID3D12Resource* vertexResource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
-		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
+	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(vertexResource.GetAddressOf()));
 	assert(SUCCEEDED(hr));
 
 	return vertexResource;
@@ -68,7 +68,7 @@ DirectX::ScratchImage TextureManager::LoadTexture(const std::string& filePath) {
 	return mipImages;
 }
 
-const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateTextureResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const DirectX::TexMetadata& metadata) {
+Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateTextureResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const DirectX::TexMetadata& metadata) {
 	// metadataをもとにResourceの設定
 	D3D12_RESOURCE_DESC resourceDesc{};
 	resourceDesc.Width = UINT(metadata.width);
@@ -84,14 +84,14 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateTextureResour
 	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 
 	// Resourceの生成
-	ID3D12Resource* resource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
 	HRESULT hr = device.Get()->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
 		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
-		IID_PPV_ARGS(&resource)
+		IID_PPV_ARGS(resource.GetAddressOf())
 	);
 	assert(SUCCEEDED(hr));
 	return resource;
@@ -102,8 +102,8 @@ Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::UploadTextureData(const M
 	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 	DirectX::PrepareUpload(device.Get(), mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
 	uint64_t intermediateSize = GetRequiredIntermediateSize(texture.Get(), 0, UINT(subresources.size()));
-	ID3D12Resource* intermediateResource = CreateBufferResource(device.Get(), intermediateSize).Get();
-	UpdateSubresources(commandList.Get(), texture.Get(), intermediateResource, 0, 0, UINT(subresources.size()), subresources.data());
+	Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource = CreateBufferResource(device.Get(), intermediateSize).Get();
+	UpdateSubresources(commandList.Get(), texture.Get(), intermediateResource.Get(), 0, 0, UINT(subresources.size()), subresources.data());
 	// textureへの転送後は利用できるように、D3D12_RESOURCE_STATE_COPY_DESTからD3D12_RESOURCE_STATE_GENERIC_READへResourceStateを変更する
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -119,21 +119,22 @@ Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::UploadTextureData(const M
 void TextureManager::TransferTexture(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap) {
 	mipImages_[0] = LoadTexture("resources/uvChecker.png");
 	mipImages_[1] = LoadTexture("resources/monsterBall.png");
-	DirectX::TexMetadata metadata[2]{};
-	for (uint32_t i = 0; i < 2; i++) {
+	mipImages_[2] = LoadTexture(modelData_.material.textureFilePath);
+	DirectX::TexMetadata metadata[kMaxImages]{};
+	for (uint32_t i = 0; i < kMaxImages; i++) {
 		metadata[i] = mipImages_[i].GetMetadata();
 		textureResource_[i] = CreateTextureResource(device.Get(), metadata[i]).Get();
 		intermediateResource_[i] = UploadTextureData(textureResource_[i].Get(), mipImages_[i], device.Get(), commandList.Get()).Get();
 	}
 
 	// DescriptorSizeを取得
-	uint32_t descriptorSizeSRV[2]{};
-	for (uint32_t i = 0; i < 2; i++) {
+	uint32_t descriptorSizeSRV[kMaxImages]{};
+	for (uint32_t i = 0; i < kMaxImages; i++) {
 		descriptorSizeSRV[i] = device.Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 	// metaDataをもとにSRVの設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc[2]{};
-	for (uint32_t i = 0; i < 2; i++) {
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc[kMaxImages]{};
+	for (uint32_t i = 0; i < kMaxImages; i++) {
 		srvDesc[i].Format = metadata[i].format;
 		srvDesc[i].Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc[i].ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -146,7 +147,7 @@ void TextureManager::TransferTexture(const Microsoft::WRL::ComPtr<ID3D12Device>&
 	}
 }
 
-const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateDepthStencilTextureResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, int32_t width, int32_t height) {
+Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateDepthStencilTextureResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, int32_t width, int32_t height) {
 	// 生成するResourceの設定
 	D3D12_RESOURCE_DESC resourceDesc{};
 	resourceDesc.Width = width;									  // Textureの幅
@@ -168,14 +169,14 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateDepthStencilT
 	depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // フォーマット。Resourceと合わせる
 
 	// Resourceの生成
-	ID3D12Resource* resource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
 	HRESULT hr = device.Get()->CreateCommittedResource(
 		&heapProperties,				  // Heapの設定
 		D3D12_HEAP_FLAG_NONE,			  // Heapの特殊な設定。特になし
 		&resourceDesc,					  // Resourceの設定
 		D3D12_RESOURCE_STATE_DEPTH_WRITE, // 深度値を書き込む状態にしておく
 		&depthClearValue,				  // Clear最適値
-		IID_PPV_ARGS(&resource)			  // 作成するResourceポインタへのポインタ
+		IID_PPV_ARGS(resource.GetAddressOf())			  // 作成するResourceポインタへのポインタ
 	);
 
 	assert(SUCCEEDED(hr));
@@ -183,14 +184,14 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateDepthStencilT
 	return resource;
 }
 
-const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> TextureManager::CreateDsvDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
+Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> TextureManager::CreateDsvDescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible) {
 	HRESULT hr;
-	ID3D12DescriptorHeap* descriptorHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
 	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
 	rtvDescriptorHeapDesc.Type = heapType; // レンダーターゲットビュー用
 	rtvDescriptorHeapDesc.NumDescriptors = numDescriptors; // ダブルバッファ用に2つ。多くても別に構わない
 	rtvDescriptorHeapDesc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	hr = device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
+	hr = device.Get()->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
 	// DiscriptorHeapが作れなかったので起動できない
 	assert(SUCCEEDED(hr));
 
@@ -205,7 +206,7 @@ void TextureManager::CreateDepthStencilView(const Microsoft::WRL::ComPtr<ID3D12D
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-	const uint32_t descriptorSizeDSV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	const uint32_t descriptorSizeDSV = device.Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	device.Get()->CreateDepthStencilView(depthStencilResource_.Get(), &dsvDesc, GetCPUDescriptorHandle(dsvDescriptorHeap_.Get(), descriptorSizeDSV, 0));
 }
 
@@ -218,7 +219,13 @@ void TextureManager::SettingDepthStencilState() {
 	depthStencilDesc_.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 }
 
-void TextureManager::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap) {
+TextureManager::~TextureManager() {
+
+}
+
+void TextureManager::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap, ModelData modelData) {
+	// モデルを読み込み
+	modelData_ = modelData;
 	TransferTexture(device.Get(), commandList.Get(), srvDescriptorHeap.Get());
 
 	CreateDepthStencilView(device.Get());

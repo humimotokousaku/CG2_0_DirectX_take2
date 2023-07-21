@@ -1,11 +1,11 @@
-#include "DrawObj.h"
+#include "ObjModel.h"
 #include "Sphere.h"
 #include "ImGuiManager.h"
 #include <cassert>
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-ID3D12Resource* DrawObj::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> ObjModel::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -23,20 +23,20 @@ ID3D12Resource* DrawObj::CreateBufferResource(ID3D12Device* device, size_t sizeI
 	// バッファの場合はこれにする決まり
 	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	ID3D12Resource* vertexResource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 
 	return vertexResource;
 }
 
-void DrawObj::CreateVertexResource(ID3D12Device* device) {
-	vertexResource_ = CreateBufferResource(device, sizeof(VertexData) * modelData_.vertices.size());
+void ObjModel::CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+	vertexResource_ = CreateBufferResource(device.Get(), sizeof(VertexData) * modelData_.vertices.size()).Get();
 }
 
-void DrawObj::CreateVertexBufferView() {
+void ObjModel::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
@@ -45,24 +45,24 @@ void DrawObj::CreateVertexBufferView() {
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-void DrawObj::CreateMaterialResource(ID3D12Device* device) {
-	materialResource_ = CreateBufferResource(device, sizeof(Material));
+void ObjModel::CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+	materialResource_ = CreateBufferResource(device.Get(), sizeof(Material)).Get();
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void DrawObj::CreateWvpResource(ID3D12Device* device) {
+void ObjModel::CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
 	// 1つ分のサイズを用意する
-	transformationMatrixResource_ = CreateBufferResource(device, sizeof(TransformationMatrix));
+	transformationMatrixResource_ = CreateBufferResource(device.Get(), sizeof(TransformationMatrix)).Get();
 	// 書き込むためのアドレスを取得
 	transformationMatrixResource_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData_));
 	// 単位行列を書き込んでおく
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
 
-ModelData DrawObj::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
+ModelData ObjModel::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
 	ModelData modelData;
 	std::vector<Vector4> positions;
 	std::vector<Vector3> normals;
@@ -134,15 +134,15 @@ ModelData DrawObj::LoadObjFile(const std::string& directoryPath, const std::stri
 	return modelData;
 }
 
-void DrawObj::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList) {
+void ObjModel::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
 	// モデルを読み込み
-	//modelData_ = LoadObjFile("resources/05_02", "plane.obj");
+	modelData_ = LoadObjFile("resources", "plane.obj");
 
-	CreateVertexResource(device);
+	CreateVertexResource(device.Get());
 
-	CreateMaterialResource(device);
+	CreateMaterialResource(device.Get());
 
-	CreateWvpResource(device);
+	CreateWvpResource(device.Get());
 
 	CreateVertexBufferView();
 
@@ -164,7 +164,7 @@ void DrawObj::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* comman
 	materialData_->uvTransform = MakeIdentity4x4();
 }
 
-void DrawObj::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, ID3D12Resource* directionalLightResource) {
+void ObjModel::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource) {
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
@@ -183,24 +183,24 @@ void DrawObj::Draw(ID3D12Device* device, ID3D12GraphicsCommandList* commandList,
 	ImGui::SliderAngle(".Rotate.y ", &transform_.rotate.y);
 
 	// コマンドを積む
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// DescriptorTableの設定
-	commandList->SetGraphicsRootDescriptorTable(2,textureSrvHandleGPU[1]);
+	commandList.Get()->SetGraphicsRootDescriptorTable(2,textureSrvHandleGPU[2]);
 
 	// wvpのCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_->GetGPUVirtualAddress());
+	commandList.Get()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
+	commandList.Get()->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
 
 	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
-	commandList->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
+	commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+	commandList.Get()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
 }
 
-void DrawObj::Release() {
-	transformationMatrixResource_->Release();
-	materialResource_->Release();
-	vertexResource_->Release();
+void ObjModel::Release() {
+	//transformationMatrixResource_->Release();
+	//materialResource_->Release();
+	//vertexResource_->Release();
 }

@@ -2,7 +2,7 @@
 #include "ImGuiManager.h"
 #include <cassert>
 
-const Microsoft::WRL::ComPtr<ID3D12Resource> Sprite::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> Sprite::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -20,10 +20,10 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> Sprite::CreateBufferResource(const 
 	// バッファの場合はこれにする決まり
 	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	ID3D12Resource* vertexResource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	// 実際に頂点リソースを作る
 	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
-		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
+		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(vertexResource.GetAddressOf()));
 	assert(SUCCEEDED(hr));
 
 	return vertexResource;
@@ -35,7 +35,7 @@ void Sprite::CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& de
 
 void Sprite::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
-	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
+	vertexBufferView_.BufferLocation = vertexResource_.Get()->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
 	vertexBufferView_.SizeInBytes = sizeof(VertexData) * 4;
 	// 1頂点当たりのサイズ
@@ -43,25 +43,29 @@ void Sprite::CreateVertexBufferView() {
 }
 
 void Sprite::CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
-	materialResource_ = CreateBufferResource(device, sizeof(Material));
+	materialResource_ = CreateBufferResource(device, sizeof(Material)).Get();
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
-	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
+	materialResource_.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
 void Sprite::CreateWvpResource(const Microsoft::WRL::ComPtr <ID3D12Device>& device) {
 	// 1つ分のサイズを用意する
-	transformationMatrixResource_ = CreateBufferResource(device, sizeof(TransformationMatrix));
+	transformationMatrixResource_ = CreateBufferResource(device.Get(), sizeof(TransformationMatrix)).Get();
 	// 書き込むためのアドレスを取得
-	transformationMatrixResource_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData_));
+	transformationMatrixResource_.Get()->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData_));
 	// 単位行列を書き込んでおく
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
 
+Sprite::~Sprite() {
+
+}
+
 void Sprite::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr <ID3D12GraphicsCommandList>& commandList) {
 	CreateVertexResource(device.Get());
-	indexResource_ = CreateBufferResource(device.Get(), sizeof(uint32_t) * 6);
+	indexResource_ = CreateBufferResource(device.Get(), sizeof(uint32_t) * 6).Get();
 	indexResource_->Map(0, nullptr, reinterpret_cast<void**>(&indexData_));
 
 	CreateMaterialResource(device.Get());
@@ -132,22 +136,22 @@ void Sprite::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Micr
 	ImGui::SliderAngle("uvTransform.Rotate.z", &uvTransform_.rotate.z);
 
 	// コマンドを積む
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
 
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	commandList->IASetIndexBuffer(&indexBufferView_);
-	commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
+	commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList.Get()->IASetIndexBuffer(&indexBufferView_);
+	commandList.Get()->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
 	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+	commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
 	// wvp陽男のCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
+	commandList.Get()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
 	// DescriptorTableの設定
-	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU[0]);
+	commandList.Get()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU[0]);
 
 	// 描画(DrawCall/ドローコール)。6頂点で1つのインスタンス
-	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	commandList.Get()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
 void Sprite::Release() {

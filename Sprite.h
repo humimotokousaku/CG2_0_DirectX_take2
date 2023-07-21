@@ -10,7 +10,7 @@
 class Sprite
 {
 public:
-	const Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes);
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes);
 
 	void CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
 
@@ -20,13 +20,15 @@ public:
 
 	void CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
 
+	~Sprite();
+
 	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
 
 	void Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource);
 
 	void Release();
 
-public:	
+private:	
 	// Material
 	Material* materialData_;
 	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;
@@ -41,7 +43,7 @@ public:
 	D3D12_INDEX_BUFFER_VIEW indexBufferView_;
 	uint32_t* indexData_ = nullptr;
 	// Sprite
-	Microsoft::WRL::ComPtr <ID3D12Resource> transformationMatrixResource_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource_;
 	TransformationMatrix* transformationMatrixData_;
 	Transform transform_;
 	Matrix4x4 viewMatrix_;

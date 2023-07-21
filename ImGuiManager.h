@@ -15,7 +15,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 class ImGuiManager
 {
 public:
-	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, DXGI_SWAP_CHAIN_DESC1 swapChainDesc, D3D12_RENDER_TARGET_VIEW_DESC rtvDesc, const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap);
+	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, DXGI_SWAP_CHAIN_DESC1 swapChainDesc, D3D12_RENDER_TARGET_VIEW_DESC rtvDesc, const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap, HWND hwnd);
 	void PreDraw();
 	void PostDraw(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
 	void Release();

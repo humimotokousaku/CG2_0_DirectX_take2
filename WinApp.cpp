@@ -7,6 +7,8 @@
 #include "externals/ImGui/imgui.h"
 #include "externals/ImGui/imgui_impl_dx12.h"
 #include "externals/ImGui/imgui_impl_win32.h"
+#include <wrl.h>
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // ウィンドウプロシージャ
@@ -67,7 +69,7 @@ void WinApp::CreateGameWindow(const wchar_t* title, int32_t kClientWidth, int32_
 
 void WinApp::DebugLayer() {
 #ifdef _DEBUG
-	ID3D12Debug1* debugController = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Debug1> debugController = nullptr;
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 		// デバッグレイヤーを有効化する
 		debugController->EnableDebugLayer();
@@ -91,12 +93,8 @@ void WinApp::Log(const std::string& message) {
 #pragma region メンバ変数
 
 // ウィンドウクラス登録用
-WNDCLASS WinApp::wc_;
 
 int32_t WinApp::kClientWidth_;
 int32_t WinApp::kClientHeight_;
-
-// ウィンドウを生成
-HWND WinApp::hwnd_;
 
 #pragma endregion

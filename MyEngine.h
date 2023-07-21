@@ -7,7 +7,7 @@
 #include "Light.h"
 #include "Sprite.h"
 #include "Sphere.h"
-#include "DrawObj.h"
+#include "ObjModel.h"
 
 class MyEngine {
 public:
@@ -70,6 +70,8 @@ public:
 	// 頂点データの初期化
 	void VariableInitialize();
 
+	~MyEngine() = default;
+
 	// エンジンの初期化
 	void Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight);
 
@@ -86,28 +88,34 @@ public:
 	void Finalize();
 
 private:
-	// 三角形を描画できる最大数
-	static const int kMaxTriangle = 2;
-	Triangle* Triangle_[kMaxTriangle];
-	DirectXCommon* directXCommon_;
-	Light light_;
-	Sprite sprite_;
-	Sphere sphere_;
 	IDxcUtils* dxcUtils_;
 	IDxcCompiler3* dxcCompiler_;
 	IDxcIncludeHandler* includeHandler_;
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature_;
 	ID3DBlob* signatureBlob_;
 	ID3DBlob* errorBlob_;
-	ID3D12RootSignature* rootSignature_;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[3];
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc_;
 	D3D12_BLEND_DESC blendDesc_;
 	D3D12_RASTERIZER_DESC rasterizerDesc_;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescs_;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState_;
 	IDxcBlob* vertexShaderBlob_;
 	IDxcBlob* pixelShaderBlob_;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescs_;
-	ID3D12PipelineState* graphicsPipelineState_;
+
+	// 三角形を描画できる最大数
+	static const int kMaxTriangle = 2;
+	std::unique_ptr<Triangle> Triangle_[kMaxTriangle];
+	std::unique_ptr<WinApp> winApp_;
+	std::unique_ptr<DirectXCommon> directXCommon_;
+	std::unique_ptr<Light> light_;
+	std::unique_ptr<Sprite> sprite_;
+	std::unique_ptr<Sphere> sphere_;
+	std::unique_ptr<Camera> camera_;
+	std::unique_ptr<ImGuiManager> imGuiManager_;
+	std::unique_ptr<TextureManager> textureManager_;
+	std::unique_ptr<ObjModel> objModel_;
 	D3D12_VIEWPORT viewport_;
 	D3D12_RECT scissorRect_;
 	VertexData vertexLeft_[kMaxTriangle];
@@ -116,8 +124,4 @@ private:
 	D3D12_ROOT_PARAMETER rootParameters_[4];
 	D3D12_DESCRIPTOR_RANGE descriptorRange_[1];
 	D3D12_STATIC_SAMPLER_DESC staticSamplers_[1];
-	Camera camera_;
-	ImGuiManager* imGuiManager_;
-	TextureManager textureManager_;
-	DrawObj objModel_;
 };

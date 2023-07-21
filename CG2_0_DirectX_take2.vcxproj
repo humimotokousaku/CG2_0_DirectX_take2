@@ -90,7 +90,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DirectXCommon.cpp" />
-    <ClCompile Include="DrawObj.cpp" />
+    <ClCompile Include="ObjModel.cpp" />
     <ClCompile Include="externals\ImGui\imgui.cpp" />
     <ClCompile Include="externals\ImGui\imgui_demo.cpp" />
     <ClCompile Include="externals\ImGui\imgui_draw.cpp" />
@@ -131,7 +131,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="ConvertString.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="DirectXCommon.h" />
-    <ClInclude Include="DrawObj.h" />
+    <ClInclude Include="ObjModel.h" />
     <ClInclude Include="externals\ImGui\imconfig.h" />
     <ClInclude Include="externals\ImGui\imgui.h" />
     <ClInclude Include="externals\ImGui\imgui_impl_dx12.h" />
