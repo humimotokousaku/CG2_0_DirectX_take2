@@ -28,8 +28,6 @@ void Triangle::CreateVertexResource() {
 	hr = directXCommon_->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource_));
 	assert(SUCCEEDED(hr));
-
-	
 }
 
 void Triangle::CreateVertexBufferView() {
@@ -45,22 +43,22 @@ void Triangle::CreateVertexBufferView() {
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 }
 
-void Triangle::Initialize(DirectXCommon* directXCommon) {
+void Triangle::Initialize(DirectXCommon* directXCommon, const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom) {
 	directXCommon_ = directXCommon;
 
 	CreateVertexResource();
 
 	CreateVertexBufferView();
-}
 
-void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom) {
 	// 左下
 	vertexData_[0] = leftBottom;
 	// 上
 	vertexData_[1] = top;
 	// 右下
 	vertexData_[2] = rightBottom;
+}
 
+void Triangle::Draw() {
 	// コマンドを積む
 	ID3D12GraphicsCommandList* commandList = directXCommon_->GetCommandList();
 

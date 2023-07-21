@@ -257,7 +257,7 @@ void MyEngine::VariableInitialize() {
 
 	for (int i = 0; i < kMaxTriangle; i++) {
 		Triangle_[i] = new Triangle();
-		Triangle_[i]->Initialize(directXCommon_);
+		Triangle_[i]->Initialize(directXCommon_,vertexLeft[i], vertexTop[i], vertexRight[i]);
 	}
 }
 
@@ -287,7 +287,7 @@ void MyEngine::BeginFrame() {
 
 void MyEngine::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft[i], vertexTop[i], vertexRight[i]);
+		Triangle_[i]->Draw();
 	}
 }
 
