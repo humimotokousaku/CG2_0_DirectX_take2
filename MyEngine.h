@@ -1,7 +1,12 @@
 #pragma once
-#include "Triangle.h"
 #include "WinApp.h"
 #include "DirIectXCommon.h"
+#pragma comment(lib,"d3d12.lib")
+#pragma comment(lib,"dxgi.lib")
+#include <dxgidebug.h>
+#pragma comment(lib, "dxguid.lib")
+#include <dxcapi.h>
+#pragma comment(lib, "dxcompiler.lib")
 
 class MyEngine {
 public:
@@ -63,22 +68,22 @@ public:
 
 private:
 	DirectXCommon* directXCommon_;
-	IDxcUtils* dxcUtils;
-	IDxcCompiler3* dxcCompiler;
-	IDxcIncludeHandler* includeHandler;
-	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature;
-	ID3DBlob* signatureBlob;
-	ID3DBlob* errorBlob;
-	ID3D12RootSignature* rootSignature;
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs[1];
-	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc;
-	D3D12_BLEND_DESC blendDesc;
-	D3D12_RASTERIZER_DESC rasterizerDesc;
-	IDxcBlob* vertexShaderBlob;
-	IDxcBlob* pixelShaderBlob;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescs;
-	ID3D12PipelineState* graphicsPipelineState;
-	D3D12_VIEWPORT viewport;
-	D3D12_RECT scissorRect;
+	IDxcUtils* dxcUtils_;
+	IDxcCompiler3* dxcCompiler_;
+	IDxcIncludeHandler* includeHandler_;
+	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature_;
+	ID3DBlob* signatureBlob_;
+	ID3DBlob* errorBlob_;
+	ID3D12RootSignature* rootSignature_;
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[1];
+	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc_;
+	D3D12_BLEND_DESC blendDesc_;
+	D3D12_RASTERIZER_DESC rasterizerDesc_;
+	IDxcBlob* vertexShaderBlob_;
+	IDxcBlob* pixelShaderBlob_;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDescs_;
+	ID3D12PipelineState* graphicsPipelineState_;
+	D3D12_VIEWPORT viewport_;
+	D3D12_RECT scissorRect_;
 };
 

@@ -24,11 +24,11 @@ public:
 	// デバッグレイヤ
 	void DebugLayer();
 
-	// Windowsの初期化
-	void Initialize();
-
 	// 出力ウィンドウに文字を出す
 	static void Log(const std::string& message);
+
+	// Windowの初期化
+	void Initialize();
 
 public:
 	// メンバ変数

@@ -3,20 +3,14 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib,"dxgi.lib")
-#include <dxgidebug.h>
-#pragma comment(lib, "dxguid.lib")
-#include <dxcapi.h>
-#pragma comment(lib, "dxcompiler.lib")
-
 #include "DirIectXCommon.h"
 #include "Vector4.h"
 
+// 三角形の頂点
 struct TriangleVertices {
-	Vector4 Left;
-	Vector4 Top;
-	Vector4 Right;
+	Vector4 left;
+	Vector4 top;
+	Vector4 right;
 };
 
 class Triangle

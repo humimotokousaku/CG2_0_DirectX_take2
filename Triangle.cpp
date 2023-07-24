@@ -1,15 +1,11 @@
-#include "Triangle.h"
-#include "WinApp.h"
-#include "ConvertString.h"
-#include <format>
 #include <cassert>
+#include "Triangle.h"
 #include "Vector4.h"
-#include "DirIectXCommon.h"
 
 Triangle::Triangle(Vector4 left, Vector4 top, Vector4 right) {
-	vertex_.Left = left;
-	vertex_.Top = top;
-	vertex_.Right = right;
+	vertex_.left = left;
+	vertex_.top = top;
+	vertex_.right = right;
 }
 
 ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
@@ -65,11 +61,11 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 
 	// 左下
-	vertexData_[0] = vertex_.Left;
+	vertexData_[0] = vertex_.left;
 	// 上
-	vertexData_[1] = vertex_.Top;
+	vertexData_[1] = vertex_.top;
 	// 右下
-	vertexData_[2] = vertex_.Right;
+	vertexData_[2] = vertex_.right;
 }
 
 void Triangle::Draw() {

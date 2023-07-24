@@ -16,7 +16,7 @@ void GameScene::Initialize() {
 
 	// 三角形の初期化
 	for (int i = 0; i < kMaxTriangle; i++) {
-		triangle_[i] = new Triangle({ -0.2f, -0.2f * (i + 1), 0.0f, 1.0f }, { 0.0f, -0.1f * (i + 1), 0.0f, 1.0f }, { 0.2f, -0.2f * (i + 1), 0.0f, 1.0f });
+		triangle_[i] = new Triangle({ -0.1f, -0.2f * (i + 1), 0.0f, 1.0f }, { 0.0f, -0.1f * (i + 1), 0.0f, 1.0f }, { 0.1f, -0.2f * (i + 1), 0.0f, 1.0f });
 		triangle_[i]->Initialize(directXCommon_);
 	}
 }

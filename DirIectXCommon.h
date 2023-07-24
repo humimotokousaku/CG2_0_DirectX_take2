@@ -7,6 +7,9 @@
 class DirectXCommon
 {
 public:
+	// getter
+	ID3D12Device* GetDevice() { return this->device_; }
+	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
 
 	// メインループ前の初期化
 	void Initialize();
@@ -16,10 +19,6 @@ public:
 
 	// 描画後の処理
 	void PostDraw();
-
-	// getter
-	ID3D12Device* GetDevice() { return this->device_; }
-	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
 
 	// 解放処理とリソースチェック
 	void Release();
