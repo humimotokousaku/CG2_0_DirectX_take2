@@ -122,7 +122,7 @@ void MyEngine::CreateRootSignature() {
 		assert(false);
 	}
 	// バイナリをもとに生成
-	hr = DirectXCommon::device_->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
+	hr = directXCommon_->GetDevice()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
 		signatureBlob_->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 	assert(SUCCEEDED(hr));
 }
@@ -184,7 +184,7 @@ void MyEngine::CreatePSO() {
 	graphicsPipelineStateDescs_.SampleDesc.Count = 1;
 	graphicsPipelineStateDescs_.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 	// 実際に生成
-	hr = DirectXCommon::device_->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
+	hr = directXCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
 		IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
@@ -225,56 +225,8 @@ void MyEngine::CreateScissor() {
 	scissorRect_.bottom = WinApp::kClientHeight_;
 }
 
-void MyEngine::VariableInitialize() {
-	vertexLeft_[0] = { -0.2f, -1.0f,0.5f,1.0f };
-	vertexTop_[0] = { 0.0f, -0.8f,0.5f,1.0f };
-	vertexRight_[0] = { 0.2f, -1.0f,0.5f,1.0f };
-
-	vertexLeft_[1] = { -0.2f, -0.8f,0.5f,1.0f };
-	vertexTop_[1] = { 0.0f, -0.6f,0.5f,1.0f };
-	vertexRight_[1] = { 0.2f, -0.8f,0.5f,1.0f };
-
-	vertexLeft_[2] = { -0.2f, -0.6f,0.5f,1.0f };
-	vertexTop_[2] = { 0.0f, -0.4f,0.5f,1.0f };
-	vertexRight_[2] = { 0.2f, -0.6f,0.5f,1.0f };
-
-	vertexLeft_[3] = { -0.2f, -0.4f,0.5f,1.0f };
-	vertexTop_[3] = { 0.0f, -0.2f,0.5f,1.0f };
-	vertexRight_[3] = { 0.2f, -0.4f,0.5f,1.0f };
-
-	vertexLeft_[4] = { -0.2f, -0.2f,0.5f,1.0f };
-	vertexTop_[4] = { 0.0f, 0.0f,0.5f,1.0f };
-	vertexRight_[4] = { 0.2f, -0.2f,0.5f,1.0f };
-
-	vertexLeft_[5] = { -0.2f, 0.0f,0.5f,1.0f };
-	vertexTop_[5] = { 0.0f, 0.2f,0.5f,1.0f };
-	vertexRight_[5] = { 0.2f, 0.0f,0.5f,1.0f };
-
-	vertexLeft_[6] = { -0.2f, 0.2f,0.5f,1.0f };
-	vertexTop_[6] = { 0.0f, 0.4f,0.5f,1.0f };
-	vertexRight_[6] = { 0.2f, 0.2f,0.5f,1.0f };
-
-	vertexLeft_[7] = { -0.2f, 0.4f,0.5f,1.0f };
-	vertexTop_[7] = { 0.0f, 0.6f,0.5f,1.0f };
-	vertexRight_[7] = { 0.2f, 0.4f,0.5f,1.0f };
-
-	vertexLeft_[8] = { -0.2f, 0.6f,0.5f,1.0f };
-	vertexTop_[8] = { 0.0f, 0.8f,0.5f,1.0f };
-	vertexRight_[8] = { 0.2f, 0.6f,0.5f,1.0f };
-
-	vertexLeft_[9] = { -0.2f, 0.8f,0.5f,1.0f };
-	vertexTop_[9] = { 0.0f, 1.0f,0.5f,1.0f };
-	vertexRight_[9] = { 0.2f, 0.8f,0.5f,1.0f };
-
-	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i] = new Triangle();
-		Triangle_[i]->Initialize(directXCommon_, vertexLeft_[i],vertexTop_[i],vertexRight_[i]);
-	}
-}
-
-void MyEngine::Initialize() {
-
-	directXCommon_->Initialize();
+void MyEngine::Initialize(DirectXCommon* directXCommon) {
+	directXCommon_ = directXCommon;
 
 	DXCInitialize();
 
@@ -283,8 +235,6 @@ void MyEngine::Initialize() {
 	CreateViewport();
 
 	CreateScissor();
-
-	VariableInitialize();
 }
 
 void MyEngine::BeginFrame() {
@@ -296,20 +246,11 @@ void MyEngine::BeginFrame() {
 	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
 }
 
-void MyEngine::Draw() {
-	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw();
-	}
-}
-
 void MyEngine::EndFrame() {
 	directXCommon_->PostDraw();
 }
 
 void MyEngine::Release() {
-	for (int i = 0; i < kMaxTriangle; i++) {
-		delete Triangle_[i];
-	}
 	graphicsPipelineState_->Release();
 	signatureBlob_->Release();
 	if (errorBlob_) {
@@ -318,8 +259,4 @@ void MyEngine::Release() {
 	rootSignature_->Release();
 	pixelShaderBlob_->Release();
 	vertexShaderBlob_->Release();
-	directXCommon_->Release();
 }
-
-// 静的メンバ変数
-DirectXCommon* MyEngine::directXCommon_;

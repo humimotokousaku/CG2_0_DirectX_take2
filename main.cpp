@@ -11,40 +11,16 @@
 #pragma comment(lib, "dxguid.lib")
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
-
 #include "MyEngine.h"
+#include "GameScene.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+	GameScene* gameScene = new GameScene();
 
-	MyEngine* engine = new MyEngine();
-	// エンジンの初期化
-	engine->Initialize();
+	gameScene->Run();
 
-#pragma region メインループ
-
-	MSG msg{};
-	// ウィンドウの×ボタンが押されるまでループ
-	while (msg.message != WM_QUIT) {
-		// Windowにメッセージが来ていたら最優先で処理させる
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		else {
-			// ループ処理
-			engine->BeginFrame();
-
-			// 三角形
-			engine->Draw();
-
-			engine->EndFrame();
-		}
-	}
-	// 解放処理
-	engine->Release();
-
-#pragma endregion
+	delete gameScene;
 
 	return 0;
 }

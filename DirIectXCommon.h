@@ -48,22 +48,22 @@ public:
 	void Release();
 
 public:
-	static UINT backBufferIndex_;
-	static IDXGIFactory7* dxgiFactory_;
-	static IDXGIAdapter4* useAdapter_;
-	static ID3D12Device* device_;
-	static ID3D12InfoQueue* infoQueue_;
-	static ID3D12CommandQueue* commandQueue_;
-	static ID3D12CommandAllocator* commandAllocator_;
-	static ID3D12GraphicsCommandList* commandList_;
-	static IDXGISwapChain4* swapChain_;
-	static ID3D12DescriptorHeap* rtvDescriptorHeap_;
-	static ID3D12Resource* swapChainResources_[2];
-	static D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
-	static ID3D12Fence* fence_;
-	static uint64_t fenceValue_;
-	static HANDLE fenceEvent_;
-	static IDXGIDebug1* debug_;
-	static D3D12_RESOURCE_BARRIER barrier_;
+	UINT backBufferIndex_;
+	IDXGIFactory7* dxgiFactory_;
+	IDXGIAdapter4* useAdapter_;
+	ID3D12Device* device_;
+	ID3D12InfoQueue* infoQueue_;
+	ID3D12CommandQueue* commandQueue_;
+	ID3D12CommandAllocator* commandAllocator_;
+	ID3D12GraphicsCommandList* commandList_;
+	IDXGISwapChain4* swapChain_;
+	ID3D12DescriptorHeap* rtvDescriptorHeap_;
+	ID3D12Resource* swapChainResources_[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
+	ID3D12Fence* fence_;
+	uint64_t fenceValue_;
+	HANDLE fenceEvent_;
+	IDXGIDebug1* debug_;
+	D3D12_RESOURCE_BARRIER barrier_;
 };
 

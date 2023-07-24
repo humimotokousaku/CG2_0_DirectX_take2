@@ -6,6 +6,12 @@
 #include "Vector4.h"
 #include "DirIectXCommon.h"
 
+Triangle::Triangle(Vector4 left, Vector4 top, Vector4 right) {
+	vertex_.Left = left;
+	vertex_.Top = top;
+	vertex_.Right = right;
+}
+
 ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
@@ -56,7 +62,7 @@ void Triangle::CreateMaterialResource() {
 	*materialData_ = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
-void Triangle::Initialize(DirectXCommon* directXCommon, const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom) {
+void Triangle::Initialize(DirectXCommon* directXCommon) {
 	directXCommon_ = directXCommon;
 
 	CreateVertexResource();
@@ -69,24 +75,23 @@ void Triangle::Initialize(DirectXCommon* directXCommon, const Vector4& leftBotto
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 
 	// 左下
-	vertexData_[0] = leftBottom;
+	vertexData_[0] = vertex_.Left;
 	// 上
-	vertexData_[1] = top;
+	vertexData_[1] = vertex_.Top;
 	// 右下
-	vertexData_[2] = rightBottom;
+	vertexData_[2] = vertex_.Right;
 }
 
 void Triangle::Draw() {
 	// コマンドを積む
-	ID3D12GraphicsCommandList* commandList = directXCommon_->GetCommandList();
 
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+	directXCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	directXCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+	directXCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 
 	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
-	commandList->DrawInstanced(3, 1, 0, 0);
+	directXCommon_->GetCommandList()->DrawInstanced(3, 1, 0, 0);
 }

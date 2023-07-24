@@ -52,17 +52,11 @@ public:
 	// シザー矩形
 	void CreateScissor();
 
-	// 頂点データの初期化
-	void VariableInitialize();
-
 	// エンジンの初期化
-	void Initialize();
+	void Initialize(DirectXCommon* directXCommon);
 
 	// 描画前の処理
 	void BeginFrame();
-
-	// 三角形描画
-	void Draw();
 
 	// 描画後の処理
 	void EndFrame();
@@ -71,10 +65,7 @@ public:
 	void Release();
 
 public:
-	// 三角形を描画できる最大数
-	static const int kMaxTriangle = 10;
-	Triangle* Triangle_[kMaxTriangle];
-	static	DirectXCommon* directXCommon_;
+	DirectXCommon* directXCommon_;
 	IDxcUtils* dxcUtils_;
 	IDxcCompiler3* dxcCompiler_;
 	IDxcIncludeHandler* includeHandler_;
@@ -92,11 +83,6 @@ public:
 	ID3D12PipelineState* graphicsPipelineState_;
 	D3D12_VIEWPORT viewport_;
 	D3D12_RECT scissorRect_;
-
-	Vector4 vertexLeft_[kMaxTriangle];
-	Vector4 vertexTop_[kMaxTriangle];
-	Vector4 vertexRight_[kMaxTriangle];
-
 	D3D12_ROOT_PARAMETER rootParameters_[1];
 };
 

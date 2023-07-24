@@ -63,12 +63,12 @@ void WinApp::WindowGeneration() {
 
 void WinApp::DebugLayer() {
 #ifdef _DEBUG
-	//debugController_ = nullptr;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController_)))) {
+	ID3D12Debug1* debugController;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 		// デバッグレイヤーを有効化する
-		debugController_->EnableDebugLayer();
+		debugController->EnableDebugLayer();
 		// さらにGPU側でもチェックを行うようにする
-		debugController_->SetEnableGPUBasedValidation(TRUE);
+		debugController->SetEnableGPUBasedValidation(TRUE);
 	}
 #endif
 }
@@ -76,8 +76,10 @@ void WinApp::DebugLayer() {
 // Windowsの初期化
 void WinApp::Initialize() {
 	WindowClassRegister();
+	// クライアントサイズ
 	WindowSizeDecide();
 	WindowGeneration();
+	DebugLayer();
 	// ウィンドウを表示する
 	ShowWindow(hwnd_, SW_SHOW);
 }
@@ -88,8 +90,6 @@ void WinApp::Log(const std::string& message) {
 }
 
 #pragma region メンバ変数
-
-ID3D12Debug1* WinApp::debugController_;
 
 // ウィンドウクラス登録用
 WNDCLASS WinApp::wc_;

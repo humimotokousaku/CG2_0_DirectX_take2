@@ -13,26 +13,25 @@ public:
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 	// ウィンドウクラスの登録
-	static void WindowClassRegister();
+	void WindowClassRegister();
 
 	// ウィンドウサイズを決める
-	static void WindowSizeDecide();
+	void WindowSizeDecide();
 
 	// ウィンドウの生成
-	static void WindowGeneration();
+	void WindowGeneration();
 
 	// デバッグレイヤ
 	void DebugLayer();
 
 	// Windowsの初期化
-	static void Initialize();
+	void Initialize();
 
 	// 出力ウィンドウに文字を出す
 	static void Log(const std::string& message);
 
 public:
 	// メンバ変数
-	static ID3D12Debug1* debugController_;
 
 	// ウィンドウクラス登録用
 	static WNDCLASS wc_;
