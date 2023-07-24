@@ -61,7 +61,7 @@ public:
 	// 解放処理
 	void Release();
 
-public:
+private:
 	DirectXCommon* directXCommon_;
 	IDxcUtils* dxcUtils;
 	IDxcCompiler3* dxcCompiler;

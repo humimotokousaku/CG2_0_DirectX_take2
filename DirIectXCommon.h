@@ -24,7 +24,7 @@ public:
 	// 解放処理とリソースチェック
 	void Release();
 
-public:
+private:
 	UINT backBufferIndex_;
 	IDXGIFactory7* dxgiFactory_;
 	IDXGIAdapter4* useAdapter_;

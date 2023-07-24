@@ -42,7 +42,7 @@ public:
 	// 解放処理
 	void Release();
 
-public:
+private:
 	DirectXCommon* directXCommon_;
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
