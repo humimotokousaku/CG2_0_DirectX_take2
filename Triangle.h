@@ -13,11 +13,19 @@
 #include "DirIectXCommon.h"
 #include "Vector4.h"
 
+struct TriangleVertices {
+	Vector4 Left;
+	Vector4 Top;
+	Vector4 Right;
+};
+
 class Triangle
 {
 public:
-
+	Triangle(Vector4 left, Vector4 top, Vector4 right);
 	~Triangle() = default;
+
+	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
 
 	// VertexResourceの生成
 	void CreateVertexResource();
@@ -26,15 +34,19 @@ public:
 	void CreateVertexBufferView();
 
 	// 初期化
-	void Initialize(DirectXCommon* directXCommon, const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom);
+	void Initialize(DirectXCommon* directXCommon);
 
 	// 三角形描画
 	void Draw();
+
+	// 解放処理
+	void Release();
 
 public:
 	DirectXCommon* directXCommon_;
 	ID3D12Resource* vertexResource_;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 	Vector4* vertexData_;
+	TriangleVertices vertex_;
 };
 
