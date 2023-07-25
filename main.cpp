@@ -1,12 +1,9 @@
-#include "GameScene.h"
+#include "GameManager.h"
+#include <memory>
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-	GameScene* gameScene = new GameScene();
-
-	gameScene->Run();
-
-	delete gameScene;
-
+	std::unique_ptr<GameManager> gameManager = std::make_unique<GameManager>();
+	gameManager->Run();
 	return 0;
 }

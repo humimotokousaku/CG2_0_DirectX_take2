@@ -3,6 +3,10 @@
 #include <format>
 #include <cassert>
 
+MyEngine::~MyEngine() {
+
+}
+
 void MyEngine::DXCInitialize() {
 	HRESULT hr;
 	// dxCompilerの初期化
@@ -113,7 +117,7 @@ void MyEngine::CreateRootSignature() {
 		assert(false);
 	}
 	// バイナリをもとに生成
-	hr = directXCommon_->GetDevice()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
+	hr = DirectXCommon::GetInstance()->GetDevice()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
 		signatureBlob_->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 	assert(SUCCEEDED(hr));
 }
@@ -175,7 +179,7 @@ void MyEngine::CreatePSO() {
 	graphicsPipelineStateDescs_.SampleDesc.Count = 1;
 	graphicsPipelineStateDescs_.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 	// 実際に生成
-	hr = directXCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
+	hr = DirectXCommon::GetInstance()->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
 		IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
@@ -214,9 +218,7 @@ void MyEngine::CreateScissor() {
 	scissorRect_.bottom = WinApp::kClientHeight_;
 }
 
-void MyEngine::Initialize(DirectXCommon* directXCommon) {
-	directXCommon_ = directXCommon;
-
+void MyEngine::Initialize() {
 	DXCInitialize();
 
 	PSO();
@@ -227,19 +229,19 @@ void MyEngine::Initialize(DirectXCommon* directXCommon) {
 }
 
 void MyEngine::BeginFrame() {
-	directXCommon_->PreDraw();
-	directXCommon_->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
-	directXCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
+	DirectXCommon::GetInstance()->PreDraw();
+	DirectXCommon::GetInstance()->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
+	DirectXCommon::GetInstance()->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
-	directXCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
-	directXCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
+	DirectXCommon::GetInstance()->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
 }
 
 void MyEngine::EndFrame() {
-	directXCommon_->PostDraw();
+	DirectXCommon::GetInstance()->PostDraw();
 }
 
-void MyEngine::Release() {
+void MyEngine::Finalize() {
 	graphicsPipelineState_->Release();
 	signatureBlob_->Release();
 	if (errorBlob_) {

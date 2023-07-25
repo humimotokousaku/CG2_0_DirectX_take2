@@ -7,6 +7,10 @@
 class DirectXCommon
 {
 public:
+	static DirectXCommon* GetInstance();
+
+	~DirectXCommon();
+
 	// getter
 	ID3D12Device* GetDevice() { return this->device_; }
 	ID3D12GraphicsCommandList* GetCommandList() { return this->commandList_; }
@@ -21,7 +25,7 @@ public:
 	void PostDraw();
 
 	// 解放処理とリソースチェック
-	void Release();
+	void Finalize();
 
 private:
 	UINT backBufferIndex_;
@@ -39,7 +43,6 @@ private:
 	ID3D12Fence* fence_;
 	uint64_t fenceValue_;
 	HANDLE fenceEvent_;
-	IDXGIDebug1* debug_;
 	D3D12_RESOURCE_BARRIER barrier_;
 };
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "WinApp.h"
-#include "DirIectXCommon.h"
+#include "./base/WinApp.h"
+#include "./base/DirectXCommon.h"
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 #include <dxgidebug.h>
@@ -10,6 +10,8 @@
 
 class MyEngine {
 public:
+	~MyEngine();
+
 	// DXCの初期化
 	void DXCInitialize();
 
@@ -55,7 +57,7 @@ public:
 	void CreateScissor();
 
 	// エンジンの初期化
-	void Initialize(DirectXCommon* directXCommon);
+	void Initialize();
 
 	// 描画前の処理
 	void BeginFrame();
@@ -64,10 +66,9 @@ public:
 	void EndFrame();
 
 	// 解放処理
-	void Release();
+	void Finalize();
 
 private:
-	DirectXCommon* directXCommon_;
 	IDxcUtils* dxcUtils_;
 	IDxcCompiler3* dxcCompiler_;
 	IDxcIncludeHandler* includeHandler_;

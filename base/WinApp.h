@@ -8,6 +8,9 @@ class WinApp
 {
 public:
 	// メンバ関数
+	static WinApp* GetInstance();
+
+	HWND GetHwnd() { return hwnd_; }
 
 	// ウィンドウプロシージャ
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -34,15 +37,15 @@ public:
 	// メンバ変数
 
 	// ウィンドウクラス登録用
-	static WNDCLASS wc_;
+	WNDCLASS wc_;
 
 	// クライアント領域のサイズ
 	static const int32_t kClientWidth_ = 1280;
 	static const int32_t kClientHeight_ = 720;
 
-	static RECT wrc_;
+	RECT wrc_;
 
 	// ウィンドウを生成
-	static HWND hwnd_;
+	HWND hwnd_;
 
 };

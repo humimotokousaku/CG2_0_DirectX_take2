@@ -1,6 +1,6 @@
 #include <cassert>
 #include "Triangle.h"
-#include "Vector4.h"
+#include "./math/Vector4.h"
 
 Triangle::Triangle(Vector4 left, Vector4 top, Vector4 right) {
 	vertex_.left = left;
@@ -8,7 +8,11 @@ Triangle::Triangle(Vector4 left, Vector4 top, Vector4 right) {
 	vertex_.right = right;
 }
 
-ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+Triangle::~Triangle() {
+
+}
+
+ID3D12Resource* Triangle::CreateBufferResource(size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -28,7 +32,7 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 
 	ID3D12Resource* vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = DirectXCommon::GetInstance()->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
 
@@ -37,7 +41,7 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 
 
 void Triangle::CreateVertexResource() {
-	vertexResource_ = CreateBufferResource(directXCommon_->GetDevice(), sizeof(Vector4) * 3);
+	vertexResource_ = CreateBufferResource(sizeof(Vector4) * 3);
 }
 
 void Triangle::CreateVertexBufferView() {
@@ -50,9 +54,7 @@ void Triangle::CreateVertexBufferView() {
 	vertexBufferView_.StrideInBytes = sizeof(Vector4);
 }
 
-void Triangle::Initialize(DirectXCommon* directXCommon) {
-	directXCommon_ = directXCommon;
-
+void Triangle::Initialize() {
 	CreateVertexResource();
 
 	CreateVertexBufferView();
@@ -70,13 +72,13 @@ void Triangle::Initialize(DirectXCommon* directXCommon) {
 
 void Triangle::Draw() {
 	// コマンドを積む
-	directXCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+	DirectXCommon::GetInstance()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	directXCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DirectXCommon::GetInstance()->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
-	directXCommon_->GetCommandList()->DrawInstanced(3, 1, 0, 0);
+	DirectXCommon::GetInstance()->GetCommandList()->DrawInstanced(3, 1, 0, 0);
 }
 
-void Triangle::Release() {
+void Triangle::Finalize() {
 	vertexResource_->Release();
 }

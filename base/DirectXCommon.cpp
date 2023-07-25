@@ -1,12 +1,22 @@
-#include "DirIectXCommon.h"
+#include "DirectXCommon.h"
 #include "WinApp.h"
-#include "ConvertString.h"
+#include "../ConvertString.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <cassert>
 #include <format>
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
+
+DirectXCommon* DirectXCommon::GetInstance() {
+	static DirectXCommon instance;
+
+	return &instance;
+}
+
+DirectXCommon::~DirectXCommon() {
+
+}
 
 void DirectXCommon::Initialize() {
 	HRESULT hr;
@@ -139,7 +149,7 @@ void DirectXCommon::Initialize() {
 	swapChainDesc.BufferCount = 2;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
-	hr = dxgiFactory_->CreateSwapChainForHwnd(commandQueue_, WinApp::hwnd_, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain_));
+	hr = dxgiFactory_->CreateSwapChainForHwnd(commandQueue_, WinApp::GetInstance()->GetHwnd(), &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain_));
 	assert(SUCCEEDED(hr));
 
 #pragma endregion
@@ -290,7 +300,7 @@ void DirectXCommon::PostDraw() {
 #pragma endregion
 }
 
-void DirectXCommon::Release() {
+void DirectXCommon::Finalize() {
 #pragma region 解放処理
 
 	CloseHandle(fenceEvent_);
@@ -305,20 +315,7 @@ void DirectXCommon::Release() {
 	device_->Release();
 	useAdapter_->Release();
 	dxgiFactory_->Release();
-
-	CloseWindow(WinApp::hwnd_);
-
-#pragma endregion
-
-#pragma region ReportLiveObjects
-
-	// リソースリークチェック
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug_)))) {
-		debug_->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-		debug_->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		debug_->Release();
-	}
+	CloseWindow(WinApp::GetInstance()->GetHwnd());
 
 #pragma endregion
 }

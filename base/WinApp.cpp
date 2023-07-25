@@ -3,6 +3,13 @@
 #include <cstdint>
 #include <string>
 #include <format>
+
+WinApp* WinApp::GetInstance() {
+	static WinApp instance;
+
+	return &instance;
+}
+
 // ウィンドウプロシージャ
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
@@ -91,11 +98,10 @@ void WinApp::Log(const std::string& message) {
 #pragma region メンバ変数
 
 // ウィンドウクラス登録用
-WNDCLASS WinApp::wc_;
+//WNDCLASS WinApp::wc_;
+//
+//RECT WinApp::wrc_;
 
-RECT WinApp::wrc_;
 
-// ウィンドウを生成
-HWND WinApp::hwnd_;
 
 #pragma endregion
