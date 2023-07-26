@@ -20,6 +20,13 @@
 #include "TransformationMatrix.h"
 #include <wrl.h>
 
+// 三角形の頂点
+struct TriangleVertices {
+	Vector4 left;
+	Vector4 top;
+	Vector4 right;
+};
+
 class Triangle
 {
 public:
@@ -28,6 +35,8 @@ public:
 
 	// Setter
 	void SetTextureSrvHandleGPU(D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU) { textureSrvHandleGPU_ = textureSrvHandleGPU; }
+
+	Triangle(Vector4 left, Vector4 top, Vector4 right);
 
 	~Triangle();
 
@@ -50,7 +59,7 @@ public:
 	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
 
 	// 三角形描画
-	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
+	void Draw(Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
 	
 public:
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
@@ -65,4 +74,6 @@ public:
 
 	Transform uvTransform_;
 	Matrix4x4 uvTransformMatrix_;
+
+	TriangleVertices vertex_;
 };

@@ -106,7 +106,7 @@ private:
 
 	// 三角形を描画できる最大数
 	static const int kMaxTriangle = 2;
-	std::unique_ptr<Triangle> Triangle_[kMaxTriangle];
+	Triangle* triangle_[kMaxTriangle];
 	std::unique_ptr<WinApp> winApp_;
 	std::unique_ptr<DirectXCommon> directXCommon_;
 	std::unique_ptr<Light> light_;

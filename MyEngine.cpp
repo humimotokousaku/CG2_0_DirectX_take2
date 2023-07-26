@@ -323,13 +323,14 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	sphere_->Initialize(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get());
 	// 三角形の頂点データ
 	VariableInitialize();
+
 	// 三角形の生成
 	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i] = std::make_unique<Triangle>();
+		triangle_[i] = new Triangle({ -0.3f, -0.2f * (i + 1), 0.0f, 1.0f }, { 0.0f, -0.1f * (i + 1), 0.0f, 1.0f }, { 0.3f, -0.2f * (i + 1), 0.0f, 1.0f });
 		// 初期化
-		Triangle_[i]->Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
+		triangle_[i]->Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
 		// 使う画像
-		Triangle_[i]->SetTextureSrvHandleGPU(*textureManager_->GetTextureSrvHandleGPU());
+		triangle_[i]->SetTextureSrvHandleGPU(*textureManager_->GetTextureSrvHandleGPU());
 	}
 	// ライトの設定
 	light_ = std::make_unique<Light>();
@@ -359,9 +360,11 @@ void MyEngine::BeginFrame() {
 	imGuiManager_->PreDraw();
 }
 void MyEngine::Draw() {
+
+	Vector4 color = { 1.0f,1.0f,1.0f,1.0f };
 	// 三角形
 	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->Draw(vertexLeft_[i].position, vertexTop_[i].position, vertexRight_[i].position, Vector4{ 1.0f,1.0f,1.0f,1.0f }, *camera_->GetTransformationMatrixData(), directXCommon_->GetCommandList());
+		triangle_[i]->Draw(color, *camera_->GetTransformationMatrixData(), directXCommon_->GetCommandList());
 	}
 	// 球
 	sphere_->Draw(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
@@ -384,6 +387,9 @@ void MyEngine::EndFrame() {
 }
 
 void MyEngine::Finalize() {
+	for (int i = 0; i < kMaxTriangle; i++) {
+		delete triangle_[i];
+	}
 	// DirectX
 	directXCommon_->Release();
 	// ImGui

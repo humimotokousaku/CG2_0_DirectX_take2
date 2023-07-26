@@ -4,10 +4,14 @@
 #include <format>
 #include <cassert>
 
+Triangle::Triangle(Vector4 left, Vector4 top, Vector4 right) {
+	vertex_.left = left;
+	vertex_.top = top;
+	vertex_.right = right;
+}
+
 Triangle::~Triangle() {
-	//wvpResource_->Release();
-	//materialResource_->Release();
-	//vertexResource_->Release();
+
 }
 
 const Microsoft::WRL::ComPtr<ID3D12Resource> Triangle::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
@@ -91,12 +95,22 @@ void Triangle::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, co
 	{0.0f,0.0f,0.0f}
 	};
 
+	// 左下
+	vertexData_[0].position = vertex_.left;
+	vertexData_[0].texcoord = { 0.0f,1.0f };
+	// 上:
+	vertexData_[1].position = vertex_.top;
+	vertexData_[1].texcoord = { 0.5f,0.0f };
+	// 右下
+	vertexData_[2].position = vertex_.right;
+	vertexData_[2].texcoord = { 1.0f,1.0f };
+
 	materialData_->uvTransform = MakeIdentity4x4();
 
 	materialData_->enableLighting = false;
 }
 
-void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
+void Triangle::Draw(Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
@@ -110,16 +124,6 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	wvpData_->WVP = wvpData_->World;
 
 #pragma endregion
-
-	// 左下
-	vertexData_[0].position = leftBottom;
-	vertexData_[0].texcoord = { 0.0f,1.0f };
-	// 上:
-	vertexData_[1].position = top;
-	vertexData_[1].texcoord = { 0.5f,0.0f };
-	// 右下
-	vertexData_[2].position = rightBottom;
-	vertexData_[2].texcoord = {1.0f,1.0f};
 
 	// 赤色にする
 	materialData_->color = color;
