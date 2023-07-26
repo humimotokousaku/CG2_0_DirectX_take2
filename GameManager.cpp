@@ -8,6 +8,7 @@ GameManager::GameManager() {
 }
 
 void GameManager::ChangeState(IScene* pState) {
+	scene_->Finalize(this);
 	delete scene_;
 	scene_ = pState;
 	// シーンが変わったら初期化

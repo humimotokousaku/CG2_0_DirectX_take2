@@ -1,4 +1,5 @@
 #include "TitleScene.h"
+#include "GameScene.h"
 #include "../GameManager.h"
 
 void TitleScene::Initialize(GameManager* gameManager) {
@@ -6,6 +7,7 @@ void TitleScene::Initialize(GameManager* gameManager) {
 		triangle_[i] = new Triangle({ -0.3f, -0.2f * (i + 1), 0.0f, 1.0f }, { -0.2f, -0.1f * (i + 1), 0.0f, 1.0f }, { -0.1f, -0.2f * (i + 1), 0.0f, 1.0f });
 		triangle_[i]->Initialize();
 	}
+	gameManager->ChangeState(new GameScene());
 }
 
 void TitleScene::Update(GameManager* gameManager) {
