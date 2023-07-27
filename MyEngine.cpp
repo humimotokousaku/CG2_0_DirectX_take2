@@ -161,7 +161,7 @@ void MyEngine::CreateRootSignature() {
 		assert(false);
 	}
 	// バイナリをもとに生成
-	hr = directXCommon_->GetDevice().Get()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
+	hr = DirectXCommon::GetInstance()->GetDevice().Get()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
 		signatureBlob_->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 	assert(SUCCEEDED(hr));
 }
@@ -237,7 +237,7 @@ void MyEngine::CreatePSO() {
 	graphicsPipelineStateDescs_.SampleDesc.Count = 1;
 	graphicsPipelineStateDescs_.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 	// 実際に生成
-	hr = directXCommon_->GetDevice().Get()->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
+	hr = DirectXCommon::GetInstance()->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDescs_,
 		IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr));
 }
@@ -283,13 +283,13 @@ void MyEngine::CreateScissor() {
 }
 
 void MyEngine::VariableInitialize() {
-	vertexLeft_[0].position = { -0.5f, -0.5f,0.0f,1.0f };
-	vertexTop_[0].position = { 0.0f, 0.5f,0.0f,1.0f };
-	vertexRight_[0].position = { 0.5f, -0.5f,0.0f,1.0f };
+	//vertexLeft_[0].position = { -0.5f, -0.5f,0.0f,1.0f };
+	//vertexTop_[0].position = { 0.0f, 0.5f,0.0f,1.0f };
+	//vertexRight_[0].position = { 0.5f, -0.5f,0.0f,1.0f };
 
-	vertexLeft_[1] = { -0.5f, -0.5f,0.5f,1.0f };
-	vertexTop_[1] = { 0.0f, 0.0f,0.0f,1.0f };
-	vertexRight_[1] = { 0.5f, -0.5f,-0.5f,1.0f };
+	//vertexLeft_[1] = { -0.5f, -0.5f,0.5f,1.0f };
+	//vertexTop_[1] = { 0.0f, 0.0f,0.0f,1.0f };
+	//vertexRight_[1] = { 0.5f, -0.5f,-0.5f,1.0f };
 }
 
 void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
@@ -302,7 +302,7 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	winApp_->Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
 	// DirectXの初期化
-	directXCommon_ = std::make_unique<DirectXCommon>();
+	directXCommon_ = DirectXCommon::GetInstance();
 	directXCommon_->Initialize(winApp_->GetHwnd());
 	// DXCの初期化
 	DXCInitialize();
@@ -314,27 +314,27 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	CreateScissor();
 
 	objModel_ = std::make_unique<ObjModel>();
-	objModel_->Initialize(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get());
+	objModel_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get());
 	// Textureの初期化
-	textureManager_->Initialize(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get(), directXCommon_->GetSrvDescriptorHeap().Get(), objModel_->GetModelData());
+	textureManager_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), DirectXCommon::GetInstance()->GetSrvDescriptorHeap().Get(), objModel_->GetModelData());
 	sprite_ = std::make_unique<Sprite>();
-	sprite_->Initialize(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get());
+	sprite_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get());
 	sphere_ = std::make_unique<Sphere>();
-	sphere_->Initialize(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get());
+	sphere_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get());
 	// 三角形の頂点データ
 	VariableInitialize();
 
 	// 三角形の生成
 	for (int i = 0; i < kMaxTriangle; i++) {
-		triangle_[i] = new Triangle({ -0.3f, -0.2f * (i + 1), 0.0f, 1.0f }, { 0.0f, -0.1f * (i + 1), 0.0f, 1.0f }, { 0.3f, -0.2f * (i + 1), 0.0f, 1.0f });
+		triangle_[i] = new Triangle({ -1.0f, -0.2f * (i + 1), 0.0f, 1.0f }, { 0.0f, 0.1f * (i + 1), 0.0f, 1.0f }, { 1.0f, -0.2f * (i + 1), 0.0f, 1.0f });
 		// 初期化
-		triangle_[i]->Initialize(directXCommon_->GetDevice(), directXCommon_->GetCommandList());
+		triangle_[i]->Initialize();
 		// 使う画像
 		triangle_[i]->SetTextureSrvHandleGPU(*textureManager_->GetTextureSrvHandleGPU());
 	}
 	// ライトの設定
 	light_ = std::make_unique<Light>();
-	light_->Initialize(directXCommon_->GetDevice().Get());
+	light_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get());
 
 	// カメラの初期化
 	camera_ = std::make_unique<Camera>();
@@ -342,16 +342,16 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 
 	// ImGuiの初期化
 	imGuiManager_ = std::make_unique<ImGuiManager>();
-	imGuiManager_->Initialize(directXCommon_->GetDevice().Get(), directXCommon_->GetSwapChainDesc(), directXCommon_->GetRtvDesc(), directXCommon_->GetSrvDescriptorHeap().Get(), winApp_->GetHwnd());
+	imGuiManager_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetSwapChainDesc(), DirectXCommon::GetInstance()->GetRtvDesc(), DirectXCommon::GetInstance()->GetSrvDescriptorHeap().Get(), winApp_->GetHwnd());
 }
 
 void MyEngine::BeginFrame() {
-	directXCommon_->PreDraw(textureManager_->GetDsvDescriptorHeap().Get());
-	directXCommon_->GetCommandList().Get()->RSSetViewports(1, &viewport_); // Viewportを設定
-	directXCommon_->GetCommandList().Get()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
+	DirectXCommon::GetInstance()->PreDraw(textureManager_->GetDsvDescriptorHeap().Get());
+	DirectXCommon::GetInstance()->GetCommandList().Get()->RSSetViewports(1, &viewport_); // Viewportを設定
+	DirectXCommon::GetInstance()->GetCommandList().Get()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
-	directXCommon_->GetCommandList().Get()->SetGraphicsRootSignature(rootSignature_.Get());
-	directXCommon_->GetCommandList().Get()->SetPipelineState(graphicsPipelineState_.Get()); // PSOを設定
+	DirectXCommon::GetInstance()->GetCommandList().Get()->SetGraphicsRootSignature(rootSignature_.Get());
+	DirectXCommon::GetInstance()->GetCommandList().Get()->SetPipelineState(graphicsPipelineState_.Get()); // PSOを設定
 
 	// カメラの設定
 	camera_->SettingCamera();
@@ -364,14 +364,14 @@ void MyEngine::Draw() {
 	Vector4 color = { 1.0f,1.0f,1.0f,1.0f };
 	// 三角形
 	for (int i = 0; i < kMaxTriangle; i++) {
-		triangle_[i]->Draw(color, *camera_->GetTransformationMatrixData(), directXCommon_->GetCommandList());
+		triangle_[i]->Draw(color, *camera_->GetTransformationMatrixData());
 	}
 	// 球
-	sphere_->Draw(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
+	sphere_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
 	// スプライト
-	objModel_->Draw(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
+	objModel_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
 	// sprite
-	sprite_->Draw(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), light_->GetDirectionalLightResource().Get());
+	sprite_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), light_->GetDirectionalLightResource().Get());
 
 	// カメラのImGui
 	camera_->DrawDebugParameter();
@@ -381,13 +381,14 @@ void MyEngine::Draw() {
 
 void MyEngine::EndFrame() {
 	// ImGui
-	imGuiManager_->PostDraw(directXCommon_->GetCommandList().Get());
+	imGuiManager_->PostDraw(DirectXCommon::GetInstance()->GetCommandList().Get());
 	// DirectX
-	directXCommon_->PostDraw();
+	DirectXCommon::GetInstance()->PostDraw();
 }
 
 void MyEngine::Finalize() {
 	for (int i = 0; i < kMaxTriangle; i++) {
+
 		delete triangle_[i];
 	}
 	// DirectX

@@ -108,7 +108,7 @@ private:
 	static const int kMaxTriangle = 2;
 	Triangle* triangle_[kMaxTriangle];
 	std::unique_ptr<WinApp> winApp_;
-	std::unique_ptr<DirectXCommon> directXCommon_;
+	DirectXCommon* directXCommon_;
 	std::unique_ptr<Light> light_;
 	std::unique_ptr<Sprite> sprite_;
 	std::unique_ptr<Sphere> sphere_;

@@ -14,7 +14,7 @@ Triangle::~Triangle() {
 
 }
 
-const Microsoft::WRL::ComPtr<ID3D12Resource> Triangle::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
+const Microsoft::WRL::ComPtr<ID3D12Resource> Triangle::CreateBufferResource(size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -34,15 +34,15 @@ const Microsoft::WRL::ComPtr<ID3D12Resource> Triangle::CreateBufferResource(cons
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	// 実際に頂点リソースを作る
-	hr = device.Get()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+	hr = DirectXCommon::GetInstance()->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
 		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(vertexResource.GetAddressOf()));
 	assert(SUCCEEDED(hr));
 
 	return vertexResource;
 }
 
-void Triangle::CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
-	vertexResource_ = CreateBufferResource(device, sizeof(VertexData) * 3).Get();
+void Triangle::CreateVertexResource() {
+	vertexResource_ = CreateBufferResource(sizeof(VertexData) * 3).Get();
 }
 
 void Triangle::CreateVertexBufferView() {
@@ -54,29 +54,29 @@ void Triangle::CreateVertexBufferView() {
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-void Triangle::CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
-	materialResource_ = CreateBufferResource(device.Get(), sizeof(Material)).Get();
+void Triangle::CreateMaterialResource() {
+	materialResource_ = CreateBufferResource(sizeof(Material)).Get();
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
 	// 書き込むためのアドレスを取得
 	materialResource_.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void Triangle::CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
+void Triangle::CreateWvpResource() {
 	// 1つ分のサイズを用意する
-	wvpResource_ = CreateBufferResource(device.Get(), sizeof(TransformationMatrix)).Get();
+	wvpResource_ = CreateBufferResource(sizeof(TransformationMatrix)).Get();
 	// 書き込むためのアドレスを取得
 	wvpResource_.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpData_));
 	// 単位行列を書き込んでおく
 	wvpData_->WVP = MakeIdentity4x4();
 }
 
-void Triangle::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
-	CreateVertexResource(device);
+void Triangle::Initialize() {
+	CreateVertexResource();
 
-	CreateMaterialResource(device);
+	CreateMaterialResource();
 
-	CreateWvpResource(device);
+	CreateWvpResource();
 
 	CreateVertexBufferView();
 
@@ -110,7 +110,7 @@ void Triangle::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, co
 	materialData_->enableLighting = false;
 }
 
-void Triangle::Draw(Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
+void Triangle::Draw(Vector4& color, const Matrix4x4& transformationMatrixData) {
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
@@ -129,15 +129,15 @@ void Triangle::Draw(Vector4& color, const Matrix4x4& transformationMatrixData, c
 	materialData_->color = color;
 
 	// コマンドを積む
-	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+	DirectXCommon::GetInstance()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
 	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	DirectXCommon::GetInstance()->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// マテリアルCBufferの場所を設定
-	commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
 	// wvp陽男のCBufferの場所を設定
-	commandList.Get()->SetGraphicsRootConstantBufferView(1, wvpResource_.Get()->GetGPUVirtualAddress());
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_.Get()->GetGPUVirtualAddress());
 	// DescriptorTableの設定
-	commandList.Get()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
-	commandList.Get()->DrawInstanced(3, 1, 0, 0);
+	DirectXCommon::GetInstance()->GetCommandList()->DrawInstanced(3, 1, 0, 0);
 }

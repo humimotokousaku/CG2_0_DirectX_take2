@@ -13,6 +13,12 @@
 #include "externals/ImGui/imgui_impl_win32.h"
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+DirectXCommon* DirectXCommon::GetInstance() {
+	static DirectXCommon instance;
+
+	return &instance;
+}
+
 D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index) {
 	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	handleCPU.ptr += (descriptorSize * index);
@@ -79,7 +85,7 @@ void DirectXCommon::StopError() {
 		// エラー時に止まる
 		infoQueue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
 		// 警告時に止まる
-		infoQueue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+		//infoQueue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
 
 #pragma region エラーと警告の抑制
 
@@ -339,18 +345,18 @@ void DirectXCommon::Release() {
 #pragma region 解放処理
 
 	CloseHandle(fenceEvent_);
-	//fence_->Release();
-	//srvDescriptorHeap_->Release();
-	//rtvDescriptorHeap_->Release();
-	//swapChainResources_[0]->Release();
-	//swapChainResources_[1]->Release();
-	//swapChain_->Release();
-	//commandList_->Release();
-	//commandAllocator_->Release();
-	//commandQueue_->Release();
-	//device_->Release();
-	//useAdapter_->Release();
-	//dxgiFactory_->Release();
+	fence_->Release();
+	srvDescriptorHeap_.Reset();
+	rtvDescriptorHeap_.Reset();
+	swapChainResources_[0].Reset();
+	swapChainResources_[1].Reset();
+	swapChain_.Reset();
+	commandList_.Reset();
+	commandAllocator_.Reset();
+	commandQueue_.Reset();
+	device_.Reset();
+	useAdapter_.Reset();
+	dxgiFactory_.Reset();
 
 #pragma endregion
 }

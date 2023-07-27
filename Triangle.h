@@ -41,25 +41,25 @@ public:
 	~Triangle();
 
 	// Resource生成
-	const Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes);
+	const Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(size_t sizeInBytes);
 
 	// VertexResourceの生成
-	void CreateVertexResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
+	void CreateVertexResource();
 
 	// VertexBufferViewの生成
 	void CreateVertexBufferView();
 
 	// MaterialResourceの生成
-	void CreateMaterialResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
+	void CreateMaterialResource();
 
 	// TransformationMatrix用のResourceを生成
-	void CreateWvpResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
+	void CreateWvpResource();
 
 	// 初期化
-	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
+	void Initialize();
 
 	// 三角形描画
-	void Draw(Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
+	void Draw(Vector4& color, const Matrix4x4& transformationMatrixData);
 	
 public:
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
