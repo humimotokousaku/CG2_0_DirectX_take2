@@ -165,42 +165,47 @@ void ObjModel::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, co
 }
 
 void ObjModel::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource) {
-	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
-	materialData_->uvTransform = uvTransformMatrix_;
+	if (isAlive_) {
+		uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
+		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
+		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
+		materialData_->uvTransform = uvTransformMatrix_;
 
-	// カメラ
-	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, transformationMatrixData);
-	transformationMatrixData_->World = MakeIdentity4x4();
+		// カメラ
+		transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+		transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, transformationMatrixData);
+		transformationMatrixData_->World = MakeIdentity4x4();
 
-	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
+		materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
-	ImGui::Begin("Plane");
-	ImGui::SliderFloat3(".Translate ", &transform_.translate.x, -2, 2);
-	ImGui::SliderAngle(".Rotate.y ", &transform_.rotate.y);
-	ImGui::End();
+		// コマンドを積む
+		commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+		// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
+		commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// DescriptorTableの設定
+		commandList.Get()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU[2]);
 
-	// コマンドを積む
-	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
-	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	// DescriptorTableの設定
-	commandList.Get()->SetGraphicsRootDescriptorTable(2,textureSrvHandleGPU[2]);
+		// wvpのCBufferの場所を設定
+		commandList.Get()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
-	// wvpのCBufferの場所を設定
-	commandList.Get()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
+		commandList.Get()->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
 
-	commandList.Get()->SetGraphicsRootConstantBufferView(3, directionalLightResource.Get()->GetGPUVirtualAddress());
-
-	// マテリアルCBufferの場所を設定
-	commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
-	commandList.Get()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
+		// マテリアルCBufferの場所を設定
+		commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+		commandList.Get()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
+	}
 }
 
 void ObjModel::Release() {
 	//transformationMatrixResource_->Release();
 	//materialResource_->Release();
 	//vertexResource_->Release();
+}
+
+void ObjModel::ImGuiAdjustParameter() {
+	ImGui::Text("Plane");
+	ImGui::Checkbox("isAlive", &isAlive_);
+	ImGui::SliderFloat3("Translate", &transform_.translate.x, -5, 5);
+	ImGui::SliderFloat3("Scale", &transform_.scale.x, -5, 5);
+	ImGui::SliderFloat3("Rotate", &transform_.rotate.x, -6.28f, 6.28f);
 }

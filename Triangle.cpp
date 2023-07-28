@@ -98,54 +98,55 @@ void Triangle::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, co
 }
 
 void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
-	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
-	materialData_->uvTransform = uvTransformMatrix_;
+	if (isAlive_) {
+		uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
+		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
+		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
+		materialData_->uvTransform = uvTransformMatrix_;
 
 #pragma region 三角形の回転
 
-	//transform_.rotate.y += 0.03f;
-	wvpData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	wvpData_->World = Multiply(wvpData_->World,transformationMatrixData);
-	wvpData_->WVP = wvpData_->World;
+		//transform_.rotate.y += 0.03f;
+		wvpData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+		wvpData_->World = Multiply(wvpData_->World, transformationMatrixData);
+		wvpData_->WVP = wvpData_->World;
 
 #pragma endregion
 
-	// 左下
-	vertexData_[0].position = leftBottom;
-	vertexData_[0].texcoord = { 0.0f,1.0f };
-	// 上:
-	vertexData_[1].position = top;
-	vertexData_[1].texcoord = { 0.5f,0.0f };
-	// 右下
-	vertexData_[2].position = rightBottom;
-	vertexData_[2].texcoord = {1.0f,1.0f};
+		// 左下
+		vertexData_[0].position = leftBottom;
+		vertexData_[0].texcoord = { 0.0f,1.0f };
+		// 上:
+		vertexData_[1].position = top;
+		vertexData_[1].texcoord = { 0.5f,0.0f };
+		// 右下
+		vertexData_[2].position = rightBottom;
+		vertexData_[2].texcoord = { 1.0f,1.0f };
 
+		inputFloat[0] = &materialData_->color.x;
+		inputFloat[1] = &materialData_->color.y;
+		inputFloat[2] = &materialData_->color.z;
+		inputFloat[3] = &materialData_->color.w;
 
-
-	inputFloat[0] = &materialData_->color.x;
-	inputFloat[1] = &materialData_->color.y;
-	inputFloat[2] = &materialData_->color.z;
-	inputFloat[3] = &materialData_->color.w;
-
-	// コマンドを積む
-	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
-	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	// マテリアルCBufferの場所を設定
-	commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
-	// wvp陽男のCBufferの場所を設定
-	commandList.Get()->SetGraphicsRootConstantBufferView(1, wvpResource_.Get()->GetGPUVirtualAddress());
-	// DescriptorTableの設定
-	commandList.Get()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
-	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
-	commandList.Get()->DrawInstanced(3, 1, 0, 0);
+		// コマンドを積む
+		commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+		// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
+		commandList.Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// マテリアルCBufferの場所を設定
+		commandList.Get()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+		// wvp陽男のCBufferの場所を設定
+		commandList.Get()->SetGraphicsRootConstantBufferView(1, wvpResource_.Get()->GetGPUVirtualAddress());
+		// DescriptorTableの設定
+		commandList.Get()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+		// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
+		commandList.Get()->DrawInstanced(3, 1, 0, 0);
+	}
 }
 
 void Triangle::ImGuiAdjustParameter() {
+	ImGui::Checkbox("isAlive", &isAlive_);
+	ImGui::SliderFloat3("Translation", &transform_.translate.x, -5.0f, 5.0f);
+	ImGui::SliderFloat3("Scale", &transform_.scale.x, -5.0f, 5.0f);
+	ImGui::SliderFloat3("Rotate", &transform_.rotate.x, -6.28f, 6.28f);
 	ImGui::ColorPicker4("color", *inputFloat);
-	ImGui::SliderFloat3("translation", &transform_.translate.x, -5.0f, 5.0f);
-	ImGui::SliderFloat3("rotate", &transform_.rotate.x, -6.28f, 6.28f);
-	ImGui::SliderFloat3("scale", &transform_.scale.x, -5.0f, 5.0f);
 }

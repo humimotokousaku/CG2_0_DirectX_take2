@@ -28,6 +28,8 @@ public:
 
 	void Release();
 
+	void ImGuiAdjustParameter();
+
 public:
 	// Material
 	Material* materialData_;
@@ -52,4 +54,6 @@ public:
 
 	// Sphereの画像切り替え
 	bool useMonsterBall_ = true;
+
+	bool isAlive_ = true;
 };

@@ -50,12 +50,11 @@ void Light::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
 	directionalLightData_->intensity = 1.0f;
 }
 
-void Light::DrawDebugParameter() {
-	ImGui::Text("Ligting");
-	ImGui::SliderFloat3("Lighting.direction", &directionalLightData_->direction.x, -1, 1);
-	ImGui::SliderFloat("Lighting.intensity", &directionalLightData_->intensity, 0, 1);
-}
-
 void Light::Release() {
 	//directionalLightResource_->Release();
+}
+
+void Light::ImGuiAdjustParameter() {
+	ImGui::SliderFloat3("Lighting.direction", &directionalLightData_->direction.x, -1, 1);
+	ImGui::SliderFloat("Lighting.intensity", &directionalLightData_->intensity, 0, 1);
 }

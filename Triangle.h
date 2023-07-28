@@ -67,6 +67,7 @@ public:
 	Transform transform_;
 
 	float* inputFloat[4];
+	bool isAlive_ = true;
 
 	Transform uvTransform_;
 	Matrix4x4 uvTransformMatrix_;

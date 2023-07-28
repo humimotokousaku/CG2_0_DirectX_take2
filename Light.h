@@ -17,9 +17,9 @@ public:
 
 	void Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device);
 
-	void DrawDebugParameter();
-
 	void Release();
+
+	void ImGuiAdjustParameter();
 
 private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource_;

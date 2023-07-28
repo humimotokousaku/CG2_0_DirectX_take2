@@ -371,13 +371,40 @@ void MyEngine::Draw() {
 	sprite_->Draw(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), light_->GetDirectionalLightResource().Get());
 
 	ImGui::Begin("Settings");
-	for (int i = 0; i < kMaxTriangle; i++) {
-		Triangle_[i]->ImGuiAdjustParameter();
+	if (ImGui::BeginTabBar("MyTabBar"))
+	{
+		if (ImGui::BeginTabItem("Triangle")) {
+			Triangle_[0]->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Triangle2")) {
+			Triangle_[1]->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Sprite")) {
+			sprite_->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Sphere")) {
+			sphere_->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("ObjModel")) {
+			objModel_->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
+		// カメラのImGui
+		if (ImGui::BeginTabItem("Camera")) {
+			camera_->DrawDebugParameter();
+			ImGui::EndTabItem();
+		}
+		// ライトのImGui
+		if (ImGui::BeginTabItem("Light")) {
+			light_->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
 	}
-	// カメラのImGui
-	camera_->DrawDebugParameter();
-	// ライトのImGui
-	light_->DrawDebugParameter();
 	ImGui::End();
 }
 

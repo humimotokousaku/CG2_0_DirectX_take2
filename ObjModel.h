@@ -33,6 +33,8 @@ public:
 
 	void Release();
 
+	void ImGuiAdjustParameter();
+
 public:
 	// Material
 	Material* materialData_;
@@ -52,4 +54,6 @@ public:
 	Matrix4x4 worldViewProjectionMatrix_;
 
 	ModelData modelData_;
+
+	bool isAlive_ = true;
 };
