@@ -85,7 +85,7 @@ void DirectXCommon::StopError() {
 		// エラー時に止まる
 		infoQueue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
 		// 警告時に止まる
-		//infoQueue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+		infoQueue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
 
 #pragma region エラーと警告の抑制
 
@@ -243,7 +243,7 @@ void DirectXCommon::Initialize(HWND hwnd) {
 	assert(fenceEvent_ != nullptr);
 
 #pragma endregion
-	
+
 }
 
 void DirectXCommon::PreDraw(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& dsvDescriptorHeap) {
@@ -276,12 +276,12 @@ void DirectXCommon::PreDraw(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& 
 	// 指定した色で画面全体をクリアする
 	float clearColor[] = { 0.1f, 0.25f, 0.5f, 1.0f }; // 青っぽい色。RGBAの順
 	commandList_.Get()->ClearRenderTargetView(rtvHandles_[backBufferIndex_], clearColor, 0, nullptr);
-	
+
 	// 指定した深度で画面全体をクリアする
 	commandList_.Get()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	// 描画用のDescriptorHeapの設定
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeaps[] = { srvDescriptorHeap_.Get()};
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeaps[] = { srvDescriptorHeap_.Get() };
 	commandList_.Get()->SetDescriptorHeaps(1, descriptorHeaps->GetAddressOf());
 }
 
@@ -306,7 +306,7 @@ void DirectXCommon::PostDraw() {
 #pragma region コマンドをキックする
 
 	// GPUにコマンドリストの実行を行わせる
-	Microsoft::WRL::ComPtr<ID3D12CommandList> commandLists[] = { commandList_.Get()};
+	Microsoft::WRL::ComPtr<ID3D12CommandList> commandLists[] = { commandList_.Get() };
 	commandQueue_.Get()->ExecuteCommandLists(1, commandLists->GetAddressOf());
 	// GPUとOSに画面の交換を行うように通知する
 	swapChain_.Get()->Present(1, 0);
@@ -345,18 +345,18 @@ void DirectXCommon::Release() {
 #pragma region 解放処理
 
 	CloseHandle(fenceEvent_);
-	fence_->Release();
-	srvDescriptorHeap_.Reset();
-	rtvDescriptorHeap_.Reset();
-	swapChainResources_[0].Reset();
-	swapChainResources_[1].Reset();
-	swapChain_.Reset();
-	commandList_.Reset();
-	commandAllocator_.Reset();
-	commandQueue_.Reset();
-	device_.Reset();
-	useAdapter_.Reset();
-	dxgiFactory_.Reset();
+	//fence_->Release();
+	//srvDescriptorHeap_.Reset();
+	//rtvDescriptorHeap_.Reset();
+	//swapChainResources_[0].Reset();
+	//swapChainResources_[1].Reset();
+	//swapChain_.Reset();
+	//commandList_.Reset();
+	//commandAllocator_.Reset();
+	//commandQueue_.Reset();
+	//device_.Reset();
+	//useAdapter_.Reset();
+	//dxgiFactory_.Reset();
 
 #pragma endregion
 }

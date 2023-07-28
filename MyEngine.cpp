@@ -161,7 +161,7 @@ void MyEngine::CreateRootSignature() {
 		assert(false);
 	}
 	// バイナリをもとに生成
-	hr = DirectXCommon::GetInstance()->GetDevice().Get()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
+	hr = DirectXCommon::GetInstance()->GetDevice()->CreateRootSignature(0, signatureBlob_->GetBufferPointer(),
 		signatureBlob_->GetBufferSize(), IID_PPV_ARGS(&rootSignature_));
 	assert(SUCCEEDED(hr));
 }
@@ -215,14 +215,14 @@ void MyEngine::VertexSharder() {
 void MyEngine::CreatePSO() {
 	HRESULT hr;
 
-	graphicsPipelineStateDescs_.pRootSignature = rootSignature_.Get(); // rootSignature
+	graphicsPipelineStateDescs_.pRootSignature = rootSignature_; // rootSignature
 	graphicsPipelineStateDescs_.InputLayout = inputLayoutDesc_; // InputLayout
 	graphicsPipelineStateDescs_.VS = { vertexShaderBlob_->GetBufferPointer(),
 	vertexShaderBlob_->GetBufferSize() }; // vertexShader
 	graphicsPipelineStateDescs_.PS = { pixelShaderBlob_->GetBufferPointer(),
 	pixelShaderBlob_->GetBufferSize() }; // pixelShader
 	// DepthStencilの設定
-	graphicsPipelineStateDescs_.DepthStencilState = textureManager_->GetDepthStencilDesc();
+	graphicsPipelineStateDescs_.DepthStencilState = TextureManager::GetInstance()->GetDepthStencilDesc();
 	graphicsPipelineStateDescs_.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	graphicsPipelineStateDescs_.BlendState = blendDesc_; // blendState
@@ -259,7 +259,7 @@ void MyEngine::PSO() {
 
 	PixelSharder();
 
-	textureManager_->SettingDepthStencilState();
+	TextureManager::GetInstance()->SettingDepthStencilState();
 
 	CreatePSO();
 }
@@ -292,18 +292,18 @@ void MyEngine::VariableInitialize() {
 	//vertexRight_[1] = { 0.5f, -0.5f,-0.5f,1.0f };
 }
 
-void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight) {
-	textureManager_ = std::make_unique<TextureManager>();
-	textureManager_->ComInit();
-	// タイトルバーの変換
-	auto&& titleString = ConvertString(title);
-	// ウィンドウの初期化
-	winApp_ = std::make_unique<WinApp>();
-	winApp_->Initialize(titleString.c_str(), kClientWidth, kClientHeight);
+void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClientHeight, DirectXCommon* directXCommon) {
+	//textureManager_ = std::make_unique<TextureManager>();
+	//textureManager_->ComInit();
+	//// タイトルバーの変換
+	//auto&& titleString = ConvertString(title);
+	//// ウィンドウの初期化
+	//winApp_ = std::make_unique<WinApp>();
+	//winApp_->Initialize(titleString.c_str(), kClientWidth, kClientHeight);
 
-	// DirectXの初期化
-	directXCommon_ = DirectXCommon::GetInstance();
-	directXCommon_->Initialize(winApp_->GetHwnd());
+	//// DirectXの初期化
+	//directXCommon_ = DirectXCommon::GetInstance();
+	//directXCommon_->Initialize(winApp_->GetHwnd());
 	// DXCの初期化
 	DXCInitialize();
 	// PSOを生成
@@ -313,91 +313,61 @@ void MyEngine::Initialize(const char* title, int32_t kClientWidth, int32_t kClie
 	// シザー矩形の生成
 	CreateScissor();
 
-	objModel_ = std::make_unique<ObjModel>();
-	objModel_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get());
-	// Textureの初期化
-	textureManager_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), DirectXCommon::GetInstance()->GetSrvDescriptorHeap().Get(), objModel_->GetModelData());
-	sprite_ = std::make_unique<Sprite>();
-	sprite_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get());
-	sphere_ = std::make_unique<Sphere>();
-	sphere_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get());
-	// 三角形の頂点データ
-	VariableInitialize();
-
-	// 三角形の生成
-	for (int i = 0; i < kMaxTriangle; i++) {
-		triangle_[i] = new Triangle({ -1.0f, -0.2f * (i + 1), 0.0f, 1.0f }, { 0.0f, 0.1f * (i + 1), 0.0f, 1.0f }, { 1.0f, -0.2f * (i + 1), 0.0f, 1.0f });
-		// 初期化
-		triangle_[i]->Initialize();
-		// 使う画像
-		triangle_[i]->SetTextureSrvHandleGPU(*textureManager_->GetTextureSrvHandleGPU());
-	}
-	// ライトの設定
-	light_ = std::make_unique<Light>();
-	light_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get());
-
-	// カメラの初期化
-	camera_ = std::make_unique<Camera>();
-	camera_->Initialize();
-
-	// ImGuiの初期化
-	imGuiManager_ = std::make_unique<ImGuiManager>();
-	imGuiManager_->Initialize(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetSwapChainDesc(), DirectXCommon::GetInstance()->GetRtvDesc(), DirectXCommon::GetInstance()->GetSrvDescriptorHeap().Get(), winApp_->GetHwnd());
 }
 
 void MyEngine::BeginFrame() {
-	DirectXCommon::GetInstance()->PreDraw(textureManager_->GetDsvDescriptorHeap().Get());
-	DirectXCommon::GetInstance()->GetCommandList().Get()->RSSetViewports(1, &viewport_); // Viewportを設定
-	DirectXCommon::GetInstance()->GetCommandList().Get()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
+	DirectXCommon::GetInstance()->PreDraw(TextureManager::GetInstance()->GetDsvDescriptorHeap().Get());
+	DirectXCommon::GetInstance()->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
+	DirectXCommon::GetInstance()->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
-	DirectXCommon::GetInstance()->GetCommandList().Get()->SetGraphicsRootSignature(rootSignature_.Get());
-	DirectXCommon::GetInstance()->GetCommandList().Get()->SetPipelineState(graphicsPipelineState_.Get()); // PSOを設定
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
+	DirectXCommon::GetInstance()->GetCommandList()->SetPipelineState(graphicsPipelineState_); // PSOを設定
 
-	// カメラの設定
-	camera_->SettingCamera();
+	//// カメラの設定
+	//camera_->SettingCamera();
 
-	// ImGui
-	imGuiManager_->PreDraw();
+	//// ImGui
+	//imGuiManager_->PreDraw();
 }
 void MyEngine::Draw() {
 
-	Vector4 color = { 1.0f,1.0f,1.0f,1.0f };
-	// 三角形
-	for (int i = 0; i < kMaxTriangle; i++) {
-		triangle_[i]->Draw(color, *camera_->GetTransformationMatrixData());
-	}
-	// 球
-	sphere_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
-	// スプライト
-	objModel_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
-	// sprite
-	sprite_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), light_->GetDirectionalLightResource().Get());
+	//Vector4 color = { 1.0f,1.0f,1.0f,1.0f };
+	//// 三角形
+	//for (int i = 0; i < kMaxTriangle; i++) {
+	//	triangle_[i]->Draw(color, *camera_->GetTransformationMatrixData());
+	//}
+	//// 球
+	//sphere_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
+	//// スプライト
+	//objModel_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), *camera_->GetTransformationMatrixData(), light_->GetDirectionalLightResource().Get());
+	//// sprite
+	//sprite_->Draw(DirectXCommon::GetInstance()->GetDevice().Get(), DirectXCommon::GetInstance()->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), light_->GetDirectionalLightResource().Get());
 
-	// カメラのImGui
-	camera_->DrawDebugParameter();
-	// ライトのImGui
-	light_->DrawDebugParameter();
+	//// カメラのImGui
+	//camera_->DrawDebugParameter();
+	//// ライトのImGui
+	//light_->DrawDebugParameter();
 }
 
 void MyEngine::EndFrame() {
-	// ImGui
-	imGuiManager_->PostDraw(DirectXCommon::GetInstance()->GetCommandList().Get());
+	//// ImGui
+	//imGuiManager_->PostDraw(DirectXCommon::GetInstance()->GetCommandList().Get());
 	// DirectX
 	DirectXCommon::GetInstance()->PostDraw();
 }
 
 void MyEngine::Finalize() {
-	for (int i = 0; i < kMaxTriangle; i++) {
+	//for (int i = 0; i < kMaxTriangle; i++) {
 
-		delete triangle_[i];
-	}
-	// DirectX
-	directXCommon_->Release();
-	// ImGui
-	imGuiManager_->Release();
+	//	delete triangle_[i];
+	//}
+	//// DirectX
+	//directXCommon_->Release();
+	//// ImGui
+	//imGuiManager_->Release();
 	vertexShaderBlob_->Release();
 	pixelShaderBlob_->Release();
-	CloseWindow(winApp_->GetHwnd());
-	// Textureのゲーム終了処理
-	textureManager_->ComUninit();
+	//CloseWindow(winApp_->GetHwnd());
+	//// Textureのゲーム終了処理
+	//textureManager_->ComUninit();
 }

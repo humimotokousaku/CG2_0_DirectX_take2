@@ -6,6 +6,7 @@
 #include "TextureManager.h"
 #include <wrl.h>
 
+
 class DirectXCommon
 {
 public:

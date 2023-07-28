@@ -9,6 +9,13 @@
 #include <fstream>
 #include <sstream>
 
+TextureManager* TextureManager::GetInstance() {
+	static TextureManager instance;
+
+	return &instance;
+}
+
+
 D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index) {
 	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
 	handleCPU.ptr += (descriptorSize * index);
