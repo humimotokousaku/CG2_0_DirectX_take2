@@ -10,6 +10,7 @@
 class Adapter
 {
 public:
+	void Init
 
 public:
 	static WinApp* winApp_;

@@ -124,7 +124,6 @@ void Triangle::Draw(Vector4& color, const Matrix4x4& transformationMatrixData) {
 	wvpData_->WVP = wvpData_->World;
 
 #pragma endregion
-
 	// 赤色にする
 	materialData_->color = color;
 
