@@ -84,24 +84,6 @@ void Sphere::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device, cons
 		{0.0f,0.0f,0.0f}
 	};
 
-	// Lightingするか
-	materialData_->enableLighting = true;
-
-	// uvTransform行列の初期化
-	materialData_->uvTransform = MakeIdentity4x4();
-}
-
-void Sphere::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource) {
-	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
-	materialData_->uvTransform = uvTransformMatrix_;
-
-	// カメラ
-	//transform_.rotate.y += 0.006f;
-	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, transformationMatrixData);
-	transformationMatrixData_->World = MakeIdentity4x4();
 
 	const float kLonEvery = 2.0f * float(M_PI) / float(kSubdivision);//経度分割1つ分の角度
 	const float kLatEvery = float(M_PI) / float(kSubdivision);//緯度分割1つ分の角度
@@ -179,12 +161,32 @@ void Sphere::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Micr
 		}
 	}
 
+	// Lightingするか
+	materialData_->enableLighting = true;
+
+	// uvTransform行列の初期化
+	materialData_->uvTransform = MakeIdentity4x4();
+}
+
+void Sphere::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_DESCRIPTOR_HANDLE* textureSrvHandleGPU, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12Resource>& directionalLightResource) {
+	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
+	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
+	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
+	materialData_->uvTransform = uvTransformMatrix_;
+
+	// カメラ
+	//transform_.rotate.y += 0.006f;
+	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, transformationMatrixData);
+	transformationMatrixData_->World = MakeIdentity4x4();
+
 	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
-	ImGui::Text("");
+	ImGui::Begin("Sphere");
 	ImGui::Checkbox("useMonsterBall", &useMonsterBall_);
 	ImGui::SliderFloat3(".Translate", &transform_.translate.x, -2, 2);
 	ImGui::SliderAngle(".Rotate.y", &transform_.rotate.y);
+	ImGui::End();
 
 	// コマンドを積む
 	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定

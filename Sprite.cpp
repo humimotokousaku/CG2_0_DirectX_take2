@@ -130,10 +130,11 @@ void Sprite::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Micr
 
 	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
-	ImGui::Text("uvTransform");
+	ImGui::Begin("uvTransform");
 	ImGui::SliderFloat2("uvTransform.Translate", &uvTransform_.translate.x, -2, 2);
 	ImGui::SliderFloat2("uvTransform.Scale", &uvTransform_.scale.x, -1, 1);
 	ImGui::SliderAngle("uvTransform.Rotate.z", &uvTransform_.rotate.z);
+	ImGui::End();
 
 	// コマンドを積む
 	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定

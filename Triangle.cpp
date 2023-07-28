@@ -3,6 +3,7 @@
 #include "ConvertString.h"
 #include <format>
 #include <cassert>
+#include "ImGuiManager.h"
 
 Triangle::~Triangle() {
 	//wvpResource_->Release();
@@ -121,8 +122,12 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	vertexData_[2].position = rightBottom;
 	vertexData_[2].texcoord = {1.0f,1.0f};
 
-	// 赤色にする
-	materialData_->color = color;
+
+
+	inputFloat[0] = &materialData_->color.x;
+	inputFloat[1] = &materialData_->color.y;
+	inputFloat[2] = &materialData_->color.z;
+	inputFloat[3] = &materialData_->color.w;
 
 	// コマンドを積む
 	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
@@ -136,4 +141,11 @@ void Triangle::Draw(const Vector4& leftBottom, const Vector4& top, const Vector4
 	commandList.Get()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
 	commandList.Get()->DrawInstanced(3, 1, 0, 0);
+}
+
+void Triangle::ImGuiAdjustParameter() {
+	ImGui::ColorPicker4("color", *inputFloat);
+	ImGui::SliderFloat3("translation", &transform_.translate.x, -5.0f, 5.0f);
+	ImGui::SliderFloat3("rotate", &transform_.rotate.x, -6.28f, 6.28f);
+	ImGui::SliderFloat3("scale", &transform_.scale.x, -5.0f, 5.0f);
 }

@@ -171,16 +171,16 @@ void ObjModel::Draw(const Microsoft::WRL::ComPtr<ID3D12Device>& device, const Mi
 	materialData_->uvTransform = uvTransformMatrix_;
 
 	// カメラ
-	//transform_.rotate.y += 0.006f;
 	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, transformationMatrixData);
 	transformationMatrixData_->World = MakeIdentity4x4();
 
 	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
-	ImGui::Text("objModel");
+	ImGui::Begin("Plane");
 	ImGui::SliderFloat3(".Translate ", &transform_.translate.x, -2, 2);
 	ImGui::SliderAngle(".Rotate.y ", &transform_.rotate.y);
+	ImGui::End();
 
 	// コマンドを積む
 	commandList.Get()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定

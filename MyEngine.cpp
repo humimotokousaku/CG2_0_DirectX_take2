@@ -370,10 +370,15 @@ void MyEngine::Draw() {
 	// sprite
 	sprite_->Draw(directXCommon_->GetDevice().Get(), directXCommon_->GetCommandList().Get(), textureManager_->GetTextureSrvHandleGPU(), light_->GetDirectionalLightResource().Get());
 
+	ImGui::Begin("Settings");
+	for (int i = 0; i < kMaxTriangle; i++) {
+		Triangle_[i]->ImGuiAdjustParameter();
+	}
 	// カメラのImGui
 	camera_->DrawDebugParameter();
 	// ライトのImGui
 	light_->DrawDebugParameter();
+	ImGui::End();
 }
 
 void MyEngine::EndFrame() {

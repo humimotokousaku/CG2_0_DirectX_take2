@@ -52,6 +52,9 @@ public:
 	// 三角形描画
 	void Draw(const Vector4& leftBottom, const Vector4& top, const Vector4& rightBottom, const Vector4& color, const Matrix4x4& transformationMatrixData, const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList);
 	
+	// ImGuiでパラメータを調整する
+	void ImGuiAdjustParameter();
+
 public:
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
@@ -62,6 +65,8 @@ public:
 	Microsoft::WRL::ComPtr<ID3D12Resource> wvpResource_;
 	TransformationMatrix* wvpData_;
 	Transform transform_;
+
+	float* inputFloat[4];
 
 	Transform uvTransform_;
 	Matrix4x4 uvTransformMatrix_;
