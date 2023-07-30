@@ -9,7 +9,7 @@
 #include "../Manager/TextureManager.h"
 #include "../base/DirectXCommon.h"
 
-class Plane
+class MultiMaterial
 {
 public:
 	ModelData GetModelData() { return modelData_; }
@@ -34,7 +34,7 @@ public:
 
 	void ImGuiAdjustParameter();
 
-public:
+private:
 	// Material
 	Material* materialData_;
 	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_;

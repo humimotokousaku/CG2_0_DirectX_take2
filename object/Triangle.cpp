@@ -106,6 +106,9 @@ void Triangle::Initialize() {
 	vertexData_[2].position = vertex_.right;
 	vertexData_[2].texcoord = { 1.0f,1.0f };
 
+	// 色
+	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
+
 	materialData_->uvTransform = MakeIdentity4x4();
 
 	materialData_->enableLighting = false;

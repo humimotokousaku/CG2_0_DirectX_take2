@@ -54,6 +54,6 @@ private:
 	Matrix4x4 projectionMatrix_;
 	Matrix4x4 worldViewProjectionMatrix_;
 
-	bool isAlive_ = true;
+	bool isAlive_ = false;
 };
 

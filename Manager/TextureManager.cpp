@@ -128,6 +128,8 @@ void TextureManager::TransferTexture(const Microsoft::WRL::ComPtr<ID3D12Descript
 	mipImages_[1] = LoadTexture("resources/monsterBall.png");
 	mipImages_[2] = LoadTexture(modelData_[PLANE].material.textureFilePath);
 	mipImages_[3] = LoadTexture(modelData_[AXIS].material.textureFilePath);
+	mipImages_[4] = LoadTexture(modelData_[MULTIMESH].material.textureFilePath);
+	mipImages_[5] = LoadTexture(modelData_[MULTIMATERIAL].material.textureFilePath);
 	DirectX::TexMetadata metadata[kMaxImages]{};
 	for (uint32_t i = 0; i < kMaxImages; i++) {
 		metadata[i] = mipImages_[i].GetMetadata();

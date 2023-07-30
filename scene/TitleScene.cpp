@@ -14,6 +14,10 @@ void TitleScene::Initialize(GameManager* gameManager) {
 	plane_->Initialize();
 	axis_ = new Axis();
 	axis_->Initialize();
+	multiMesh_ = new MultiMesh();
+	multiMesh_->Initialize();
+	multiMaterial_ = new MultiMaterial();
+	multiMaterial_->Initialize();
 }
 
 void TitleScene::Update(GameManager* gameManager) {
@@ -44,6 +48,14 @@ void TitleScene::Update(GameManager* gameManager) {
 			axis_->ImGuiAdjustParameter();
 			ImGui::EndTabItem();
 		}
+		if (ImGui::BeginTabItem("MultiMesh")) {
+			multiMesh_->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("MultiMaterial")) {
+			multiMaterial_->ImGuiAdjustParameter();
+			ImGui::EndTabItem();
+		}
 		ImGui::EndTabBar();
 	}
 	ImGui::End();
@@ -57,6 +69,8 @@ void TitleScene::Draw(GameManager* gameManager) {
 	sprite_->Draw();
 	plane_->Draw();
 	axis_->Draw();
+	multiMesh_->Draw();
+	multiMaterial_->Draw();
 }
 
 void TitleScene::Finalize(GameManager* gameManager) {
@@ -67,4 +81,6 @@ void TitleScene::Finalize(GameManager* gameManager) {
 	delete sprite_;
 	delete plane_;
 	delete axis_;
+	delete multiMesh_;
+	delete multiMaterial_;
 }

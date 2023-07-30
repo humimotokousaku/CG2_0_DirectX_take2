@@ -1,10 +1,12 @@
 #pragma once
-#include "../object/Triangle.h"
 #include "IScene.h"
+#include "../object/Triangle.h"
 #include "../object/Sprite.h"
 #include "../object/Sphere.h"
 #include "../object/Plane.h"
 #include "../object/Axis.h"
+#include "../object/MultiMesh.h"
+#include "../object/MultiMaterial.h"
 
 class GameManager;
 
@@ -23,4 +25,6 @@ private:
 	Sprite* sprite_;
 	Plane* plane_;
 	Axis* axis_;
+	MultiMesh* multiMesh_;
+	MultiMaterial* multiMaterial_;
 };

@@ -1,12 +1,12 @@
-#include "Plane.h"
-#include "Sphere.h"
+#include "MultiMesh.h"
+#include "../camera/Camera.h"
 #include "../Manager/ImGuiManager.h"
+#include "../Manager/ObjManager.h"
 #include <cassert>
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "../Manager/ObjManager.h"
 
-Microsoft::WRL::ComPtr<ID3D12Resource> Plane::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> MultiMesh::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -33,11 +33,11 @@ Microsoft::WRL::ComPtr<ID3D12Resource> Plane::CreateBufferResource(const Microso
 	return vertexResource;
 }
 
-void Plane::CreateVertexResource() {
+void MultiMesh::CreateVertexResource() {
 	vertexResource_ = CreateBufferResource(DirectXCommon::GetInstance()->GetDevice(), sizeof(VertexData) * modelData_.vertices.size()).Get();
 }
 
-void Plane::CreateVertexBufferView() {
+void MultiMesh::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
@@ -46,7 +46,7 @@ void Plane::CreateVertexBufferView() {
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-void Plane::CreateMaterialResource() {
+void MultiMesh::CreateMaterialResource() {
 	materialResource_ = CreateBufferResource(DirectXCommon::GetInstance()->GetDevice(), sizeof(Material)).Get();
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
@@ -54,7 +54,7 @@ void Plane::CreateMaterialResource() {
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void Plane::CreateWvpResource() {
+void MultiMesh::CreateWvpResource() {
 	// 1つ分のサイズを用意する
 	transformationMatrixResource_ = CreateBufferResource(DirectXCommon::GetInstance()->GetDevice(), sizeof(TransformationMatrix)).Get();
 	// 書き込むためのアドレスを取得
@@ -63,7 +63,7 @@ void Plane::CreateWvpResource() {
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
 
-ModelData Plane::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
+ModelData MultiMesh::LoadObjFile(const std::string& directoryPath, const std::string& filename) {
 	ModelData modelData;
 	std::vector<Vector4> positions;
 	std::vector<Vector3> normals;
@@ -135,9 +135,9 @@ ModelData Plane::LoadObjFile(const std::string& directoryPath, const std::string
 	return modelData;
 }
 
-void Plane::Initialize() {
+void MultiMesh::Initialize() {
 	// モデルを読み込み
-	modelData_ = ObjManager::GetInstance()->GetObjModelData()[PLANE];
+	modelData_ = ObjManager::GetInstance()->GetObjModelData()[MULTIMESH];
 
 	CreateVertexResource();
 
@@ -165,47 +165,45 @@ void Plane::Initialize() {
 	materialData_->uvTransform = MakeIdentity4x4();
 }
 
-void Plane::Draw() {
-	if(isAlive_){
-	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
-	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
-	materialData_->uvTransform = uvTransformMatrix_;
+void MultiMesh::Draw() {
+	if (isAlive_) {
+		uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
+		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
+		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
+		materialData_->uvTransform = uvTransformMatrix_;
 
-	// カメラ
-	//transform_.rotate.y += 0.006f;
-	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, *Camera::GetInstance()->GetTransformationMatrixData());
-	transformationMatrixData_->World = MakeIdentity4x4();
+		// カメラ
+		//transform_.rotate.y += 0.006f;
+		transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+		transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, *Camera::GetInstance()->GetTransformationMatrixData());
+		transformationMatrixData_->World = MakeIdentity4x4();
 
-	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
+		materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
 
-	// コマンドを積む
-	DirectXCommon::GetInstance()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
-	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-	DirectXCommon::GetInstance()->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	// DescriptorTableの設定
-	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureSrvHandleGPU()[2]);
+		// コマンドを積む
+		DirectXCommon::GetInstance()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+		// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
+		DirectXCommon::GetInstance()->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// DescriptorTableの設定
+		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureSrvHandleGPU()[4]);
 
-	// wvpのCBufferの場所を設定
-	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
+		// wvpのCBufferの場所を設定
+		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
-	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(3, Light::GetInstance()->GetDirectionalLightResource()->GetGPUVirtualAddress());
+		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(3, Light::GetInstance()->GetDirectionalLightResource()->GetGPUVirtualAddress());
 
-	// マテリアルCBufferの場所を設定
-	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
-	DirectXCommon::GetInstance()->GetCommandList()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
-}
-}
-
-void Plane::Release() {
-	//transformationMatrixResource_->Release();
-	//materialResource_->Release();
-	//vertexResource_->Release();
+		// マテリアルCBufferの場所を設定
+		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+		DirectXCommon::GetInstance()->GetCommandList()->DrawInstanced(UINT(modelData_.vertices.size()), 1, 0, 0);
+	}
 }
 
-void Plane::ImGuiAdjustParameter() {
+void MultiMesh::Release() {
+	
+}
+
+void MultiMesh::ImGuiAdjustParameter() {
 	ImGui::Checkbox("isAlive", &isAlive_);
 	ImGui::CheckboxFlags("isLighting", &materialData_->enableLighting, 1);
 	ImGui::SliderFloat3("Translate", &transform_.translate.x, -5, 5);

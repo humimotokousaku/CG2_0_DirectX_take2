@@ -206,8 +206,8 @@ void Axis::Release() {
 }
 
 void Axis::ImGuiAdjustParameter() {
-	ImGui::Text("Axis");
 	ImGui::Checkbox("isAlive", &isAlive_);
+	ImGui::CheckboxFlags("isLighting", &materialData_->enableLighting, 1);
 	ImGui::SliderFloat3("Translate", &transform_.translate.x, -5, 5);
 	ImGui::SliderFloat3("Scale", &transform_.scale.x, -5, 5);
 	ImGui::SliderFloat3("Rotate", &transform_.rotate.x, -6.28f, 6.28f);

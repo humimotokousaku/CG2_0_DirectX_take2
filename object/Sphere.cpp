@@ -208,6 +208,7 @@ void Sphere::Release() {
 
 void Sphere::ImGuiAdjustParameter() {
 	ImGui::Checkbox("isAlive", &isAlive_);
+	ImGui::CheckboxFlags("isLighting", &materialData_->enableLighting, 1);
 	ImGui::Checkbox("useMonsterBall", &useMonsterBall_);
 	ImGui::SliderFloat3("Translate", &transform_.translate.x, -5, 5);
 	ImGui::SliderFloat3("Scale", &transform_.scale.x, -5, 5);

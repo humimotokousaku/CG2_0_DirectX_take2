@@ -116,8 +116,8 @@ void GameManager::ChangeState(IScene* pState) {
 }
 
 void GameManager::ImGuiAdjustParameter() {
-	ImGui::Begin("Settings");
-	if (ImGui::BeginTabBar("MyTabBar"))
+	ImGui::Begin("CommonSettings");
+	if (ImGui::BeginTabBar("CommonTabBar"))
 	{
 		// カメラのImGui
 		if (ImGui::BeginTabItem("Camera")) {

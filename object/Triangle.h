@@ -78,5 +78,5 @@ public:
 	TriangleVertices vertex_;
 
 	float* inputFloat[4];
-	bool isAlive_ = true;
+	bool isAlive_ = false;
 };

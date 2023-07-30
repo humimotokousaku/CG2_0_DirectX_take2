@@ -54,6 +54,6 @@ public:
 
 	ModelData modelData_;
 
-	bool isAlive_ = true;
+	bool isAlive_ = false;
 };
 

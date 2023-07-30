@@ -161,6 +161,7 @@ void Sprite::Release() {
 
 void Sprite::ImGuiAdjustParameter() {
 	ImGui::Checkbox("isAlive", &isAlive_);
+	ImGui::CheckboxFlags("isLighting", &materialData_->enableLighting, 1);
 	ImGui::Text("SpriteTransform");
 	ImGui::SliderFloat3("Sprite.Translate", &transform_.translate.x, 0, 720);
 	ImGui::SliderFloat3("Sprite.Scale", &transform_.scale.x, -5, 5);
