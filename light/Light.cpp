@@ -60,6 +60,6 @@ void Light::Initialize(const Microsoft::WRL::ComPtr<ID3D12Device>& device) {
 void Light::ImGuiAdjustParameter() {
 	ImGui::Text("Ligting");
 	ImGui::SliderFloat3("Lighting.direction", &directionalLightData_->direction.x, -1, 1);
-	ImGui::ColorPicker4("Lighting.color", &directionalLightData_->color.x);
+	ImGui::ColorEdit3("Lighting.color", &directionalLightData_->color.x);
 	ImGui::SliderFloat("Lighting.intensity", &directionalLightData_->intensity, 0, 1);
 }

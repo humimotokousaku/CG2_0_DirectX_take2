@@ -127,6 +127,7 @@ void GameManager::EndFrame() {
 }
 
 void GameManager::ImGuiAdjustParameter() {
+	ImGui::Begin("CommonSettings");
 	if (ImGui::BeginTabBar("CommonTabBar"))
 	{
 		// カメラのImGui
@@ -141,4 +142,5 @@ void GameManager::ImGuiAdjustParameter() {
 		}
 		ImGui::EndTabBar();
 	}
+	ImGui::End();
 }

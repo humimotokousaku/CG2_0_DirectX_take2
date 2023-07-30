@@ -3,7 +3,7 @@
 
 void TitleScene::Initialize() {
 	for (int i = 0; i < kMaxTriangle; i++) {
-		triangle_[i] = new Triangle({ -1.0f, -0.4f * (i + 1), 0.0f, 1.0f }, { 0.0f, -0.1f * (i + 1), 0.0f, 1.0f }, { 1.0f, -0.4f * (i + 1), 0.0f, 1.0f });
+		triangle_[i] = new Triangle({ -1.0f, -0.2f * (i + 1), 0.0f, 1.0f }, { 0.0f, 0.2f * (i + 1), 0.0f, 1.0f }, { 1.0f, -0.2f * (i + 1), 0.0f, 1.0f });
 		triangle_[i]->Initialize();
 	}
 	sprite_ = new Sprite();
@@ -23,7 +23,7 @@ void TitleScene::Initialize() {
 void TitleScene::Update() {
 
 	ImGui::Begin("Settings");
-	if (ImGui::BeginTabBar("MyTabBar"))
+	if (ImGui::BeginTabBar("TitleSceneTabBar"))
 	{
 		if (ImGui::BeginTabItem("Triangle1")) {
 			triangle_[0]->ImGuiAdjustParameter();
@@ -61,6 +61,7 @@ void TitleScene::Update() {
 	}
 	ImGui::End();
 
+	ImGui::Begin("CommonSettings");
 	if (ImGui::BeginTabBar("CommonTabBar"))
 	{
 		// シーンの切り替え
@@ -71,6 +72,7 @@ void TitleScene::Update() {
 		}
 		ImGui::EndTabItem();
 	}
+	ImGui::End();
 	if (sceneNum <= 0) {
 		sceneNum = 0;
 	}

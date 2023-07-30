@@ -151,5 +151,5 @@ void Triangle::ImGuiAdjustParameter() {
 	ImGui::SliderFloat3("Translation", &transform_.translate.x, -5.0f, 5.0f);
 	ImGui::SliderFloat3("Scale", &transform_.scale.x, -5.0f, 5.0f);
 	ImGui::SliderFloat3("Rotate", &transform_.rotate.x, -6.28f, 6.28f);
-	ImGui::ColorPicker4("color", *inputFloat);
+	ImGui::ColorEdit3("color", &materialData_->color.x);
 }
