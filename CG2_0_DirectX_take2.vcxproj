@@ -88,11 +88,16 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Adapter.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="DirectXCommon.cpp" />
-    <ClCompile Include="GameManager.cpp" />
-    <ClCompile Include="ObjModel.cpp" />
+    <ClCompile Include="base\DirectXCommon.cpp" />
+    <ClCompile Include="base\WinApp.cpp" />
+    <ClCompile Include="camera\Camera.cpp" />
+    <ClCompile Include="light\Light.cpp" />
+    <ClCompile Include="Manager\GameManager.cpp" />
+    <ClCompile Include="Manager\ImGuiManager.cpp" />
+    <ClCompile Include="Manager\ObjManager.cpp" />
+    <ClCompile Include="Manager\PipelineManager.cpp" />
+    <ClCompile Include="Manager\TextureManager.cpp" />
+    <ClCompile Include="math\Matrix4x4.cpp" />
     <ClCompile Include="externals\ImGui\imgui.cpp" />
     <ClCompile Include="externals\ImGui\imgui_demo.cpp" />
     <ClCompile Include="externals\ImGui\imgui_draw.cpp" />
@@ -100,19 +105,17 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="externals\ImGui\imgui_tables.cpp" />
     <ClCompile Include="externals\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="ImGuiManager.cpp" />
-    <ClCompile Include="Light.cpp" />
     <ClCompile Include="MaterialData.cpp" />
-    <ClCompile Include="Matrix4x4.cpp" />
-    <ClCompile Include="ResourceObject.cpp" />
-    <ClCompile Include="Sphere.cpp" />
-    <ClCompile Include="Sprite.cpp" />
-    <ClCompile Include="TextureManager.cpp" />
-    <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="object\Axis.cpp" />
+    <ClCompile Include="object\Plane.cpp" />
+    <ClCompile Include="object\Sphere.cpp" />
+    <ClCompile Include="object\Sprite.cpp" />
+    <ClCompile Include="object\Triangle.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="ConvertString.cpp" />
-    <ClCompile Include="MyEngine.cpp" />
-    <ClCompile Include="WinApp.cpp" />
+    <ClCompile Include="scene\GameScene.cpp" />
+    <ClCompile Include="scene\IScene.cpp" />
+    <ClCompile Include="scene\TitleScene.cpp" />
+    <ClCompile Include="utility\ConvertString.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.PS.hlsl">
@@ -129,13 +132,21 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Adapter.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="ConvertString.h" />
-    <ClInclude Include="DirectionalLight.h" />
-    <ClInclude Include="DirectXCommon.h" />
-    <ClInclude Include="GameManager.h" />
-    <ClInclude Include="ObjModel.h" />
+    <ClInclude Include="base\DirectXCommon.h" />
+    <ClInclude Include="base\WinApp.h" />
+    <ClInclude Include="camera\Camera.h" />
+    <ClInclude Include="light\DirectionalLight.h" />
+    <ClInclude Include="light\Light.h" />
+    <ClInclude Include="Manager\GameManager.h" />
+    <ClInclude Include="Manager\ImGuiManager.h" />
+    <ClInclude Include="Manager\ObjManager.h" />
+    <ClInclude Include="Manager\PipelineManager.h" />
+    <ClInclude Include="Manager\TextureManager.h" />
+    <ClInclude Include="math\Matrix3x3.h" />
+    <ClInclude Include="math\Matrix4x4.h" />
+    <ClInclude Include="math\Vector2.h" />
+    <ClInclude Include="math\Vector3.h" />
+    <ClInclude Include="math\Vector4.h" />
     <ClInclude Include="externals\ImGui\imconfig.h" />
     <ClInclude Include="externals\ImGui\imgui.h" />
     <ClInclude Include="externals\ImGui\imgui_impl_dx12.h" />
@@ -144,27 +155,22 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\ImGui\imstb_rectpack.h" />
     <ClInclude Include="externals\ImGui\imstb_textedit.h" />
     <ClInclude Include="externals\ImGui\imstb_truetype.h" />
-    <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialData.h" />
-    <ClInclude Include="Matrix3x3.h" />
-    <ClInclude Include="Matrix4x4.h" />
     <ClInclude Include="ModelData.h" />
+    <ClInclude Include="object\Axis.h" />
+    <ClInclude Include="object\Plane.h" />
+    <ClInclude Include="object\Sphere.h" />
+    <ClInclude Include="object\Sprite.h" />
+    <ClInclude Include="object\Triangle.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ResourceObject.h" />
-    <ClInclude Include="Sphere.h" />
-    <ClInclude Include="Sprite.h" />
-    <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="scene\GameScene.h" />
+    <ClInclude Include="scene\IScene.h" />
+    <ClInclude Include="scene\TitleScene.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="TransformationMatrix.h" />
-    <ClInclude Include="Triangle.h" />
-    <ClInclude Include="MyEngine.h" />
-    <ClInclude Include="Vector2.h" />
-    <ClInclude Include="Vector3.h" />
-    <ClInclude Include="Vector4.h" />
+    <ClInclude Include="utility\ConvertString.h" />
     <ClInclude Include="VertexData.h" />
-    <ClInclude Include="WinApp.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\ImGui\LICENSE.txt" />

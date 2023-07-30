@@ -1,4 +1,4 @@
-#include "GameManager.h"
+#include "./Manager/GameManager.h"
 
 const char kWindowTitle[] = "CG2_CLASS";
 
@@ -16,12 +16,8 @@ struct D3DResourceLeakCheker {
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-	D3DResourceLeakCheker leakCheck;
+	//D3DResourceLeakCheker leakCheck;
 	GameManager* gameManager = new GameManager();
-	//std::unique_ptr<MyEngine> engine;
-	//engine = std::make_unique<MyEngine>();
-	//// エンジンの初期化
-	//engine->Initialize(kWindowTitle, 1280, 720);
 	gameManager->Run();
 	delete gameManager;
 	return 0;
