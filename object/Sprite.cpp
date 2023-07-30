@@ -152,10 +152,7 @@ void Sprite::Draw() {
 }
 
 void Sprite::Release() {
-	//transformationMatrixResource_.Reset();
-	//indexResource_.Reset();
-	//vertexResource_.Reset();
-	//materialResource_.Reset();
+
 }
 
 

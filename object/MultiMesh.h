@@ -24,8 +24,6 @@ public:
 
 	void CreateWvpResource();
 
-	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
-
 	void Initialize();
 
 	void Draw();

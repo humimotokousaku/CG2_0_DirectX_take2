@@ -2,11 +2,6 @@
 #include "../scene/IScene.h"
 #include "../scene/GameScene.h"
 #include "../scene/TitleScene.h"
-#include "../object/Triangle.h"
-#include "../object/Sphere.h"
-#include "../object/Sprite.h"
-#include "../object/Plane.h"
-#include "../object/Axis.h"
 #include "../Manager/PipelineManager.h"
 #include "ObjManager.h"
 #include "../base/WinApp.h"
@@ -34,21 +29,21 @@ public:
 	// 描画後の処理
 	void EndFrame();
 
-	// シーンの切り替え
-	void ChangeState(IScene* pState);
-
 	// ImGuiのパラメータを入れる
 	void ImGuiAdjustParameter();
 
 private:
 	WinApp* winApp_;
 	DirectXCommon* directXCommon_;
-	IScene* scene_;
+	//IScene* scene_;
 	MyEngine* myEngine_;
 	Light* light_;
 	Camera* camera_;
 	ImGuiManager* imGuiManager_;
 	ObjManager* objManager_;
 	TextureManager* textureManager_;
+	IScene* sceneArr_[2];
+	int sceneNum_;
+	int preSceneNum_;
 };
 

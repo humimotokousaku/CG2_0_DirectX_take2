@@ -2,10 +2,14 @@
 #include "../utility/ConvertString.h"
 
 GameManager::GameManager() {
-	scene_ = new TitleScene();
+	//scene_ = new TitleScene();
+	  // 各シーンの配列
+	sceneArr_[TITLESCENE] =new TitleScene();
+	sceneArr_[GAMESCENE] = new GameScene();
 }
 
 void GameManager::Initialize() {
+
 	const char kWindowTitle[] = "CG2_CLASS";
 	// タイトルバーの変換
 	auto&& titleString = ConvertString(kWindowTitle);
@@ -41,8 +45,11 @@ void GameManager::Initialize() {
 	imGuiManager_ = new ImGuiManager();
 	imGuiManager_->Initialize(winApp_->GetHwnd());
 
+	//初期シーンの設定
+	sceneNum_ = TITLESCENE;
+
 	// シーンごとの初期化
-	scene_->Initialize(this);
+	sceneArr_[sceneNum_]->Initialize();
 }
 
 void GameManager::Run() {
@@ -61,14 +68,24 @@ void GameManager::Run() {
 			// 描画前の処理
 			BeginFrame();
 
+			// シーンチェック
+			preSceneNum_ = sceneNum_;
+			sceneNum_ = sceneArr_[sceneNum_]->GetSceneNum();
+
+			//シーン変更チェック
+			if (sceneNum_ != preSceneNum_) {
+				sceneArr_[sceneNum_]->Initialize();
+				sceneArr_[preSceneNum_]->Finalize();
+			}
+
 			// シーンごとの更新処理
-			scene_->Update(this);
+			sceneArr_[sceneNum_]->Update(); 
 
 			// ImGuiのパラメータを入れている
 			ImGuiAdjustParameter();
 
-			// シーンごとの描画
-			scene_->Draw(this);
+			// シーンごとの描画処理
+			sceneArr_[sceneNum_]->Draw();
 
 			// 描画後の処理
 			EndFrame();
@@ -79,8 +96,10 @@ void GameManager::Run() {
 }
 
 void GameManager::Finalize() {
-	scene_->Finalize(this);
-	delete scene_;
+	sceneArr_[sceneNum_]->Finalize();
+	for (int i = 0; i < 2; i++) {	
+		delete sceneArr_[i];
+	}
 	// ImGui
 	imGuiManager_->Release();
 	delete imGuiManager_;
@@ -107,16 +126,7 @@ void GameManager::EndFrame() {
 	myEngine_->EndFrame();
 }
 
-void GameManager::ChangeState(IScene* pState) {
-	scene_->Finalize(this);
-	delete scene_;
-	scene_ = pState;
-	// シーンが変わったら初期化
-	scene_->Initialize(this);
-}
-
 void GameManager::ImGuiAdjustParameter() {
-	ImGui::Begin("CommonSettings");
 	if (ImGui::BeginTabBar("CommonTabBar"))
 	{
 		// カメラのImGui
@@ -131,5 +141,4 @@ void GameManager::ImGuiAdjustParameter() {
 		}
 		ImGui::EndTabBar();
 	}
-	ImGui::End();
 }

@@ -1,7 +1,7 @@
 #include "TitleScene.h"
 #include "../Manager/GameManager.h"
 
-void TitleScene::Initialize(GameManager* gameManager) {
+void TitleScene::Initialize() {
 	for (int i = 0; i < kMaxTriangle; i++) {
 		triangle_[i] = new Triangle({ -1.0f, -0.4f * (i + 1), 0.0f, 1.0f }, { 0.0f, -0.1f * (i + 1), 0.0f, 1.0f }, { 1.0f, -0.4f * (i + 1), 0.0f, 1.0f });
 		triangle_[i]->Initialize();
@@ -20,7 +20,8 @@ void TitleScene::Initialize(GameManager* gameManager) {
 	multiMaterial_->Initialize();
 }
 
-void TitleScene::Update(GameManager* gameManager) {
+void TitleScene::Update() {
+
 	ImGui::Begin("Settings");
 	if (ImGui::BeginTabBar("MyTabBar"))
 	{
@@ -59,9 +60,23 @@ void TitleScene::Update(GameManager* gameManager) {
 		ImGui::EndTabBar();
 	}
 	ImGui::End();
+
+	if (ImGui::BeginTabBar("CommonTabBar"))
+	{
+		// シーンの切り替え
+		if (ImGui::BeginTabItem("GameScene")) {
+			ImGui::Text("Scene : Title");
+			ImGui::InputInt("SceneNumber", &sceneNum);
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabItem();
+	}
+	if (sceneNum <= 0) {
+		sceneNum = 0;
+	}
 }
 
-void TitleScene::Draw(GameManager* gameManager) {
+void TitleScene::Draw() {
 	for (int i = 0; i < kMaxTriangle; i++) {
 		triangle_[i]->Draw();
 	}
@@ -73,7 +88,7 @@ void TitleScene::Draw(GameManager* gameManager) {
 	multiMaterial_->Draw();
 }
 
-void TitleScene::Finalize(GameManager* gameManager) {
+void TitleScene::Finalize() {
 	for (int i = 0; i < kMaxTriangle; i++) {
 		delete triangle_[i];
 	}

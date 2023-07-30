@@ -201,9 +201,7 @@ void Sphere::Draw() {
 }
 
 void Sphere::Release() {
-	//transformationMatrixResource_->Release();
-	//materialResource_->Release();
-	//vertexResource_->Release();
+
 }
 
 void Sphere::ImGuiAdjustParameter() {
@@ -213,4 +211,8 @@ void Sphere::ImGuiAdjustParameter() {
 	ImGui::SliderFloat3("Translate", &transform_.translate.x, -5, 5);
 	ImGui::SliderFloat3("Scale", &transform_.scale.x, -5, 5);
 	ImGui::SliderFloat3("Rotate", &transform_.rotate.x, -6.28f, 6.28f);
+	ImGui::Text("UvTransform");
+	ImGui::SliderFloat2("UvTranslate", &uvTransform_.translate.x, -5, 5);
+	ImGui::SliderFloat2("UvScale", &uvTransform_.scale.x, -5, 5);
+	ImGui::SliderAngle("UvRotate.z", &uvTransform_.rotate.z);
 }

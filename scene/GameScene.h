@@ -7,15 +7,15 @@ class GameScene : public IScene
 {
 public:
 	// 初期化
-	void Initialize(GameManager* gameManager)override;
+	void Initialize()override;
 
 	// 更新処理
-	void Update(GameManager* gameManager)override;
+	void Update()override;
 
 	// 描画
-	void Draw(GameManager* gameManager)override;
+	void Draw()override;
 
-	void Finalize(GameManager* gameManager)override;
+	void Finalize()override;
 private:
 	// 三角形の描画する数
 	static const int kMaxTriangle = 3;
