@@ -33,6 +33,6 @@ void Camera::SettingCamera() {
 
 void Camera::DrawDebugParameter() {
 	ImGui::Text("Camera");
-	ImGui::SliderFloat3("Camera.Translate", &worldTransform_.translate.x, -5, 5);
-	ImGui::SliderFloat3("Camera.Rotate", &worldTransform_.rotate.x, -6.28f, 6.28f);
+	ImGui::SliderFloat3("Camera.Translate", &cameraTransform_.translate.x, -10, 10);
+	ImGui::DragFloat3("Camera.Rotate", &cameraTransform_.rotate.x,0.01f ,-6.28f, 6.28f);
 }

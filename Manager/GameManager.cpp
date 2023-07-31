@@ -2,8 +2,7 @@
 #include "../utility/ConvertString.h"
 
 GameManager::GameManager() {
-	//scene_ = new TitleScene();
-	  // 各シーンの配列
+	 // 各シーンの配列
 	sceneArr_[TITLESCENE] =new TitleScene();
 	sceneArr_[GAMESCENE] = new GameScene();
 }
