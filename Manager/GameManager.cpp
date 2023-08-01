@@ -135,7 +135,7 @@ void GameManager::ImGuiAdjustParameter() {
 			ImGui::EndTabItem();
 		}
 		// ライトのImGui
-		if (ImGui::BeginTabItem("Light")) {
+		if (ImGui::BeginTabItem("Half Lambert")) {
 			light_->ImGuiAdjustParameter();
 			ImGui::EndTabItem();
 		}
