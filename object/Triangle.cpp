@@ -4,6 +4,7 @@
 #include <format>
 #include <cassert>
 #include "../Manager/ImGuiManager.h"
+#include "../GlobalVariables.h"
 
 Triangle::Triangle(Vector4 left, Vector4 top, Vector4 right) {
 	vertex_.left = left;
@@ -117,9 +118,24 @@ void Triangle::Initialize() {
 	inputFloat[1] = &materialData_->color.y;
 	inputFloat[2] = &materialData_->color.z;
 	inputFloat[3] = &materialData_->color.w;
+
+	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
+	const char* groupName = "Triangle";
+	GlobalVariables::GetInstance()->CreateGroup(groupName);
+	globalVariables->AddItem(groupName, "translation", transform_.translate);
+	globalVariables->AddItem(groupName, "scale", transform_.scale);
+	globalVariables->AddItem(groupName, "rotate", transform_.rotate);
+	globalVariables->AddItem(groupName, "Color", materialData_->color);
 }
 
 void Triangle::Draw() {
+	ApplyGlobalVariables();
+	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
+	// ボタンを押したらsave
+	if (globalVariables->GetInstance()->GetIsSave()) {
+		globalVariables->SaveFile("Triangle");
+	}
+
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
@@ -146,9 +162,18 @@ void Triangle::Draw() {
 	}
 }
 
+void Triangle::ApplyGlobalVariables() {
+	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
+	const char* groupName = "Triangle";
+	transform_.translate = globalVariables->GetVector3Value(groupName, "translation");
+	transform_.scale = globalVariables->GetVector3Value(groupName, "scale");
+	transform_.rotate = globalVariables->GetVector3Value(groupName, "rotate");
+	materialData_->color = globalVariables->GetVector4Value(groupName, "Color");
+}
+
 void Triangle::ImGuiAdjustParameter() {
 	ImGui::Checkbox("isAlive", &isAlive_);
-	ImGui::SliderFloat3("Translation", &transform_.translate.x, -5.0f, 5.0f);
+	//ImGui::SliderFloat3("Translation", &transform_.translate.x, -5.0f, 5.0f);
 	ImGui::SliderFloat3("Scale", &transform_.scale.x, -5.0f, 5.0f);
 	ImGui::SliderFloat3("Rotate", &transform_.rotate.x, -6.28f, 6.28f);
 	ImGui::ColorEdit3("color", &materialData_->color.x);

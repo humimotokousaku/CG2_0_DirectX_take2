@@ -1,5 +1,6 @@
 #include "GameManager.h"
 #include "../utility/ConvertString.h"
+#include "../GlobalVariables.h"
 
 GameManager::GameManager() {
 	 // 各シーンの配列
@@ -43,6 +44,9 @@ void GameManager::Initialize() {
 	// ImGuiの初期化
 	imGuiManager_ = new ImGuiManager();
 	imGuiManager_->Initialize(winApp_->GetHwnd());
+
+	// ブローバル変数の読み込み
+	GlobalVariables::GetInstance()->LoadFiles();
 
 	//初期シーンの設定
 	sceneNum_ = TITLESCENE;
@@ -116,6 +120,8 @@ void GameManager::BeginFrame() {
 	camera_->SettingCamera();
 	// ImGui
 	imGuiManager_->PreDraw();
+	// グローバル変数の更新
+	GlobalVariables::GetInstance()->Update();
 }
 
 void GameManager::EndFrame() {

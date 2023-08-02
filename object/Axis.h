@@ -32,6 +32,8 @@ public:
 
 	void Release();
 
+	void ApplyGlobalVariables();
+
 	void ImGuiAdjustParameter();
 
 public:
@@ -54,6 +56,6 @@ public:
 
 	ModelData modelData_;
 
-	bool isAlive_ = false;
+	bool isAlive_ = true;
 };
 

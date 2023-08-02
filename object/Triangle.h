@@ -61,6 +61,8 @@ public:
 	// 三角形描画
 	void Draw();
 
+	void ApplyGlobalVariables();
+
 	void ImGuiAdjustParameter();
 	
 public:

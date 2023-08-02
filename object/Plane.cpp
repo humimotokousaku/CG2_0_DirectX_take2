@@ -5,6 +5,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "../Manager/ObjManager.h"
+#include "../GlobalVariables.h"
 
 Microsoft::WRL::ComPtr<ID3D12Resource> Plane::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
@@ -91,6 +92,13 @@ void Plane::Initialize() {
 
 	// uvTransform行列の初期化
 	materialData_->uvTransform = MakeIdentity4x4();
+
+	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
+	const char* groupName = "Plane";
+	GlobalVariables::GetInstance()->CreateGroup(groupName);
+	globalVariables->AddItem(groupName, "translation", transform_.translate);
+	globalVariables->AddItem(groupName, "scale", transform_.scale);
+	globalVariables->AddItem(groupName, "rotate", transform_.rotate);
 }
 
 void Plane::Draw() {
@@ -128,9 +136,7 @@ void Plane::Draw() {
 }
 
 void Plane::Release() {
-	//transformationMatrixResource_->Release();
-	//materialResource_->Release();
-	//vertexResource_->Release();
+
 }
 
 void Plane::ImGuiAdjustParameter() {
