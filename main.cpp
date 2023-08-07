@@ -1,4 +1,7 @@
 #include "./Manager/GameManager.h"
+#include <xaudio2.h>
+#pragma comment(lib, "xaudio2.lib")
+#include <fstream>
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {

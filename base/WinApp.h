@@ -7,6 +7,10 @@
 class WinApp
 {
 public: // メンバ関数
+	static WinApp* GetInstance();
+
+	HINSTANCE GetWc() { return wc_.hInstance; }
+
 	HWND GetHwnd() { return hwnd_; }
 
 	// ウィンドウプロシージャ

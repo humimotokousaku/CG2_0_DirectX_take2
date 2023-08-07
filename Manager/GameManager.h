@@ -8,6 +8,9 @@
 #include "../base/DirectXCommon.h"
 #include "../light/Light.h"
 #include "../camera/Camera.h"
+#include "../DebugCamera.h"
+#include "../Audio.h"
+#include "../Input.h"
 
 class GameManager
 {	
@@ -35,15 +38,20 @@ public:
 private:
 	WinApp* winApp_;
 	DirectXCommon* directXCommon_;
-	//IScene* scene_;
 	MyEngine* myEngine_;
 	Light* light_;
 	Camera* camera_;
+	DebugCamera* debugCamera_;
 	ImGuiManager* imGuiManager_;
 	ObjManager* objManager_;
 	TextureManager* textureManager_;
 	IScene* sceneArr_[2];
 	int sceneNum_;
 	int preSceneNum_;
+	Audio* audio_;
+	Microsoft::WRL::ComPtr<IXAudio2> xAudio2_;
+	IXAudio2MasteringVoice* masterVoice_;
+	SoundData soundData1_;
+	Input* input_;
 };
 

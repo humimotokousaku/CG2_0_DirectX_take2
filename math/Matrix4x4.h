@@ -5,6 +5,16 @@ struct Matrix4x4 {
 	float m[4][4];
 };
 
+Vector3 Add(const Vector3& pos, const Vector3& vector);
+
+Vector3 Subtract(const Vector3& pos1, const Vector3& pos2);
+
+// 行列の加法
+Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2);
+
+// 行列の減法
+Matrix4x4 Subtract(const Matrix4x4& m1, const Matrix4x4& m2);
+
 // X軸回転行列
 Matrix4x4 MakeRotateXMatrix(float radius);
 
@@ -13,6 +23,8 @@ Matrix4x4 MakeRotateYMatrix(float radius);
 
 // Z軸回転行列
 Matrix4x4 MakeRotateZMatrix(float radius);
+
+Matrix4x4 MakeRotateMatrix(const Vector3& radian);
 
 // 平行移動行列
 Matrix4x4 MakeTranslateMatrix(const Vector3& translate);
@@ -41,6 +53,9 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 // ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
 
+// スカラー倍
+Vector3 Multiply(const Vector3& v1, const Vector3& v2);
+
 // 内積
 float Dot(const Vector3& v1, const Vector3& v2);
 
@@ -49,3 +64,6 @@ float Length(const Vector3& v);
 
 // 正規化
 Vector3 Normalize(const Vector3& v);
+
+// ベクトル変換
+Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);

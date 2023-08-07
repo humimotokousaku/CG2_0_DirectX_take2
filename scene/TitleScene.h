@@ -7,6 +7,7 @@
 #include "../object/Axis.h"
 #include "../object/MultiMesh.h"
 #include "../object/MultiMaterial.h"
+#include "../Bunny.h"
 
 class GameManager;
 
@@ -27,4 +28,5 @@ private:
 	Axis* axis_;
 	MultiMesh* multiMesh_;
 	MultiMaterial* multiMaterial_;
+	Bunny* bunny_;
 };

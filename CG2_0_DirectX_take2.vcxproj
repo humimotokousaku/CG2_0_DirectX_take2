@@ -94,10 +94,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="base\DirectXCommon.cpp" />
     <ClCompile Include="base\WinApp.cpp" />
+    <ClCompile Include="Bunny.cpp" />
     <ClCompile Include="camera\Camera.cpp" />
+    <ClCompile Include="DebugCamera.cpp" />
     <ClCompile Include="GlobalVariables.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="light\Light.cpp" />
     <ClCompile Include="Manager\GameManager.cpp" />
     <ClCompile Include="Manager\ImGuiManager.cpp" />
@@ -141,10 +145,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Audio.h" />
     <ClInclude Include="base\DirectXCommon.h" />
     <ClInclude Include="base\WinApp.h" />
+    <ClInclude Include="Bunny.h" />
     <ClInclude Include="camera\Camera.h" />
+    <ClInclude Include="DebugCamera.h" />
     <ClInclude Include="GlobalVariables.h" />
+    <ClInclude Include="Input.h" />
     <ClInclude Include="light\DirectionalLight.h" />
     <ClInclude Include="light\Light.h" />
     <ClInclude Include="Manager\GameManager.h" />

@@ -18,6 +18,8 @@ void TitleScene::Initialize() {
 	multiMesh_->Initialize();
 	multiMaterial_ = new MultiMaterial();
 	multiMaterial_->Initialize();
+	bunny_ = new Bunny();
+	bunny_->Initialize();
 }
 
 void TitleScene::Update() {
@@ -88,6 +90,7 @@ void TitleScene::Draw() {
 	axis_->Draw();
 	multiMesh_->Draw();
 	multiMaterial_->Draw();
+	bunny_->Draw();
 }
 
 void TitleScene::Finalize() {
@@ -100,4 +103,5 @@ void TitleScene::Finalize() {
 	delete axis_;
 	delete multiMesh_;
 	delete multiMaterial_;
+	delete bunny_;
 }

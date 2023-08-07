@@ -75,8 +75,8 @@ public:
 private:
 	GlobalVariables() = default;
 	~GlobalVariables() = default;
-	GlobalVariables(const GlobalVariables& obj) = default;
-	GlobalVariables& operator=(const GlobalVariables& obj) = default;
+	GlobalVariables(const GlobalVariables& obj) = delete;
+	GlobalVariables& operator=(const GlobalVariables& obj) = delete;
 
 public:
 	// 項目

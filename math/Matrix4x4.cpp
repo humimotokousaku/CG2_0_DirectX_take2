@@ -12,6 +12,46 @@ Matrix4x4  MakeIdentity4x4() {
 	return result;
 }
 
+Vector3 Add(const Vector3& pos, const Vector3& vector) {
+	Vector3 result{};
+	result.x = pos.x + vector.x;
+	result.y = pos.y + vector.y;
+	result.z = pos.z + vector.z;
+
+	return result;
+}
+
+Vector3 Subtract(const Vector3& pos1, const Vector3& pos2) {
+	Vector3 result{};
+	result.x = pos1.x - pos2.x;
+	result.y = pos1.y - pos2.y;
+	result.z = pos1.z - pos2.z;
+
+	return result;
+}
+
+// 行列の加法
+Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2) {
+	Matrix4x4 result{};
+	for (int row = 0; row < 4; ++row) {
+		for (int column = 0; column < 4; ++column) {
+			result.m[row][column] = m1.m[row][column] + m2.m[row][column];
+		}
+	}
+	return result;
+}
+
+// 行列の減法
+Matrix4x4 Subtract(const Matrix4x4& m1, const Matrix4x4& m2) {
+	Matrix4x4 result{};
+	for (int row = 0; row < 4; ++row) {
+		for (int column = 0; column < 4; ++column) {
+			result.m[row][column] = m1.m[row][column] - m2.m[row][column];
+		}
+	}
+	return result;
+}
+
 Matrix4x4 MakeRotateXMatrix(float radius) {
 	Matrix4x4 result;
 	result.m[0][0] = 1;
@@ -83,6 +123,20 @@ Matrix4x4 MakeRotateZMatrix(float radius) {
 	result.m[3][1] = 0;
 	result.m[3][2] = 0;
 	result.m[3][3] = 1;
+
+	return result;
+}
+
+Matrix4x4 MakeRotateMatrix(const Vector3& radian) {
+	Matrix4x4 rotateX{};
+	Matrix4x4 rotateY{};
+	Matrix4x4 rotateZ{};
+	rotateX = MakeRotateXMatrix(radian.x);
+	rotateY = MakeRotateYMatrix(radian.y);
+	rotateZ = MakeRotateZMatrix(radian.z);
+
+	Matrix4x4 result{};
+	result = Multiply(rotateX, Multiply(rotateY, rotateZ));
 
 	return result;
 }
@@ -355,6 +409,15 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 	return result;
 }
 
+// スカラー倍
+Vector3 Multiply(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = v1.x * v2.x;
+	result.y = v1.y * v2.y;
+	result.z = v1.z * v2.z;
+	return result;
+}
+
 // 内積
 float Dot(const Vector3& v1, const Vector3& v2) {
 	float result{};
@@ -378,5 +441,14 @@ Vector3 Normalize(const Vector3& v) {
 		result.y = v.y / length;
 		result.z = v.z / length;
 	}
+	return result;
+}
+
+// ベクトル変換
+Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m) {
+	Vector3 result{
+		v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0],
+		v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1],
+		v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2] };
 	return result;
 }

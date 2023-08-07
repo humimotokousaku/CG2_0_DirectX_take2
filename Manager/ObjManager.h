@@ -6,7 +6,8 @@ enum ModelName {
 	PLANE,
 	AXIS,
 	MULTIMESH,
-	MULTIMATERIAL
+	MULTIMATERIAL,
+	BUNNY
 };
 
 class ObjManager
@@ -23,7 +24,7 @@ public:
 	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
 
 private:
-	static const int32_t kMaxModelData = 4;
+	static const int32_t kMaxModelData = 5;
 	ModelData modelData_[kMaxModelData];
 };
 

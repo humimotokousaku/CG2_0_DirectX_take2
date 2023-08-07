@@ -1,4 +1,4 @@
-#include "GameManager.h"
+﻿#include "GameManager.h"
 #include "../utility/ConvertString.h"
 #include "../GlobalVariables.h"
 
@@ -15,12 +15,27 @@ void GameManager::Initialize() {
 	auto&& titleString = ConvertString(kWindowTitle);
 
 	// windowの初期化
-	winApp_ = new WinApp();
+	winApp_ = WinApp::GetInstance();
 	winApp_->Initialize(titleString.c_str(), 1280, 720);
 
 	// DirectXの初期化
 	directXCommon_ = DirectXCommon::GetInstance();
 	directXCommon_->DirectXCommon::GetInstance()->Initialize(winApp_->GetHwnd());
+
+	input_ = Input::GetInstance();
+	input_->Initialize();
+
+	// Audioの初期化
+	audio_ = Audio::GetInstance();
+	HRESULT result;
+	// Xaudio2エンジンのインスタンスを生成
+	result = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
+	// マスターボイスを生成
+	result = xAudio2_->CreateMasteringVoice(&masterVoice_);
+	// 音声読み込み
+	soundData1_ = audio_->SoundLoadWave("resources/fanfare.wav");
+	// 音声再生
+	audio_->SoundPlayWave(xAudio2_.Get(), soundData1_);
 
 	// objManagerの初期化。今はobjファイルの読み込みだけしている
 	objManager_ = ObjManager::GetInstance();
@@ -36,10 +51,15 @@ void GameManager::Initialize() {
 	// ライトの設定
 	light_ = Light::GetInstance();
 	light_->Initialize(DirectXCommon::GetInstance()->GetDevice());
+	// デバッグカメラの初期化
+	debugCamera_ = DebugCamera::GetInstance();
+	debugCamera_->initialize();
 
 	// カメラの初期化
 	camera_ = Camera::GetInstance();
 	camera_->Initialize();
+
+
 
 	// ImGuiの初期化
 	imGuiManager_ = new ImGuiManager();
@@ -70,6 +90,23 @@ void GameManager::Run() {
 		else {
 			// 描画前の処理
 			BeginFrame();
+			//input_->CheckAllKeyStates();
+
+			if (input_->ReleaseKey(DIK_0)) {
+				WinApp::Log("Hit 0\n");
+			}
+
+			XINPUT_STATE joyState{};
+			if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+				// 移動量
+				Vector3 move{
+					(float)joyState.Gamepad.sThumbLX / SHRT_MAX, 0.0f,
+					(float)joyState.Gamepad.sThumbLY / SHRT_MAX
+				};
+				ImGui::Begin("test joyStick");
+				ImGui::Text("joystick %f, %f, %f", move.x, move.y, move.z);
+				ImGui::End();
+			}
 
 			// シーンチェック
 			preSceneNum_ = sceneNum_;
@@ -110,14 +147,20 @@ void GameManager::Finalize() {
 	textureManager_->Release();
 	directXCommon_->Release();
 	CloseWindow(winApp_->GetHwnd());
+	xAudio2_.Reset();
+	audio_->SoundUnload(&soundData1_);
 	// Textureのゲーム終了処理
 	textureManager_->ComUninit();
 }
 
 void GameManager::BeginFrame() {
+	input_->Update();
 	myEngine_->BeginFrame();
+	// デバッグカメラ
+	debugCamera_->Update();
 	// カメラの設定
 	camera_->SettingCamera();
+
 	// ImGui
 	imGuiManager_->PreDraw();
 	// グローバル変数の更新

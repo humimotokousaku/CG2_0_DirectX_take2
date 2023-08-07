@@ -1,14 +1,14 @@
-#include "Axis.h"
-#include "../camera/Camera.h"
-#include "../DebugCamera.h"
-#include "../Manager/ImGuiManager.h"
-#include "../Manager/ObjManager.h"
-#include "../GlobalVariables.h"
+#include "Bunny.h"
+#include "camera/Camera.h"
+#include "DebugCamera.h"
+#include "Manager/ImGuiManager.h"
+#include "Manager/ObjManager.h"
+#include "GlobalVariables.h"
 #include <cassert>
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-Microsoft::WRL::ComPtr<ID3D12Resource> Axis::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> Bunny::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -35,11 +35,11 @@ Microsoft::WRL::ComPtr<ID3D12Resource> Axis::CreateBufferResource(const Microsof
 	return vertexResource;
 }
 
-void Axis::CreateVertexResource() {
+void Bunny::CreateVertexResource() {
 	vertexResource_ = CreateBufferResource(DirectXCommon::GetInstance()->GetDevice(), sizeof(VertexData) * modelData_.vertices.size()).Get();
 }
 
-void Axis::CreateVertexBufferView() {
+void Bunny::CreateVertexBufferView() {
 	// リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 	// 使用するリソースのサイズは頂点3つ分のサイズ
@@ -48,7 +48,7 @@ void Axis::CreateVertexBufferView() {
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-void Axis::CreateMaterialResource() {
+void Bunny::CreateMaterialResource() {
 	materialResource_ = CreateBufferResource(DirectXCommon::GetInstance()->GetDevice(), sizeof(Material)).Get();
 	// マテリアルにデータを書き込む
 	materialData_ = nullptr;
@@ -56,7 +56,7 @@ void Axis::CreateMaterialResource() {
 	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
-void Axis::CreateWvpResource() {
+void Bunny::CreateWvpResource() {
 	// 1つ分のサイズを用意する
 	transformationMatrixResource_ = CreateBufferResource(DirectXCommon::GetInstance()->GetDevice(), sizeof(TransformationMatrix)).Get();
 	// 書き込むためのアドレスを取得
@@ -65,9 +65,9 @@ void Axis::CreateWvpResource() {
 	transformationMatrixData_->WVP = MakeIdentity4x4();
 }
 
-void Axis::Initialize() {
+void Bunny::Initialize() {
 	// モデルを読み込み
-	modelData_ = ObjManager::GetInstance()->GetObjModelData()[AXIS];
+	modelData_ = ObjManager::GetInstance()->GetObjModelData()[BUNNY];
 
 	CreateVertexResource();
 
@@ -95,7 +95,7 @@ void Axis::Initialize() {
 	materialData_->uvTransform = MakeIdentity4x4();
 
 	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
-	const char* groupName = "Axis";
+	const char* groupName = "Bunny";
 	GlobalVariables::GetInstance()->CreateGroup(groupName);
 	globalVariables->AddItem(groupName, "Translation", transform_.translate);
 	globalVariables->AddItem(groupName, "Scale", transform_.scale);
@@ -103,12 +103,12 @@ void Axis::Initialize() {
 	globalVariables->AddItem(groupName, "Color", materialData_->color);
 }
 
-void Axis::Draw() {
+void Bunny::Draw() {
 	ApplyGlobalVariables();
 	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
 	// ボタンを押したらsave
 	if (globalVariables->GetInstance()->GetIsSave()) {
-		globalVariables->SaveFile("Axis");
+		globalVariables->SaveFile("Bunny");
 	}
 
 	if (isAlive_) {
@@ -144,20 +144,20 @@ void Axis::Draw() {
 	}
 }
 
-void Axis::Release() {
+void Bunny::Release() {
 
 }
 
-void Axis::ApplyGlobalVariables() {
+void Bunny::ApplyGlobalVariables() {
 	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
-	const char* groupName = "Axis";
+	const char* groupName = "Bunny";
 	transform_.translate = globalVariables->GetVector3Value(groupName, "Translation");
 	transform_.scale = globalVariables->GetVector3Value(groupName, "Scale");
 	transform_.rotate = globalVariables->GetVector3Value(groupName, "Rotate");
 	materialData_->color = globalVariables->GetVector4Value(groupName, "Color");
 }
 
-void Axis::ImGuiAdjustParameter() {
+void Bunny::ImGuiAdjustParameter() {
 	//ImGui::Checkbox("isAlive", &isAlive_);
 	//ImGui::CheckboxFlags("isLighting", &materialData_->enableLighting, 1);
 	//ImGui::SliderFloat3("Translate", &transform_.translate.x, -5, 5);
