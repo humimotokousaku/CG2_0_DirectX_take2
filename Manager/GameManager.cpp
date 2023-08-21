@@ -1,4 +1,4 @@
-﻿#include "GameManager.h"
+#include "GameManager.h"
 #include "../utility/ConvertString.h"
 #include "../GlobalVariables.h"
 
@@ -27,15 +27,15 @@ void GameManager::Initialize() {
 
 	// Audioの初期化
 	audio_ = Audio::GetInstance();
-	HRESULT result;
+	//HRESULT result;
 	// Xaudio2エンジンのインスタンスを生成
-	result = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
+//	result = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
 	// マスターボイスを生成
-	result = xAudio2_->CreateMasteringVoice(&masterVoice_);
+//	result = xAudio2_->CreateMasteringVoice(&masterVoice_);
 	// 音声読み込み
-	soundData1_ = audio_->SoundLoadWave("resources/fanfare.wav");
+//	soundData1_ = audio_->SoundLoadWave("resources/fanfare.wav");
 	// 音声再生
-	audio_->SoundPlayWave(xAudio2_.Get(), soundData1_);
+	//audio_->SoundPlayWave(xAudio2_.Get(), soundData1_);
 
 	// objManagerの初期化。今はobjファイルの読み込みだけしている
 	objManager_ = ObjManager::GetInstance();
@@ -96,17 +96,18 @@ void GameManager::Run() {
 				WinApp::Log("Hit 0\n");
 			}
 
-			XINPUT_STATE joyState{};
-			if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-				// 移動量
-				Vector3 move{
-					(float)joyState.Gamepad.sThumbLX / SHRT_MAX, 0.0f,
-					(float)joyState.Gamepad.sThumbLY / SHRT_MAX
-				};
-				ImGui::Begin("test joyStick");
-				ImGui::Text("joystick %f, %f, %f", move.x, move.y, move.z);
-				ImGui::End();
-			}
+			//XINPUT_STATE joyState{};
+			//if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+			//	// 移動量
+			//	Vector3 move{
+			//		(float)joyState.Gamepad.sThumbLX / SHRT_MAX, 
+			//		(float)joyState.Gamepad.sThumbLY / SHRT_MAX,
+			//		0
+			//	};
+			//	//ImGui::Begin("test joyStick");
+			//	//ImGui::Text("joystick %f, %f, %f", move.x, move.y, move.z);
+			//	//ImGui::End();
+			//}
 
 			// シーンチェック
 			preSceneNum_ = sceneNum_;

@@ -27,7 +27,7 @@ public:
 	// キーを離した瞬間
 	bool ReleaseKey(BYTE keyNumber)const;
 
-	bool GetJoystickState(int32_t stickNo, XINPUT_STATE state);
+	bool GetJoystickState(int32_t stickNo, XINPUT_STATE& state);
 
 private:
 	IDirectInput8* directInput_ = nullptr;

@@ -1,5 +1,7 @@
-﻿#include "Input.h"
+#include "Input.h"
 #include <cassert>
+#define XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  7849
+#define XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE 8689
 
 Input* Input::GetInstance() {
 	static Input instance;
@@ -65,7 +67,7 @@ bool Input::ReleaseKey(BYTE keyNumber)const {
 	}
 }
 
-bool Input::GetJoystickState(int32_t stickNo,XINPUT_STATE state) {
-	//XInputGetState(stickNo, &state);
-	return 0;
+bool Input::GetJoystickState(int32_t stickNo,XINPUT_STATE& state) {
+	DWORD result = XInputGetState(stickNo, &state);
+	return result == ERROR_SUCCESS;
 }
