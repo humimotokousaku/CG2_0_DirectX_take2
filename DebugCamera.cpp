@@ -60,7 +60,6 @@ void DebugCamera::Update() {
 	}
 
 	// GamePad
-
 	XINPUT_STATE joyState{};
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 		// デッドゾーンの設定
