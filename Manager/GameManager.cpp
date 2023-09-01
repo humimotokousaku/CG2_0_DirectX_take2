@@ -59,8 +59,6 @@ void GameManager::Initialize() {
 	camera_ = Camera::GetInstance();
 	camera_->Initialize();
 
-
-
 	// ImGuiの初期化
 	imGuiManager_ = new ImGuiManager();
 	imGuiManager_->Initialize(winApp_->GetHwnd());
@@ -70,7 +68,6 @@ void GameManager::Initialize() {
 
 	//初期シーンの設定
 	sceneNum_ = TITLESCENE;
-
 	// シーンごとの初期化
 	sceneArr_[sceneNum_]->Initialize();
 }
@@ -96,7 +93,7 @@ void GameManager::Run() {
 				WinApp::Log("Hit 0\n");
 			}
 
-			//XINPUT_STATE joyState{};
+			//
 			//if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 			//	// 移動量
 			//	Vector3 move{

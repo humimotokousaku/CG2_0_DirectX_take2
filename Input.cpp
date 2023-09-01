@@ -10,7 +10,6 @@ Input* Input::GetInstance() {
 }
 
 void Input::Initialize() {
-	//XInputEnable(true);
 	// DirectInputの初期化
 	HRESULT result;
 	result = DirectInput8Create(WinApp::GetInstance()->GetWc(), DIRECTINPUT_VERSION, IID_IDirectInput8,
@@ -70,4 +69,13 @@ bool Input::ReleaseKey(BYTE keyNumber)const {
 bool Input::GetJoystickState(int32_t stickNo,XINPUT_STATE& state) {
 	DWORD result = XInputGetState(stickNo, &state);
 	return result == ERROR_SUCCESS;
+}
+
+// デッドゾーンを適用する関数
+SHORT Input::ApplyDeadzone(SHORT inputValue) {
+	if (abs(inputValue) < DEADZONE_THRESHOLD) {
+		return 0; // デッドゾーン内の入力は無視
+	}
+	// デッドゾーン外の入力はそのまま返す
+	return inputValue;
 }

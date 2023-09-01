@@ -17,17 +17,7 @@ void DebugCamera::initialize() {
 
 void DebugCamera::Update() {
 #pragma region 平行移動
-
-	if (Input::GetInstance()->PressKey(DIK_SPACE)) {
-		const float speed = 0.1f;
-
-		Vector3 move = { 0,0,speed };
-
-		// 移動ベクトルをカメラの角度だけ回転
-		move = TransformNormal(move, worldTransform_);
-
-		translation_ = Add(translation_, move);
-	}
+	// Keyboard
 	if (Input::GetInstance()->PressKey(DIK_LEFT)) {
 		const float speed = -0.1f;
 
@@ -51,7 +41,7 @@ void DebugCamera::Update() {
 	if (Input::GetInstance()->PressKey(DIK_UP)) {
 		const float speed = 0.1f;
 
-		Vector3 move = { 0,speed,0 };
+		Vector3 move = { 0,0, speed };
 
 		// 移動ベクトルをカメラの角度だけ回転
 		move = TransformNormal(move, worldTransform_);
@@ -61,7 +51,7 @@ void DebugCamera::Update() {
 	if (Input::GetInstance()->PressKey(DIK_DOWN)) {
 		const float speed = -0.1f;
 
-		Vector3 move = { 0,speed,0 };
+		Vector3 move = { 0,0, speed };
 
 		// 移動ベクトルをカメラの角度だけ回転
 		move = TransformNormal(move, worldTransform_);
@@ -69,10 +59,30 @@ void DebugCamera::Update() {
 		translation_ = Add(translation_, move);
 	}
 
+	// GamePad
+
+	XINPUT_STATE joyState{};
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		// デッドゾーンの設定
+		SHORT leftThumbX = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbLX);
+		SHORT leftThumbZ = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbLY);
+		// 移動量
+		Vector3 move{};
+		move = {
+			(float)leftThumbX / SHRT_MAX * 0.1f,
+			0,
+			(float)leftThumbZ / SHRT_MAX * 0.1f
+		};
+		// 移動ベクトルをカメラの角度だけ回転
+		move = TransformNormal(move, worldTransform_);
+		translation_ = Add(translation_, move);
+	}
+
 #pragma endregion
 
 #pragma region 回転
 
+	// keyboard
 	if (Input::GetInstance()->PressKey(DIK_W)) {
 		rotation_ = Add(rotation_, { -0.01f,0,0 });
 	}
@@ -85,35 +95,24 @@ void DebugCamera::Update() {
 	if (Input::GetInstance()->PressKey(DIK_D)) {
 		rotation_ = Add(rotation_, { 0,0.01f,0 });
 	}
-	Vector3 move{};
-	XINPUT_STATE joyState{};
+
+	//GamePad
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		// デッドゾーンの設定
+		SHORT leftThumbX = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbRX);
+		SHORT leftThumbY = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbRY);
 		// 移動量
+		Vector3 move{};
 		move = {
-			(float)joyState.Gamepad.sThumbLX / SHRT_MAX,
-			(float)joyState.Gamepad.sThumbLY / SHRT_MAX,
+			-(float)leftThumbY / SHRT_MAX * 0.03f,
+			(float)leftThumbX / SHRT_MAX * 0.03f,		
 			0
 		};
-		if ((joyState.Gamepad.sThumbLX <  XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE &&
-			joyState.Gamepad.sThumbLX > -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) &&
-			(joyState.Gamepad.sThumbLY <  XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE &&
-				joyState.Gamepad.sThumbLY > -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE))
-		{
-			joyState.Gamepad.sThumbLX = 0;
-			joyState.Gamepad.sThumbLY = 0;
-		}
-		//if (move.x <= 0.9f && move.x <= -0.9f) {
-		//	move.x = 0;
-		//}
-		//if (move.y <= 0.9f && move.y <= -0.9f) {
-		//	move.y = 0;
-		//}
-
-		translation_ = Add(translation_, move);
-
+		rotation_ = Add(rotation_, move);
 	}
 
 #pragma endregion
+
 	worldTransform_ = MakeAffineMatrix({ 1,1,1 }, rotation_, translation_);
 	viewMatrix_ = Inverse(worldTransform_);
 }
