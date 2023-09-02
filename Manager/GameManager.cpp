@@ -87,24 +87,6 @@ void GameManager::Run() {
 		else {
 			// 描画前の処理
 			BeginFrame();
-			//input_->CheckAllKeyStates();
-
-			if (input_->ReleaseKey(DIK_0)) {
-				WinApp::Log("Hit 0\n");
-			}
-
-			//
-			//if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-			//	// 移動量
-			//	Vector3 move{
-			//		(float)joyState.Gamepad.sThumbLX / SHRT_MAX, 
-			//		(float)joyState.Gamepad.sThumbLY / SHRT_MAX,
-			//		0
-			//	};
-			//	//ImGui::Begin("test joyStick");
-			//	//ImGui::Text("joystick %f, %f, %f", move.x, move.y, move.z);
-			//	//ImGui::End();
-			//}
 
 			// シーンチェック
 			preSceneNum_ = sceneNum_;
@@ -112,17 +94,21 @@ void GameManager::Run() {
 
 			//シーン変更チェック
 			if (sceneNum_ != preSceneNum_) {
-				sceneArr_[sceneNum_]->Initialize();
 				sceneArr_[preSceneNum_]->Finalize();
+				sceneArr_[sceneNum_]->Initialize();				
 			}
 
-			// シーンごとの更新処理
+			///
+			/// 更新処理
+			/// 
 			sceneArr_[sceneNum_]->Update(); 
 
 			// ImGuiのパラメータを入れている
 			ImGuiAdjustParameter();
 
-			// シーンごとの描画処理
+			///
+			/// 描画処理
+			/// 
 			sceneArr_[sceneNum_]->Draw();
 
 			// 描画後の処理

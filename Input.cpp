@@ -68,6 +68,7 @@ bool Input::ReleaseKey(BYTE keyNumber)const {
 
 bool Input::GetJoystickState(int32_t stickNo,XINPUT_STATE& state) {
 	DWORD result = XInputGetState(stickNo, &state);
+
 	return result == ERROR_SUCCESS;
 }
 
