@@ -1,5 +1,6 @@
 #pragma once
 #include "IScene.h"
+#include "../components/Input.h"
 #include "../object/Sprite.h"
 #include "../object/Sphere.h"
 
@@ -15,4 +16,6 @@ public:
 private:
 	Sprite* sprite_;
 	Sphere* sphere_;
+	int textureNum_;
+	Input* input_;
 };

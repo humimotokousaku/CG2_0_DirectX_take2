@@ -78,7 +78,4 @@ public:
 	Transform uvTransform_;
 	Matrix4x4 uvTransformMatrix_;
 	TriangleVertices vertex_;
-
-	float* inputFloat[4];
-	bool isAlive_ = false;
 };

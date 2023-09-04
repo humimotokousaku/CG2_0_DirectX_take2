@@ -11,6 +11,20 @@
 class Sprite
 {
 public:
+	~Sprite();
+
+	void Initialize();
+
+	/// <summary>
+	/// 描画処理
+	/// </summary>
+	/// <param name="textureNum">textureManagerで登録したenum型の番号を入れる</param>
+	void Draw(int textureNum);
+
+	void Release();
+
+	void ImGuiAdjustParameter();
+
 	Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes);
 
 	void CreateVertexResource();
@@ -20,18 +34,6 @@ public:
 	void CreateMaterialResource();
 
 	void CreateWvpResource();
-
-	~Sprite();
-
-	void Initialize();
-
-	void Draw();
-
-	void Release();
-
-
-	void ImGuiAdjustParameter();
-
 private:	
 	// Material
 	Material* materialData_;
@@ -53,7 +55,5 @@ private:
 	Matrix4x4 viewMatrix_;
 	Matrix4x4 projectionMatrix_;
 	Matrix4x4 worldViewProjectionMatrix_;
-
-	bool isAlive_ = false;
 };
 

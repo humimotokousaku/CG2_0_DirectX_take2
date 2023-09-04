@@ -170,34 +170,31 @@ void Sphere::Initialize() {
 }
 
 void Sphere::Draw() {
-	if (isAlive_) {
-		uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
-		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
-		uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
-		materialData_->uvTransform = uvTransformMatrix_;
+	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
+	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
+	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
+	materialData_->uvTransform = uvTransformMatrix_;
 
-		// カメラ
-		transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-		transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, *Camera::GetInstance()->GetTransformationMatrixData());
-		transformationMatrixData_->World = MakeIdentity4x4();
+	// カメラ
+	transformationMatrixData_->World = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+	transformationMatrixData_->WVP = Multiply(transformationMatrixData_->World, *Camera::GetInstance()->GetTransformationMatrixData());
+	transformationMatrixData_->World = MakeIdentity4x4();
 
+	// コマンドを積む
+	DirectXCommon::GetInstance()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
+	// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
+	DirectXCommon::GetInstance()->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// DescriptorTableの設定
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootDescriptorTable(2, useMonsterBall_ ? TextureManager::GetInstance()->GetTextureSrvHandleGPU()[1] : TextureManager::GetInstance()->GetTextureSrvHandleGPU()[0]);
 
-		// コマンドを積む
-		DirectXCommon::GetInstance()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_); // VBVを設定
-		// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけば良い
-		DirectXCommon::GetInstance()->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		// DescriptorTableの設定
-		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootDescriptorTable(2, useMonsterBall_ ? TextureManager::GetInstance()->GetTextureSrvHandleGPU()[1] : TextureManager::GetInstance()->GetTextureSrvHandleGPU()[0]);
+	// wvpのCBufferの場所を設定
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
 
-		// wvpのCBufferの場所を設定
-		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource_.Get()->GetGPUVirtualAddress());
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(3, Light::GetInstance()->GetDirectionalLightResource()->GetGPUVirtualAddress());
 
-		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(3, Light::GetInstance()->GetDirectionalLightResource()->GetGPUVirtualAddress());
-
-		// マテリアルCBufferの場所を設定
-		DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
-		DirectXCommon::GetInstance()->GetCommandList()->DrawInstanced(vertexIndex, 1, 0, 0);
-	}
+	// マテリアルCBufferの場所を設定
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
+	DirectXCommon::GetInstance()->GetCommandList()->DrawInstanced(vertexIndex, 1, 0, 0);
 }
 
 void Sphere::Release() {
@@ -205,7 +202,6 @@ void Sphere::Release() {
 }
 
 void Sphere::ImGuiAdjustParameter() {
-	ImGui::Checkbox("isAlive", &isAlive_);
 	ImGui::CheckboxFlags("isLighting", &materialData_->enableLighting, 1);
 	ImGui::Checkbox("useMonsterBall", &useMonsterBall_);
 	ImGui::SliderFloat3("Translate", &transform_.translate.x, -5, 5);

@@ -14,7 +14,66 @@ TextureManager* TextureManager::GetInstance() {
 
 	return &instance;
 }
+TextureManager::~TextureManager() {
 
+}
+
+void TextureManager::TransferTexture(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap) {
+	// 画像の読み込み
+	mipImages_[UVCHEKER] = LoadTexture("resources/uvChecker.png");
+	mipImages_[MONSTERBALL] = LoadTexture("resources/monsterBall.png");
+
+	DirectX::TexMetadata metadata[kMaxImages]{};
+	for (uint32_t i = 0; i < kMaxImages; i++) {
+		metadata[i] = mipImages_[i].GetMetadata();
+		textureResource_[i] = CreateTextureResource(metadata[i]).Get();
+		intermediateResource_[i] = UploadTextureData(textureResource_[i].Get(), mipImages_[i]);
+	}
+
+	// DescriptorSizeを取得
+	uint32_t descriptorSizeSRV[kMaxImages]{};
+	for (uint32_t i = 0; i < kMaxImages; i++) {
+		descriptorSizeSRV[i] = DirectXCommon::GetInstance()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
+	// metaDataをもとにSRVの設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc[kMaxImages]{};
+	for (uint32_t i = 0; i < kMaxImages; i++) {
+		srvDesc[i].Format = metadata[i].format;
+		srvDesc[i].Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc[i].ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc[i].Texture2D.MipLevels = UINT(metadata[i].mipLevels);
+		// SRVを作成するDescriptorHeapの場所を決める
+		textureSrvHandleCPU_[i] = GetCPUDescriptorHandle(DirectXCommon::GetInstance()->GetSrvDescriptorHeap(), descriptorSizeSRV[i], i + 1);
+		textureSrvHandleGPU_[i] = GetGPUDescriptorHandle(DirectXCommon::GetInstance()->GetSrvDescriptorHeap(), descriptorSizeSRV[i], i + 1);
+		// SRVの生成
+		DirectXCommon::GetInstance()->GetDevice()->CreateShaderResourceView(textureResource_[i].Get(), &srvDesc[i], textureSrvHandleCPU_[i]);
+	}
+}
+
+void TextureManager::Initialize() {
+	// モデルを読み込み
+	//modelData_ = ObjManager::GetInstance()->GetObjModelData();
+	TransferTexture(DirectXCommon::GetInstance()->GetSrvDescriptorHeap());
+
+	CreateDepthStencilView();
+}
+
+void TextureManager::Release() {
+	for (uint32_t i = 0; i < 2; i++) {
+		textureResource_[i].Reset();
+		intermediateResource_[i].Reset();
+	}
+	depthStencilResource_.Reset();
+	dsvDescriptorHeap_.Reset();
+}
+
+void TextureManager::ComInit() {
+	CoInitializeEx(0, COINIT_MULTITHREADED);
+}
+
+void TextureManager::ComUninit() {
+	CoUninitialize();
+}
 
 D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index) {
 	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
@@ -53,10 +112,6 @@ Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateBufferResource(cons
 	assert(SUCCEEDED(hr));
 
 	return vertexResource;
-}
-
-void TextureManager::ComInit() {
-	CoInitializeEx(0, COINIT_MULTITHREADED);
 }
 
 DirectX::ScratchImage TextureManager::LoadTexture(const std::string& filePath) {
@@ -121,41 +176,6 @@ Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::UploadTextureData(const M
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
 	DirectXCommon::GetInstance()->GetCommandList()->ResourceBarrier(1, &barrier);
 	return intermediateResource;
-}
-
-void TextureManager::TransferTexture(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap) {
-	mipImages_[0] = LoadTexture("resources/uvChecker.png");
-	mipImages_[1] = LoadTexture("resources/monsterBall.png");
-	mipImages_[2] = LoadTexture(modelData_[PLANE].material.textureFilePath);
-	mipImages_[3] = LoadTexture(modelData_[AXIS].material.textureFilePath);
-	mipImages_[4] = LoadTexture(modelData_[MULTIMESH].material.textureFilePath);
-	mipImages_[5] = LoadTexture(modelData_[MULTIMATERIAL].material.textureFilePath);
-	mipImages_[6] = LoadTexture(modelData_[BUNNY].material.textureFilePath);
-	DirectX::TexMetadata metadata[kMaxImages]{};
-	for (uint32_t i = 0; i < kMaxImages; i++) {
-		metadata[i] = mipImages_[i].GetMetadata();
-		textureResource_[i] = CreateTextureResource(metadata[i]).Get();
-		intermediateResource_[i] = UploadTextureData(textureResource_[i].Get(), mipImages_[i]);
-	}
-
-	// DescriptorSizeを取得
-	uint32_t descriptorSizeSRV[kMaxImages]{};
-	for (uint32_t i = 0; i < kMaxImages; i++) {
-		descriptorSizeSRV[i] = DirectXCommon::GetInstance()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	}
-	// metaDataをもとにSRVの設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc[kMaxImages]{};
-	for (uint32_t i = 0; i < kMaxImages; i++) {
-		srvDesc[i].Format = metadata[i].format;
-		srvDesc[i].Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc[i].ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc[i].Texture2D.MipLevels = UINT(metadata[i].mipLevels);
-		// SRVを作成するDescriptorHeapの場所を決める
-		textureSrvHandleCPU_[i] = GetCPUDescriptorHandle(DirectXCommon::GetInstance()->GetSrvDescriptorHeap(), descriptorSizeSRV[i], i + 1);
-		textureSrvHandleGPU_[i] = GetGPUDescriptorHandle(DirectXCommon::GetInstance()->GetSrvDescriptorHeap(), descriptorSizeSRV[i], i + 1);
-		// SRVの生成
-		DirectXCommon::GetInstance()->GetDevice()->CreateShaderResourceView(textureResource_[i].Get(), &srvDesc[i], textureSrvHandleCPU_[i]);
-	}
 }
 
 Microsoft::WRL::ComPtr<ID3D12Resource> TextureManager::CreateDepthStencilTextureResource(int32_t width, int32_t height) {
@@ -230,27 +250,4 @@ void TextureManager::SettingDepthStencilState() {
 	depthStencilDesc_.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 }
 
-TextureManager::~TextureManager() {
 
-}
-
-void TextureManager::Initialize() {
-	// モデルを読み込み
-	modelData_ = ObjManager::GetInstance()->GetObjModelData();
-	TransferTexture(DirectXCommon::GetInstance()->GetSrvDescriptorHeap());
-
-	CreateDepthStencilView();
-}
-
-void TextureManager::Release() {
-	for (uint32_t i = 0; i < 2; i++) {
-		textureResource_[i].Reset();
-		intermediateResource_[i].Reset();
-	}
-	depthStencilResource_.Reset();
-	dsvDescriptorHeap_.Reset();
-}
-
-void TextureManager::ComUninit() {
-	CoUninitialize();
-}

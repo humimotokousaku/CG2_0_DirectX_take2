@@ -117,11 +117,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\ImGui\imgui_tables.cpp" />
     <ClCompile Include="externals\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="MaterialData.cpp" />
-    <ClCompile Include="object\Axis.cpp" />
-    <ClCompile Include="object\Bunny.cpp" />
-    <ClCompile Include="object\MultiMaterial.cpp" />
-    <ClCompile Include="object\MultiMesh.cpp" />
-    <ClCompile Include="object\Plane.cpp" />
     <ClCompile Include="object\Sphere.cpp" />
     <ClCompile Include="object\Sprite.cpp" />
     <ClCompile Include="object\Triangle.cpp" />
@@ -178,11 +173,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialData.h" />
     <ClInclude Include="ModelData.h" />
-    <ClInclude Include="object\Axis.h" />
-    <ClInclude Include="object\Bunny.h" />
-    <ClInclude Include="object\MultiMaterial.h" />
-    <ClInclude Include="object\MultiMesh.h" />
-    <ClInclude Include="object\Plane.h" />
     <ClInclude Include="object\Sphere.h" />
     <ClInclude Include="object\Sprite.h" />
     <ClInclude Include="object\Triangle.h" />

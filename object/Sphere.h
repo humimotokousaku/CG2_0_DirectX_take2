@@ -57,6 +57,4 @@ public:
 
 	// Sphereの画像切り替え
 	bool useMonsterBall_ = true;
-
-	bool isAlive_ = false;
 };
