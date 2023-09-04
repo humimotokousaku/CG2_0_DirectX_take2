@@ -18,4 +18,5 @@ private:
 	Sphere* sphere_;
 	int textureNum_;
 	Input* input_;
+	Vector3 pos_;
 };

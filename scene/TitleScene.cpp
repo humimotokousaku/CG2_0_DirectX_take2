@@ -11,16 +11,11 @@ void TitleScene::Initialize() {
 }
 
 void TitleScene::Update() {
-	if (input_->TriggerKey(DIK_1)) {
-		textureNum_ = MONSTERBALL;
-	}
-	else if (input_->TriggerKey(DIK_0)) {
-		textureNum_ = UVCHEKER;
-	}
+
 }
 
 void TitleScene::Draw() {
-	sprite_->Draw(textureNum_);
+	sprite_->Draw(pos_, textureNum_);
 	sphere_->Draw();
 }
 

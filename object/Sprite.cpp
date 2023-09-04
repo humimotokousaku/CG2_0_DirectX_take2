@@ -61,7 +61,8 @@ void Sprite::Initialize() {
 	materialData_->uvTransform = MakeIdentity4x4();
 }
 
-void Sprite::Draw(int textureNum) {
+void Sprite::Draw(Vector3 pos,int textureNum) {
+	transform_.translate = pos;
 	uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));

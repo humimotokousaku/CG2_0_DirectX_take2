@@ -18,8 +18,9 @@ public:
 	/// <summary>
 	/// 描画処理
 	/// </summary>
+	/// <param name="pos">座標を入力</param>
 	/// <param name="textureNum">textureManagerで登録したenum型の番号を入れる</param>
-	void Draw(int textureNum);
+	void Draw(Vector3 pos, int textureNum);
 
 	void Release();
 
