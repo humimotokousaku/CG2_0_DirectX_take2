@@ -1,8 +1,8 @@
 #include "Camera.h"
-#include "../base/WinApp.h"
-#include "../Manager/ImGuiManager.h"
-#include "../math/Matrix4x4.h"
-#include "../DebugCamera.h"
+#include "../../base/WinApp.h"
+#include "../../Manager/ImGuiManager.h"
+#include "../../math/Matrix4x4.h"
+#include "./DebugCamera.h"
 
 Camera* Camera::GetInstance() {
 	static Camera instance;

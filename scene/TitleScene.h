@@ -7,7 +7,7 @@
 #include "../object/Axis.h"
 #include "../object/MultiMesh.h"
 #include "../object/MultiMaterial.h"
-#include "../Bunny.h"
+#include "../object/Bunny.h"
 
 class GameManager;
 

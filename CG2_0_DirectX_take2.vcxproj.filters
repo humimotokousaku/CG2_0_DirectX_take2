@@ -25,17 +25,11 @@
     <Filter Include="ソース ファイル\base">
       <UniqueIdentifier>{84d5f4cb-1943-43b5-b3ef-d7bd894bbe0b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\camera">
-      <UniqueIdentifier>{850e572a-b8a4-4b1b-b49a-574bc95d5b6a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\object">
       <UniqueIdentifier>{5b2f8626-797d-43fe-bd22-a9028307f35c}</UniqueIdentifier>
     </Filter>
     <Filter Include="ソース ファイル\math">
       <UniqueIdentifier>{cfe8e887-ee14-4139-bff6-c14e509d1dc7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\light">
-      <UniqueIdentifier>{61e1cc78-1423-43cf-90d5-17f5451efdea}</UniqueIdentifier>
     </Filter>
     <Filter Include="ソース ファイル\Manager">
       <UniqueIdentifier>{eb8782d0-e07d-428f-a604-bbf981f49dba}</UniqueIdentifier>
@@ -46,14 +40,8 @@
     <Filter Include="ヘッダー ファイル\base">
       <UniqueIdentifier>{ecb68115-8ab4-4e07-825b-04f59c767e41}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ヘッダー ファイル\camera">
-      <UniqueIdentifier>{64cb0be1-4cde-45a1-94d0-fbe462d1991a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ヘッダー ファイル\math">
       <UniqueIdentifier>{191b0f83-3f04-4bbf-b302-f00cd8c5866c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\light">
-      <UniqueIdentifier>{01786f32-4549-4b3c-bf65-ae3294f84904}</UniqueIdentifier>
     </Filter>
     <Filter Include="ヘッダー ファイル\Manager">
       <UniqueIdentifier>{21a8ce25-f6ce-4eb1-916b-150e8dc2ad90}</UniqueIdentifier>
@@ -63,6 +51,24 @@
     </Filter>
     <Filter Include="ヘッダー ファイル\object">
       <UniqueIdentifier>{0f96bbf9-79cb-4d38-af95-694987399c02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\components">
+      <UniqueIdentifier>{a9e3be61-5c86-4143-85c9-979a85523365}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\components">
+      <UniqueIdentifier>{1a8f1e4e-f24f-4fda-a4c2-a54f419513d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\components\light">
+      <UniqueIdentifier>{61e1cc78-1423-43cf-90d5-17f5451efdea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\components\camera">
+      <UniqueIdentifier>{850e572a-b8a4-4b1b-b49a-574bc95d5b6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\components\light">
+      <UniqueIdentifier>{01786f32-4549-4b3c-bf65-ae3294f84904}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\components\camera">
+      <UniqueIdentifier>{64cb0be1-4cde-45a1-94d0-fbe462d1991a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -99,14 +105,8 @@
     <ClCompile Include="base\WinApp.cpp">
       <Filter>ソース ファイル\base</Filter>
     </ClCompile>
-    <ClCompile Include="camera\Camera.cpp">
-      <Filter>ソース ファイル\camera</Filter>
-    </ClCompile>
     <ClCompile Include="math\Matrix4x4.cpp">
       <Filter>ソース ファイル\math</Filter>
-    </ClCompile>
-    <ClCompile Include="light\Light.cpp">
-      <Filter>ソース ファイル\light</Filter>
     </ClCompile>
     <ClCompile Include="Manager\GameManager.cpp">
       <Filter>ソース ファイル\Manager</Filter>
@@ -156,20 +156,32 @@
     <ClCompile Include="object\MultiMaterial.cpp">
       <Filter>ソース ファイル\object</Filter>
     </ClCompile>
-    <ClCompile Include="GlobalVariables.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="object\Bunny.cpp">
+      <Filter>ソース ファイル\object</Filter>
     </ClCompile>
-    <ClCompile Include="Audio.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="components\Audio.cpp">
+      <Filter>ソース ファイル\components</Filter>
     </ClCompile>
-    <ClCompile Include="Input.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="components\Input.cpp">
+      <Filter>ソース ファイル\components</Filter>
     </ClCompile>
-    <ClCompile Include="DebugCamera.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="utility\GlobalVariables.cpp">
+      <Filter>ソース ファイル\utility</Filter>
     </ClCompile>
-    <ClCompile Include="Bunny.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="components\light\Light.cpp">
+      <Filter>ソース ファイル\components\light</Filter>
+    </ClCompile>
+    <ClCompile Include="components\camera\Camera.cpp">
+      <Filter>ソース ファイル\components\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="components\camera\DebugCamera.cpp">
+      <Filter>ソース ファイル\components\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="scene\GameClear.cpp">
+      <Filter>ソース ファイル\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="scene\GameOver.cpp">
+      <Filter>ソース ファイル\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -228,9 +240,6 @@
     <ClInclude Include="base\DirectXCommon.h">
       <Filter>ヘッダー ファイル\base</Filter>
     </ClInclude>
-    <ClInclude Include="camera\Camera.h">
-      <Filter>ヘッダー ファイル\camera</Filter>
-    </ClInclude>
     <ClInclude Include="math\Matrix4x4.h">
       <Filter>ヘッダー ファイル\math</Filter>
     </ClInclude>
@@ -245,12 +254,6 @@
     </ClInclude>
     <ClInclude Include="math\Matrix3x3.h">
       <Filter>ヘッダー ファイル\math</Filter>
-    </ClInclude>
-    <ClInclude Include="light\Light.h">
-      <Filter>ヘッダー ファイル\light</Filter>
-    </ClInclude>
-    <ClInclude Include="light\DirectionalLight.h">
-      <Filter>ヘッダー ファイル\light</Filter>
     </ClInclude>
     <ClInclude Include="Manager\GameManager.h">
       <Filter>ヘッダー ファイル\Manager</Filter>
@@ -300,20 +303,35 @@
     <ClInclude Include="object\MultiMaterial.h">
       <Filter>ヘッダー ファイル\object</Filter>
     </ClInclude>
-    <ClInclude Include="GlobalVariables.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="object\Bunny.h">
+      <Filter>ヘッダー ファイル\object</Filter>
     </ClInclude>
-    <ClInclude Include="Audio.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="components\Audio.h">
+      <Filter>ヘッダー ファイル\components</Filter>
     </ClInclude>
-    <ClInclude Include="Input.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="components\Input.h">
+      <Filter>ヘッダー ファイル\components</Filter>
     </ClInclude>
-    <ClInclude Include="DebugCamera.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="utility\GlobalVariables.h">
+      <Filter>ヘッダー ファイル\utility</Filter>
     </ClInclude>
-    <ClInclude Include="Bunny.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="components\light\DirectionalLight.h">
+      <Filter>ヘッダー ファイル\components\light</Filter>
+    </ClInclude>
+    <ClInclude Include="components\light\Light.h">
+      <Filter>ヘッダー ファイル\components\light</Filter>
+    </ClInclude>
+    <ClInclude Include="components\camera\Camera.h">
+      <Filter>ヘッダー ファイル\components\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="components\camera\DebugCamera.h">
+      <Filter>ヘッダー ファイル\components\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="scene\GameClear.h">
+      <Filter>ヘッダー ファイル\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="scene\GameOver.h">
+      <Filter>ヘッダー ファイル\scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

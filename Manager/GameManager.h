@@ -4,23 +4,25 @@
  
 // Scene
 #include "../scene/IScene.h"
-#include "../scene/GameScene.h"
 #include "../scene/TitleScene.h"
+#include "../scene/GameScene.h"
+#include "../scene/GameClear.h"
+#include "../scene/GameOver.h"
 
 // Manager
-#include "../Manager/PipelineManager.h"
 #include "ObjManager.h"
+#include "../Manager/PipelineManager.h"
 
 // Base
 #include "../base/WinApp.h"
 #include "../base/DirectXCommon.h"
 
 // components
-#include "../light/Light.h"
-#include "../camera/Camera.h"
-#include "../DebugCamera.h"
-#include "../Input.h"
-#include "../Audio.h"
+#include "../components/light/Light.h"
+#include "../components/camera/Camera.h"
+#include "../components/camera/DebugCamera.h"
+#include "../components/Input.h"
+#include "../components/Audio.h"
 
 #pragma endregion
 
@@ -80,7 +82,7 @@ private:
 	SoundData soundData1_;
 
 	// scene
-	IScene* sceneArr_[2];
+	IScene* sceneArr_[4];
 	int sceneNum_;
 	int preSceneNum_;
 };

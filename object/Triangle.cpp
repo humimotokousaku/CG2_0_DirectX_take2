@@ -4,7 +4,7 @@
 #include <format>
 #include <cassert>
 #include "../Manager/ImGuiManager.h"
-#include "../GlobalVariables.h"
+#include "../utility/GlobalVariables.h"
 
 Triangle::Triangle(Vector4 left, Vector4 top, Vector4 right) {
 	vertex_.left = left;

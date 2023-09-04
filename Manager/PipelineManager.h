@@ -4,7 +4,7 @@
 #include "../object/Triangle.h"
 #include "../Manager/ImGuiManager.h"
 #include "../Manager/TextureManager.h"
-#include "../light/Light.h"
+#include "../components/light/Light.h"
 #include "../object/Sprite.h"
 #include "../object/Sphere.h"
 #include "../object/Plane.h"

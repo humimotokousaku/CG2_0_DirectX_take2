@@ -1,7 +1,7 @@
 #include "GlobalVariables.h"
-#include "./Manager/ImGuiManager.h"
+#include "../Manager/ImGuiManager.h"
 #include <fstream>
-#include "externals/nlohmann/json.hpp"
+#include "../externals/nlohmann/json.hpp"
 
 GlobalVariables* GlobalVariables::GetInstance() {
 	static GlobalVariables instance;

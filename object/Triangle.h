@@ -15,7 +15,7 @@
 #include "../math/Matrix4x4.h"
 #include "../Transform.h"
 #include "../VertexData.h"
-#include "../camera/Camera.h"
+#include "../components/camera/Camera.h"
 #include "../Material.h"
 #include "../TransformationMatrix.h"
 #include <wrl.h>

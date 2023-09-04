@@ -4,7 +4,7 @@
 #include <dinput.h>
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
-#include "base/WinApp.h"
+#include "../base/WinApp.h"
 #include <array>
 #include <windows.h>
 #include <Xinput.h>
@@ -44,6 +44,9 @@ public:
 	// デッドゾーンを適用する関数
 	SHORT ApplyDeadzone(SHORT inputValue);
 
+	// トリガー処理
+	bool GamePadTrigger(int GAMEPAD_NUM);
+
 private:
 	/// 
 	/// Keyboard
@@ -58,5 +61,8 @@ private:
 	/// 
 	// デッドゾーンの閾値
 	const int DEADZONE_THRESHOLD = 8000;
+
+	XINPUT_STATE joyState_;
+	XINPUT_STATE preJoyState_;
 };
 

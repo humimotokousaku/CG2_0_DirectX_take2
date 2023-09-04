@@ -1,11 +1,13 @@
 #include "GameManager.h"
 #include "../utility/ConvertString.h"
-#include "../GlobalVariables.h"
+#include "../utility/GlobalVariables.h"
 
 GameManager::GameManager() {
 	 // 各シーンの配列
-	sceneArr_[TITLESCENE] =new TitleScene();
-	sceneArr_[GAMESCENE] = new GameScene();
+	sceneArr_[TITLE_SCENE] =new TitleScene();
+	sceneArr_[GAME_SCENE] = new GameScene();
+	sceneArr_[GAMECLEAR_SCENE] = new GameClear();
+	sceneArr_[GAMEOVER_SCENE] = new GameOver();
 }
 
 void GameManager::Initialize() {
@@ -22,20 +24,12 @@ void GameManager::Initialize() {
 	directXCommon_ = DirectXCommon::GetInstance();
 	directXCommon_->DirectXCommon::GetInstance()->Initialize(winApp_->GetHwnd());
 
+	// 入力(キーボードとゲームパッド)
 	input_ = Input::GetInstance();
 	input_->Initialize();
 
 	// Audioの初期化
 	audio_ = Audio::GetInstance();
-	//HRESULT result;
-	// Xaudio2エンジンのインスタンスを生成
-//	result = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
-	// マスターボイスを生成
-//	result = xAudio2_->CreateMasteringVoice(&masterVoice_);
-	// 音声読み込み
-//	soundData1_ = audio_->SoundLoadWave("resources/fanfare.wav");
-	// 音声再生
-	//audio_->SoundPlayWave(xAudio2_.Get(), soundData1_);
 
 	// objManagerの初期化。今はobjファイルの読み込みだけしている
 	objManager_ = ObjManager::GetInstance();
@@ -44,6 +38,7 @@ void GameManager::Initialize() {
 	// Textureの初期化
 	textureManager_ = TextureManager::GetInstance();
 	textureManager_->TextureManager::GetInstance()->Initialize();
+
 	// エンジンの初期化
 	myEngine_ = new MyEngine();
 	myEngine_->Initialize();
@@ -51,6 +46,7 @@ void GameManager::Initialize() {
 	// ライトの設定
 	light_ = Light::GetInstance();
 	light_->Initialize(DirectXCommon::GetInstance()->GetDevice());
+
 	// デバッグカメラの初期化
 	debugCamera_ = DebugCamera::GetInstance();
 	debugCamera_->initialize();
@@ -67,7 +63,7 @@ void GameManager::Initialize() {
 	GlobalVariables::GetInstance()->LoadFiles();
 
 	//初期シーンの設定
-	sceneNum_ = TITLESCENE;
+	sceneNum_ = TITLE_SCENE;
 	// シーンごとの初期化
 	sceneArr_[sceneNum_]->Initialize();
 }
@@ -94,8 +90,8 @@ void GameManager::Run() {
 
 			//シーン変更チェック
 			if (sceneNum_ != preSceneNum_) {
-				sceneArr_[preSceneNum_]->Finalize();
-				sceneArr_[sceneNum_]->Initialize();				
+				sceneArr_[sceneNum_]->Initialize();	
+				sceneArr_[preSceneNum_]->Finalize();			
 			}
 
 			///

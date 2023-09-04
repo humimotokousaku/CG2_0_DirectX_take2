@@ -80,3 +80,9 @@ SHORT Input::ApplyDeadzone(SHORT inputValue) {
 	// デッドゾーン外の入力はそのまま返す
 	return inputValue;
 }
+
+bool Input::GamePadTrigger(int GAMEPAD_NUM) {
+	XINPUT_STATE controllerState;
+	XInputGetState(0, &controllerState);
+	return (controllerState.Gamepad.wButtons & GAMEPAD_NUM) == 0;
+}

@@ -1,5 +1,5 @@
 #include "MultiMesh.h"
-#include "../camera/Camera.h"
+#include "../components/camera/Camera.h"
 #include "../Manager/ImGuiManager.h"
 #include "../Manager/ObjManager.h"
 #include <cassert>

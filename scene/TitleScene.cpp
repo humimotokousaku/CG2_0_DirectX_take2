@@ -24,60 +24,6 @@ void TitleScene::Initialize() {
 
 void TitleScene::Update() {
 
-	ImGui::Begin("Settings");
-	if (ImGui::BeginTabBar("TitleSceneTabBar"))
-	{
-		if (ImGui::BeginTabItem("Triangle1")) {
-			triangle_[0]->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Triangle2")) {
-			triangle_[1]->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Sprite")) {
-			sprite_->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Sphere")) {
-			sphere_->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Plane")) {
-			plane_->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Axis")) {
-			axis_->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("MultiMesh")) {
-			multiMesh_->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("MultiMaterial")) {
-			multiMaterial_->ImGuiAdjustParameter();
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabBar();
-	}
-	ImGui::End();
-
-	ImGui::Begin("CommonSettings");
-	if (ImGui::BeginTabBar("CommonTabBar"))
-	{
-		// シーンの切り替え
-		if (ImGui::BeginTabItem("GameScene")) {
-			ImGui::Text("Scene : Title");
-			ImGui::InputInt("SceneNumber", &sceneNum);
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabItem();
-	}
-	ImGui::End();
-	if (sceneNum <= 0) {
-		sceneNum = 0;
-	}
 }
 
 void TitleScene::Draw() {

@@ -5,7 +5,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "../Manager/ObjManager.h"
-#include "../GlobalVariables.h"
+#include "../utility/GlobalVariables.h"
 
 Microsoft::WRL::ComPtr<ID3D12Resource> Plane::CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	HRESULT hr;

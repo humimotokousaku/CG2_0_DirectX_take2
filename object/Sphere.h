@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include "../Manager/TextureManager.h"
 #include "../base/DirectXCommon.h"
-#include "../camera/Camera.h"
+#include "../components/camera/Camera.h"
 
 class Sphere
 {

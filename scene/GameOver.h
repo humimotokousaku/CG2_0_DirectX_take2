@@ -2,7 +2,7 @@
 #include "IScene.h"
 
 class GameManager;
-class GameScene : public IScene
+class GameOver : public IScene
 {
 public:
 	// 初期化

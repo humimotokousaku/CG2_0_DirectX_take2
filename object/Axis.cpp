@@ -1,9 +1,8 @@
 #include "Axis.h"
-#include "../camera/Camera.h"
-#include "../DebugCamera.h"
+#include "../components/camera/Camera.h"
 #include "../Manager/ImGuiManager.h"
 #include "../Manager/ObjManager.h"
-#include "../GlobalVariables.h"
+#include "../utility/GlobalVariables.h"
 #include <cassert>
 #define _USE_MATH_DEFINES
 #include <math.h>

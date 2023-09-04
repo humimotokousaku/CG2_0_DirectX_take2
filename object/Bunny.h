@@ -1,13 +1,13 @@
 #pragma once
-#include "math/Matrix4x4.h"
-#include "VertexData.h"
-#include "Transform.h"
-#include "TransformationMatrix.h"
-#include "Material.h"
-#include "MaterialData.h"
+#include "../math/Matrix4x4.h"
+#include "../VertexData.h"
+#include "../Transform.h"
+#include "../TransformationMatrix.h"
+#include "../Material.h"
+#include "../MaterialData.h"
 #include <d3d12.h>
-#include "Manager/TextureManager.h"
-#include "base/DirectXCommon.h"
+#include "../Manager/TextureManager.h"
+#include "../base/DirectXCommon.h"
 
 class Bunny
 {

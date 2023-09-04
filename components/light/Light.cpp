@@ -1,7 +1,7 @@
 #include "Light.h"
 #include <cassert>
-#include "../Manager/ImGuiManager.h"
-#include "../externals/ImGui/imgui.h"
+#include "../../Manager/ImGuiManager.h"
+#include "../../externals/ImGui/imgui.h"
 
 Light* Light::GetInstance() {
 	static Light instance;

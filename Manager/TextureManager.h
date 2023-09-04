@@ -9,8 +9,8 @@
 #include <d3d12.h>
 #include "../Material.h"
 #include "../TransformationMatrix.h"
-#include "../light/DirectionalLight.h"
-#include "../light/Light.h"
+#include "../components/light/DirectionalLight.h"
+#include "../components/light/Light.h"
 #include "../ModelData.h"
 #include "../MaterialData.h"
 #include <wrl.h>
