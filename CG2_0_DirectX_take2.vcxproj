@@ -117,6 +117,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\ImGui\imgui_tables.cpp" />
     <ClCompile Include="externals\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="MaterialData.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="object\Sphere.cpp" />
     <ClCompile Include="object\Sprite.cpp" />
     <ClCompile Include="object\Triangle.cpp" />
@@ -128,6 +129,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="scene\TitleScene.cpp" />
     <ClCompile Include="utility\ConvertString.cpp" />
     <ClCompile Include="utility\GlobalVariables.cpp" />
+    <ClCompile Include="ViewProjection.cpp" />
+    <ClCompile Include="WorldTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.PS.hlsl">
@@ -172,6 +175,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\ImGui\imstb_truetype.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialData.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="ModelData.h" />
     <ClInclude Include="object\Sphere.h" />
     <ClInclude Include="object\Sprite.h" />
@@ -187,6 +191,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="utility\ConvertString.h" />
     <ClInclude Include="utility\GlobalVariables.h" />
     <ClInclude Include="VertexData.h" />
+    <ClInclude Include="ViewProjection.h" />
+    <ClInclude Include="WorldTransform.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\ImGui\LICENSE.txt" />

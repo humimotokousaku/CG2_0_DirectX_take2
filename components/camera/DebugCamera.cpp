@@ -59,23 +59,23 @@ void DebugCamera::Update() {
 	//	translation_ = Add(translation_, move);
 	//}
 
-	//// GamePad
-	//XINPUT_STATE joyState{};
-	//if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-	//	//// デッドゾーンの設定
-	//	SHORT leftThumbX = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbLX);
-	//	SHORT leftThumbZ = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbLY);
-	//	// 移動量
-	//	Vector3 move{};
-	//	move = {
-	//		(float)leftThumbX / SHRT_MAX * 0.1f,
-	//		0,
-	//		(float)leftThumbZ / SHRT_MAX * 0.1f
-	//	};
-	//	// 移動ベクトルをカメラの角度だけ回転
-	//	move = TransformNormal(move, worldTransform_);
-	//	translation_ = Add(translation_, move);
-	//}
+	// GamePad
+	XINPUT_STATE joyState{};
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		//// デッドゾーンの設定
+		SHORT leftThumbX = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbLX);
+		SHORT leftThumbZ = Input::GetInstance()->ApplyDeadzone(joyState.Gamepad.sThumbLY);
+		// 移動量
+		Vector3 move{};
+		move = {
+			(float)leftThumbX / SHRT_MAX * 0.1f,
+			0,
+			(float)leftThumbZ / SHRT_MAX * 0.1f
+		};
+		// 移動ベクトルをカメラの角度だけ回転
+		move = TransformNormal(move, worldTransform_);
+		translation_ = Add(translation_, move);
+	}
 
 #pragma endregion
 
