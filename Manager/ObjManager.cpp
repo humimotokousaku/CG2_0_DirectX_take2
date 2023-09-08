@@ -12,7 +12,7 @@ void ObjManager::Initialize() {
 }
 
 void ObjManager::LoadObjFiles() {
-	modelData_[PLANE] = LoadObjFile("resources", "plane.obj");
+	modelData_[BLOCK] = LoadObjFile("resources", "block.obj");
 	//modelData_[AXIS] = LoadObjFile("resources", "axis.obj");
 	//modelData_[MULTIMESH] = LoadObjFile("resources", "multiMesh.obj");
 	//modelData_[MULTIMATERIAL] = LoadObjFile("resources", "multiMaterial.obj");

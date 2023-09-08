@@ -132,14 +132,20 @@ void MyEngine::CreateRootParameter() {
 	rootParameters_[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 	rootParameters_[1].Descriptor.ShaderRegister = 0;
 
+	rootParameters_[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters_[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	rootParameters_[4].Descriptor.ShaderRegister = 1;
+
+	descriptionRootSignature_.pParameters = rootParameters_;
+	descriptionRootSignature_.NumParameters = _countof(rootParameters_);
+
+	CreateDescriptorRange();
+
 	CraeteDescriptorTable();
 
 	rootParameters_[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters_[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	rootParameters_[3].Descriptor.ShaderRegister = 1;
-
-	descriptionRootSignature_.pParameters = rootParameters_;
-	descriptionRootSignature_.NumParameters = _countof(rootParameters_);
 }
 
 void MyEngine::CreateRootSignature() {
@@ -250,7 +256,6 @@ void MyEngine::CreatePSO() {
 }
 
 void MyEngine::PSO() {
-	CreateDescriptorRange();
 
 	CreateRootSignature();
 
@@ -302,6 +307,7 @@ void MyEngine::Initialize() {
 
 void MyEngine::BeginFrame() {
 	DirectXCommon::GetInstance()->PreDraw(TextureManager::GetInstance()->GetDsvDescriptorHeap().Get());
+
 	DirectXCommon::GetInstance()->GetCommandList()->RSSetViewports(1, &viewport_); // Viewportを設定
 	DirectXCommon::GetInstance()->GetCommandList()->RSSetScissorRects(1, &scissorRect_); // Scirssorを設定
 	// RootSignatureを設定。PSOに設定しているけど別途設定が必要

@@ -3,11 +3,12 @@
 #include <vector>
 
 enum ModelName {
-	PLANE,
-	AXIS,
-	MULTIMESH,
-	MULTIMATERIAL,
-	BUNNY
+	//PLANE,
+	//AXIS,
+	//MULTIMESH,
+	//MULTIMATERIAL,
+	//BUNNY,
+	BLOCK
 };
 
 class ObjManager

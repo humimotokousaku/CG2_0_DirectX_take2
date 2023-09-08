@@ -21,8 +21,7 @@ void WorldTransform::TransferMatrix() {
 }
 
 void WorldTransform::UpdateMatrix() {
-	Matrix4x4 affineMatrix = MakeAffineMatrix(scale_, rotation_, translation_);
-	matWorld_ = affineMatrix;
+	matWorld_ = MakeAffineMatrix(scale_, rotation_, translation_);
 
 	// 親子関係の計算
 	if (parent_) {

@@ -13,6 +13,8 @@ public:
 
 	Matrix4x4 GetViewMatrix() { return viewMatrix_; }
 
+	Matrix4x4 GetViewProjection() { return orthographicMatrix_; }
+
 private:
 	// x,y,z軸周りのローカル回転角
 	Vector3 rotation_;

@@ -97,7 +97,7 @@ private:
 
 	D3D12_VIEWPORT viewport_;
 	D3D12_RECT scissorRect_;
-	D3D12_ROOT_PARAMETER rootParameters_[4];
+	D3D12_ROOT_PARAMETER rootParameters_[5];
 	D3D12_DESCRIPTOR_RANGE descriptorRange_[1];
 	D3D12_STATIC_SAMPLER_DESC staticSamplers_[1];
 };
