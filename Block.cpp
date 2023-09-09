@@ -88,7 +88,7 @@ void Block::Initialize() {
 	};
 
 	// Lightingするか
-	materialData_->enableLighting = false;
+	materialData_->enableLighting = true;
 
 	// uvTransform行列の初期化
 	materialData_->uvTransform = MakeIdentity4x4();

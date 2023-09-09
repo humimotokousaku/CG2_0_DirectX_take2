@@ -1,4 +1,4 @@
-#include "./Manager/GameManager.h"
+#include "Manager/GameManager.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {

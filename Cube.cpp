@@ -14,160 +14,176 @@ void Cube::Initialize() {
 
 	CreateMaterialResource();
 
-	//CreateWvpResource();
-
 	CreateVertexBufferView();
 
 	// 書き込むためのアドレスを取得
 	vertexResource_.Get()->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 
-	//// 三角形の情報
-	//transform_ = {
-	//{1.0f,1.0f,1.0f},
-	//{0.0f,0.0f,0.0f},
-	//{0.0f,0.0f,0.0f}
-	//};
 	uvTransform_ = {
 	{1.0f,1.0f,1.0f},
 	{0.0f,0.0f,0.0f},
 	{0.0f,0.0f,0.0f}
 	};
 
-	// 正面
+#pragma region 正面
+
 	// 左下
-	vertexData_[0].position = { -0.5f, -0.5f, 0.0f,1.0f };
+	vertexData_[0].position = { -0.5f, -0.5f, -0.5f,1.0f };
 	vertexData_[0].texcoord = { 0.0f,1.0f };
 	// 左上:
-	vertexData_[1].position = { -0.5f, 0.5f, 0.0f ,1.0f };
+	vertexData_[1].position = { -0.5f, 0.5f, -0.5f ,1.0f };
 	vertexData_[1].texcoord = { 0.0f,0.0f };
 	// 右下
-	vertexData_[2].position = { 0.5f, -0.5f, 0.0f,1.0f };
+	vertexData_[2].position = { 0.5f, -0.5f, -0.5f,1.0f };
 	vertexData_[2].texcoord = { 1.0f,1.0f };
 
 	// 左上
-	vertexData_[3].position = { -0.5f, 0.5f, 0.0f ,1.0f };
+	vertexData_[3].position = { -0.5f, 0.5f, -0.5f ,1.0f };
 	vertexData_[3].texcoord = { 0.0f,0.0f };
 	// 右上:
-	vertexData_[4].position = { 0.5f, 0.5f, 0.0f ,1.0f };
+	vertexData_[4].position = { 0.5f, 0.5f, -0.5f ,1.0f };
 	vertexData_[4].texcoord = { 1.0f,0.0f };
 	// 右下
-	vertexData_[5].position = { 0.5f, -0.5f, 0.0f ,1.0f };
+	vertexData_[5].position = { 0.5f, -0.5f, -0.5f ,1.0f };
 	vertexData_[5].texcoord = { 1.0f,1.0f };
 
-	// 左面
+#pragma endregion
+
+#pragma region 左面
+
 	// 左下
-	vertexData_[6].position = { -0.5f, -0.5f, 1.0f, 1.0f };
+	vertexData_[6].position = { -0.5f, -0.5f, 0.5f, 1.0f };
 	vertexData_[6].texcoord = { 0.0f,1.0f };
 	// 左上:
-	vertexData_[7].position = { -0.5f, 0.5f, 1.0f, 1.0f };
+	vertexData_[7].position = { -0.5f, 0.5f, 0.5f, 1.0f };
 	vertexData_[7].texcoord = { 0.0f,0.0f };
 	// 右下
-	vertexData_[8].position = { -0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData_[8].position = { -0.5f, -0.5f, -0.5f, 1.0f };
 	vertexData_[8].texcoord = { 1.0f,1.0f };
 
 	// 左上
-	vertexData_[9].position = { -0.5f, 0.5f, 1.0f, 1.0f };
+	vertexData_[9].position = { -0.5f, 0.5f, 0.5f, 1.0f };
 	vertexData_[9].texcoord = { 0.0f,0.0f };
 	// 右上:
-	vertexData_[10].position = { -0.5f, 0.5f, 0.0f, 1.0f };
+	vertexData_[10].position = { -0.5f, 0.5f, -0.5f, 1.0f };
 	vertexData_[10].texcoord = { 1.0f,0.0f };
 	// 右下
-	vertexData_[11].position = { -0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData_[11].position = { -0.5f, -0.5f, -0.5f, 1.0f };
 	vertexData_[11].texcoord = { 1.0f,1.0f };
 
-	// 背面
+#pragma endregion
+
+#pragma region 背面
+
 	// 左下
-	vertexData_[12].position = { 0.5f, -0.5f, 1.0f ,1.0f };
+	vertexData_[12].position = { 0.5f, -0.5f, 0.5f ,1.0f };
 	vertexData_[12].texcoord = { 0.0f,1.0f };
 	// 左上:
-	vertexData_[13].position = { 0.5f, 0.5f, 1.0f ,1.0f };
+	vertexData_[13].position = { 0.5f, 0.5f, 0.5f ,1.0f };
 	vertexData_[13].texcoord = { 0.0f,0.0f };
 	// 右下
-	vertexData_[14].position = { -0.5f, -0.5f, 1.0f ,1.0f };
+	vertexData_[14].position = { -0.5f, -0.5f, 0.5f ,1.0f };
 	vertexData_[14].texcoord = { 1.0f,1.0f };
 
 	// 左上
-	vertexData_[15].position = { 0.5f, 0.5f, 1.0f ,1.0f };
+	vertexData_[15].position = { 0.5f, 0.5f, 0.5f ,1.0f };
 	vertexData_[15].texcoord = { 0.0f,0.0f };
 	// 右上:
-	vertexData_[16].position = { -0.5f, 0.5f, 1.0f ,1.0f };
+	vertexData_[16].position = { -0.5f, 0.5f, 0.5f ,1.0f };
 	vertexData_[16].texcoord = { 1.0f,0.0f };
 	// 右下
-	vertexData_[17].position = { -0.5f, -0.5f, 1.0f ,1.0f };
+	vertexData_[17].position = { -0.5f, -0.5f, 0.5f ,1.0f };
 	vertexData_[17].texcoord = { 1.0f,1.0f };
 
-	// 上面
+#pragma endregion
+
+#pragma region 上面
+
 	// 左下
-	vertexData_[18].position = { 0.5f, 0.5f, 1.0f, 1.0f };
+	vertexData_[18].position = { 0.5f, 0.5f, 0.5f, 1.0f };
 	vertexData_[18].texcoord = { 0.0f,0.0f };
 	// 左上:
-	vertexData_[19].position = { 0.5f, 0.5f, 0.0f, 1.0f };
+	vertexData_[19].position = { 0.5f, 0.5f, -0.5f, 1.0f };
 	vertexData_[19].texcoord = { 0.0f,1.0f };
 	// 右下
-	vertexData_[20].position = { -0.5f, 0.5f, 1.0f, 1.0f };
+	vertexData_[20].position = { -0.5f, 0.5f, 0.5f, 1.0f };
 	vertexData_[20].texcoord = { 1.0f,0.0f };
 
 	// 左上
-	vertexData_[21].position = { 0.5f, 0.5f, 0.0f, 1.0f };
+	vertexData_[21].position = { 0.5f, 0.5f, -0.5f, 1.0f };
 	vertexData_[21].texcoord = { 0.0f,1.0f };
 	// 右上:
-	vertexData_[22].position = { -0.5f, 0.5f, 0.0f, 1.0f };
+	vertexData_[22].position = { -0.5f, 0.5f, -0.5f, 1.0f };
 	vertexData_[22].texcoord = { 1.0f,1.0f };
 	// 右下
-	vertexData_[23].position = { -0.5f, 0.5f, 1.0f, 1.0f };
+	vertexData_[23].position = { -0.5f, 0.5f, 0.5f, 1.0f };
 	vertexData_[23].texcoord = { 1.0f,0.0f };
 
-	// 右面
+#pragma endregion
+
+#pragma region 右面
+
 	// 左下
-	vertexData_[24].position = { 0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData_[24].position = { 0.5f, -0.5f, -0.5f, 1.0f };
 	vertexData_[24].texcoord = { 0.0f,1.0f };
 	// 左上:
-	vertexData_[25].position = { 0.5f, 0.5f, 0.0f, 1.0f };
+	vertexData_[25].position = { 0.5f, 0.5f, -0.5f, 1.0f };
 	vertexData_[25].texcoord = { 0.0f,0.0f };
 	// 右下
-	vertexData_[26].position = { 0.5f, -0.5f, 1.0f, 1.0f };
+	vertexData_[26].position = { 0.5f, -0.5f, 0.5f, 1.0f };
 	vertexData_[26].texcoord = { 1.0f,1.0f };
 
 	// 左上
-	vertexData_[27].position = { 0.5f, 0.5f, 0.0f, 1.0f };
+	vertexData_[27].position = { 0.5f, 0.5f, -0.5f, 1.0f };
 	vertexData_[27].texcoord = { 0.0f,0.0f };
 	// 右上:
-	vertexData_[28].position = { 0.5f, 0.5f, 1.0f, 1.0f };
+	vertexData_[28].position = { 0.5f, 0.5f, 0.5f, 1.0f };
 	vertexData_[28].texcoord = { 1.0f,0.0f };
 	// 右下
-	vertexData_[29].position = { 0.5f, -0.5f, 1.0f, 1.0f };
+	vertexData_[29].position = { 0.5f, -0.5f, 0.5f, 1.0f };
 	vertexData_[29].texcoord = { 1.0f,1.0f };
 
-	// 底面
+#pragma endregion
+
+#pragma region 底面
+
 	// 左下
-	vertexData_[30].position = { 0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData_[30].position = { 0.5f, -0.5f, -0.5f, 1.0f };
 	vertexData_[30].texcoord = { 0.0f,1.0f };
 	// 左上:
-	vertexData_[31].position = { 0.5f, -0.5f, 1.0f, 1.0f };
+	vertexData_[31].position = { 0.5f, -0.5f, 0.5f, 1.0f };
 	vertexData_[31].texcoord = { 0.0f,0.0f };
 	// 右下
-	vertexData_[32].position = { -0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData_[32].position = { -0.5f, -0.5f, -0.5f, 1.0f };
 	vertexData_[32].texcoord = { 1.0f,1.0f };
 
 	// 左上
-	vertexData_[33].position = { 0.5f, -0.5f, 1.0f, 1.0f };
+	vertexData_[33].position = { 0.5f, -0.5f, 0.5f, 1.0f };
 	vertexData_[33].texcoord = { 0.0f,0.0f };
 	// 右上:
-	vertexData_[34].position = { -0.5f, -0.5f, 1.0f, 1.0f };
+	vertexData_[34].position = { -0.5f, -0.5f, 0.5f, 1.0f };
 	vertexData_[34].texcoord = { 1.0f,0.0f };
 	// 右下
-	vertexData_[35].position = { -0.5f, -0.5f, 0.0f, 1.0f };
+	vertexData_[35].position = { -0.5f, -0.5f, -0.5f, 1.0f };
 	vertexData_[35].texcoord = { 1.0f,1.0f };
+
+#pragma endregion
+
+	// 法線の向き
+	for (int i = 0; i < 36; i++) {
+		vertexData_[i].normal = { vertexData_[i].position.x,vertexData_[i].position.y,vertexData_[i].position.z };
+	}
 
 	// 色
 	materialData_->color = { 1.0f,1.0f,1.0f,1.0f };
 
 	materialData_->uvTransform = MakeIdentity4x4();
 
-	materialData_->enableLighting = false;
+	materialData_->enableLighting = true;
 }
 
 void Cube::Draw(const WorldTransform& worldTransform, const ViewProjection& viewProjection) {
+	//ImGui::DragFloat4("power", &materialData_->color,)
 	//uvTransformMatrix_ = MakeScaleMatrix(uvTransform_.scale);
 	//uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeRotateZMatrix(uvTransform_.rotate.z));
 	//uvTransformMatrix_ = Multiply(uvTransformMatrix_, MakeTranslateMatrix(uvTransform_.translate));
@@ -182,10 +198,12 @@ void Cube::Draw(const WorldTransform& worldTransform, const ViewProjection& view
 	DirectXCommon::GetInstance()->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// マテリアルCBufferの場所を設定
 	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_.Get()->GetGPUVirtualAddress());
-	// wvp陽男のCBufferの場所を設定
-//	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_.Get()->GetGPUVirtualAddress());
+
 	// DescriptorTableの設定
 	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureSrvHandleGPU()[MONSTERBALL]);
+
+	DirectXCommon::GetInstance()->GetCommandList()->SetGraphicsRootConstantBufferView(3, Light::GetInstance()->GetDirectionalLightResource()->GetGPUVirtualAddress());
+
 	// 描画(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
 	DirectXCommon::GetInstance()->GetCommandList()->DrawInstanced(36, 1, 0, 0);
 }
