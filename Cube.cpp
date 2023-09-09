@@ -1,7 +1,4 @@
 #include "Cube.h"
-//#include "base/WinApp.h"
-//#include "utility/ConvertString.h"
-//#include <format>
 #include <cassert>
 #include "Manager/ImGuiManager.h"
 

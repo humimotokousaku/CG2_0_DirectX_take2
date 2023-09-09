@@ -1,6 +1,7 @@
 #pragma once
 #include "../ModelData.h"
 #include <vector>
+#include "../Model.h"
 
 enum ModelName {
 	//PLANE,

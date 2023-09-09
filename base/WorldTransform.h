@@ -1,8 +1,10 @@
-#include "math/Matrix4x4.h"
-#include "math/Vector3.h"
-#include "base/DirectXCommon.h"
+#include "../math/Matrix4x4.h"
+#include "../math/Vector3.h"
+#include "DirectXCommon.h"
 #include <d3d12.h>
 #include <wrl.h>
+#ifndef WORLD_TRANSFORM_H
+#define WORLD_TRANSFORM_H
 
 // 定数バッファ用データ構造体
 struct ConstBufferDataWorldTransform {
@@ -47,3 +49,5 @@ struct WorldTransform {
 
 	void UpdateMatrix();
 };
+
+#endif // WORLD_TRANSFORM_H

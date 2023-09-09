@@ -3,8 +3,8 @@
 #include "VertexData.h"
 #include "Transform.h"
 #include "TransformationMatrix.h"
-#include "WorldTransform.h"
-#include "ViewProjection.h"
+#include "base/WorldTransform.h"
+#include "base/ViewProjection.h"
 #include "Material.h"
 #include "MaterialData.h"
 #include <d3d12.h>

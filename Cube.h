@@ -20,8 +20,8 @@
 #include "Material.h"
 //#include "TransformationMatrix.h"
 #include <wrl.h>
-#include "WorldTransform.h"
-#include "ViewProjection.h"
+#include "base/WorldTransform.h"
+#include "base/ViewProjection.h"
 
 class Cube
 {

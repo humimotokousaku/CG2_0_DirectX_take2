@@ -97,7 +97,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="base\DirectXCommon.cpp" />
+    <ClCompile Include="base\ViewProjection.cpp" />
     <ClCompile Include="base\WinApp.cpp" />
+    <ClCompile Include="base\WorldTransform.cpp" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="components\Audio.cpp" />
     <ClCompile Include="components\camera\Camera.cpp" />
@@ -131,8 +133,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="scene\TitleScene.cpp" />
     <ClCompile Include="utility\ConvertString.cpp" />
     <ClCompile Include="utility\GlobalVariables.cpp" />
-    <ClCompile Include="ViewProjection.cpp" />
-    <ClCompile Include="WorldTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.PS.hlsl">
@@ -150,7 +150,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\DirectXCommon.h" />
+    <ClInclude Include="base\ViewProjection.h" />
     <ClInclude Include="base\WinApp.h" />
+    <ClInclude Include="base\WorldTransform.h" />
     <ClInclude Include="Block.h" />
     <ClInclude Include="components\Audio.h" />
     <ClInclude Include="components\camera\Camera.h" />
@@ -195,8 +197,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="utility\ConvertString.h" />
     <ClInclude Include="utility\GlobalVariables.h" />
     <ClInclude Include="VertexData.h" />
-    <ClInclude Include="ViewProjection.h" />
-    <ClInclude Include="WorldTransform.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\ImGui\LICENSE.txt" />

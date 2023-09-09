@@ -1,8 +1,10 @@
 #pragma once
 #include "IScene.h"
 #include "../components/Input.h"
-//#include "../Block.h"
+#include "../Block.h"
 #include "../Cube.h"
+#include "../base/WorldTransform.h"
+#include "../base/ViewProjection.h"
 
 class GameManager;
 
@@ -14,13 +16,13 @@ public:
 	void Draw() override;
 	void Finalize()override;
 private:
-	//Block* block_;
-	const static int kMaxCube = 200;
+	Block* block_;
+	const static int kMaxCube = 100;
 	Cube* cube_[kMaxCube];
 	int textureNum_;
 	Input* input_;
 	Vector3 pos_;
 	WorldTransform cubeWorldTransform_[kMaxCube];
-	//WorldTransform worldTransform_;
+	WorldTransform worldTransform_;
 	ViewProjection viewProjection_;
 };

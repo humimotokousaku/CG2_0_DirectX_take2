@@ -1,6 +1,6 @@
 #pragma once
-#include "base/DirectXCommon.h"
-#include "math/Matrix4x4.h"
+#include "DirectXCommon.h"
+#include "../math/Matrix4x4.h"
 #include <d3d12.h>
 #include <wrl.h>
 

@@ -1,9 +1,9 @@
 #include "TitleScene.h"
-#include "../Manager/GameManager.h"
+#include "../Manager/ImGuiManager.h"
 
 void TitleScene::Initialize() {
-	//block_ = new Block();
-	//block_->Initialize();
+	block_ = new Block();
+	block_->Initialize();
 	for (int i = 0; i < kMaxCube; i++) {
 		cube_[i] = new Cube();
 		cube_[i]->Initialize();
@@ -15,7 +15,7 @@ void TitleScene::Initialize() {
 	for (int i = 0; i < kMaxCube; i++) {
 		cubeWorldTransform_[i].Initialize();
 	}
-	//worldTransform_.Initialize();
+	worldTransform_.Initialize();
 	viewProjection_.Initialize();
 	for (int i = 0; i < kMaxCube; i++) {
 		cubeWorldTransform_[i].translation_.x = (float)i;
@@ -26,7 +26,7 @@ void TitleScene::Update() {
 	for (int i = 0; i < kMaxCube; i++) {
 		cubeWorldTransform_[i].UpdateMatrix();
 	}
-	//worldTransform_.UpdateMatrix();
+	worldTransform_.UpdateMatrix();
 
 	//// 追従対象からカメラまでのオフセット
 	//Vector3 offset = { 0.0f, 4.0f, -10.0f };
@@ -112,28 +112,22 @@ void TitleScene::Update() {
 
 	viewProjection_.UpdateViewMatrix();
 	viewProjection_.TransferMatrix();
-
-	ImGui::Begin("block");
-	//ImGui::DragFloat3("translation", &cubeWorldTransform_.translation_.x, 0.1f);
-	//ImGui::DragFloat3("rotation", &cubeWorldTransform_.viewProjection_.rotation.x, 0.1f);
-	//ImGui::DragFloat3("scale", &cubeWorldTransform_.scale_.x, 0.1f);
-	ImGui::End();
 }
 
 void TitleScene::Draw() {
 	for (int i = 0; i < kMaxCube; i++) {
 		cube_[i]->Draw(cubeWorldTransform_[i], viewProjection_);
 	}
-	//block_->Draw(worldTransform_, viewProjection_);
+	block_->Draw(worldTransform_, viewProjection_);
 }
 
 void TitleScene::Finalize() {
-	//delete block_;
+	delete block_;
 	for (int i = 0; i < kMaxCube; i++) {
 		delete cube_[i];
 		cubeWorldTransform_[i].constBuff_.ReleaseAndGetAddressOf();
 	}
 
-	//worldTransform_.constBuff_.ReleaseAndGetAddressOf();
+	worldTransform_.constBuff_.ReleaseAndGetAddressOf();
 	viewProjection_.constBuff_.ReleaseAndGetAddressOf();
 }
