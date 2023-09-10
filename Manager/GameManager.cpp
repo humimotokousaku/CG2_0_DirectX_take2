@@ -3,8 +3,8 @@
 #include "../utility/GlobalVariables.h"
 
 GameManager::GameManager() {
-	 // 各シーンの配列
-	sceneArr_[TITLE_SCENE] =new TitleScene();
+	// 各シーンの配列
+	sceneArr_[TITLE_SCENE] = new TitleScene();
 	sceneArr_[GAME_SCENE] = new GameScene();
 	sceneArr_[GAMECLEAR_SCENE] = new GameClear();
 	sceneArr_[GAMEOVER_SCENE] = new GameOver();
@@ -30,6 +30,16 @@ void GameManager::Initialize() {
 
 	// Audioの初期化
 	audio_ = Audio::GetInstance();
+
+	HRESULT result;
+	// Xaudio2エンジンのインスタンスを生成
+	result = XAudio2Create(&xAudio2_, 0, XAUDIO2_DEFAULT_PROCESSOR);
+	// マスターボイスを生成
+	result = xAudio2_->CreateMasteringVoice(&masterVoice_);
+	// 音声読み込み
+	soundData1_ = audio_->SoundLoadWave("resources/fanfare.wav");
+	// 音声再生
+	audio_->SoundPlayWave(xAudio2_.Get(), soundData1_);
 
 	// objManagerの初期化。今はobjファイルの読み込みだけしている
 	objManager_ = ObjManager::GetInstance();
@@ -90,14 +100,14 @@ void GameManager::Run() {
 
 			//シーン変更チェック
 			if (sceneNum_ != preSceneNum_) {
-				sceneArr_[sceneNum_]->Initialize();	
-				sceneArr_[preSceneNum_]->Finalize();			
+				sceneArr_[sceneNum_]->Initialize();
+				sceneArr_[preSceneNum_]->Finalize();
 			}
 
 			///
 			/// 更新処理
 			/// 
-			sceneArr_[sceneNum_]->Update(); 
+			sceneArr_[sceneNum_]->Update();
 
 			// ImGuiのパラメータを入れている
 			ImGuiAdjustParameter();
@@ -117,7 +127,7 @@ void GameManager::Run() {
 
 void GameManager::Finalize() {
 	sceneArr_[sceneNum_]->Finalize();
-	for (int i = 0; i < 2; i++) {	
+	for (int i = 0; i < 2; i++) {
 		delete sceneArr_[i];
 	}
 	// ImGui

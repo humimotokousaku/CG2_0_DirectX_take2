@@ -46,6 +46,9 @@ public:
 	void SoundUnload(SoundData* soundData);
 
 	// 音声再生
-	void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData);
+	void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData, float volume = 0.5f);
+
+	// 音声のループ再生
+	void SoundPlayLoopingWave(IXAudio2* xAudio2, const SoundData& soundData, float volume = 0.5f);
 };
 
