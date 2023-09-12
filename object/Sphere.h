@@ -8,6 +8,8 @@
 #include "../Manager/TextureManager.h"
 #include "../base/DirectXCommon.h"
 #include "../components/camera/Camera.h"
+#include "../base/WorldTransform.h"
+#include "../base/ViewProjection.h"
 
 class Sphere
 {
@@ -26,7 +28,7 @@ public:
 
 	void Initialize();
 
-	void Draw();
+	void Draw(const WorldTransform& worldTransform, const ViewProjection& viewProjection);
 
 	void Release();
 
