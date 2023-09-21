@@ -4,10 +4,10 @@
 void TitleScene::Initialize() {
 	block_ = new Block();
 	block_->Initialize();
-	for (int i = 0; i < kMaxCube; i++) {
-		cube_[i] = new Cube();
-		cube_[i]->Initialize();
-	}
+	//for (int i = 0; i < kMaxCube; i++) {
+	//	cube_[i] = new Cube();
+	//	cube_[i]->Initialize();
+	//}
 
 	textureNum_ = UVCHEKER;
 	input_ = Input::GetInstance();
@@ -115,16 +115,16 @@ void TitleScene::Update() {
 }
 
 void TitleScene::Draw() {
-	for (int i = 0; i < kMaxCube; i++) {
-		cube_[i]->Draw(cubeWorldTransform_[i], viewProjection_);
-	}
+	//for (int i = 0; i < kMaxCube; i++) {
+	//	cube_[i]->Draw(cubeWorldTransform_[i], viewProjection_);
+	//}
 	block_->Draw(worldTransform_, viewProjection_);
 }
 
 void TitleScene::Finalize() {
 	delete block_;
 	for (int i = 0; i < kMaxCube; i++) {
-		delete cube_[i];
+		//delete cube_[i];
 		cubeWorldTransform_[i].constBuff_.ReleaseAndGetAddressOf();
 	}
 

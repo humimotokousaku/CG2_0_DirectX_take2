@@ -11,6 +11,9 @@
 
 class MyEngine {
 public:
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetDsvDescriptorHeap() { return dsvDescriptorHeap_.Get(); }
+	Microsoft::WRL::ComPtr<ID3D12Resource> GetDepthStencilResource() { return depthStencilResource_.Get(); }
+	D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc() { return depthStencilDesc_; }
 	// DXCの初期化
 	void DXCInitialize();
 
@@ -24,6 +27,18 @@ public:
 		IDxcUtils* dxcUtils,
 		IDxcCompiler3* dxcCompiler,
 		IDxcIncludeHandler* includeHandler);
+
+	// DepthStenciltextureの生成
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(int32_t width, int32_t height);
+
+	// dsvDescriptorHeapの生成
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDsvDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+
+	// CPUで書き込む用のTextureResourceを作りコマンドを積む
+	void CreateDepthStencilView();
+
+	// DepthStencilStateの設定
+	void SettingDepthStencilState();
 
 	// DescriptorRangeの生成
 	void CreateDescriptorRange();
@@ -100,4 +115,8 @@ private:
 	D3D12_ROOT_PARAMETER rootParameters_[5];
 	D3D12_DESCRIPTOR_RANGE descriptorRange_[1];
 	D3D12_STATIC_SAMPLER_DESC staticSamplers_[1];
+	// Depth
+	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource_;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap_;
 };

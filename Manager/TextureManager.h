@@ -30,9 +30,6 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index);
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap, uint32_t descriptorSize, uint32_t index);
 	// Getter
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetDsvDescriptorHeap() { return dsvDescriptorHeap_.Get(); }
-	Microsoft::WRL::ComPtr<ID3D12Resource> GetDepthStencilResource() { return depthStencilResource_.Get(); }
-	D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc() { return depthStencilDesc_; }
 	D3D12_GPU_DESCRIPTOR_HANDLE* GetTextureSrvHandleGPU() { return textureSrvHandleGPU_; }
 
 	// COMの初期化
@@ -49,18 +46,6 @@ public:
 
 	// TextureResourceにデータを転送する
 	Microsoft::WRL::ComPtr<ID3D12Resource> UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, const DirectX::ScratchImage& mipImages);
-
-	// DepthStenciltextureの生成
-	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(int32_t width, int32_t height);
-
-	// dsvDescriptorHeapの生成
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDsvDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
-
-	// CPUで書き込む用のTextureResourceを作りコマンドを積む
-	void CreateDepthStencilView();
-
-	// DepthStencilStateの設定
-	void SettingDepthStencilState();
 
 	// textureを読んで転送する
 	void TransferTexture(const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& srvDescriptorHeap);
@@ -83,10 +68,6 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_[kMaxImages];
 	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource_[kMaxImages];
 	Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource_[kMaxImages];
-	// Depth
-	D3D12_DEPTH_STENCIL_DESC depthStencilDesc_;
-	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource_;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap_;
 
 	// objデータ
 	static const int32_t kMaxObjModelData = 1;
