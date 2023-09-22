@@ -6,6 +6,7 @@
 #include "../object/Sphere.h"
 #include "../base/WorldTransform.h"
 #include "../base/ViewProjection.h"
+#include "../Model.h"
 
 class GameManager;
 
@@ -17,9 +18,9 @@ public:
 	void Draw() override;
 	void Finalize()override;
 private:
-	Block* block_;
+	Model* block_;
+	Model* axis_;
 	const static int kMaxCube = 100;
-	Cube* cube_[kMaxCube];
 	int textureNum_;
 	Input* input_;
 	Vector3 pos_;

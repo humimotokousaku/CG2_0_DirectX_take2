@@ -2,12 +2,8 @@
 #include "../Manager/ImGuiManager.h"
 
 void TitleScene::Initialize() {
-	block_ = new Block();
-	block_->Initialize();
-	//for (int i = 0; i < kMaxCube; i++) {
-	//	cube_[i] = new Cube();
-	//	cube_[i]->Initialize();
-	//}
+	block_ = Model::CreateModelFromObj("resources", "block.obj");
+	axis_ = Model::CreateModelFromObj("resources", "axis.obj");
 
 	textureNum_ = UVCHEKER;
 	input_ = Input::GetInstance();
@@ -115,10 +111,8 @@ void TitleScene::Update() {
 }
 
 void TitleScene::Draw() {
-	//for (int i = 0; i < kMaxCube; i++) {
-	//	cube_[i]->Draw(cubeWorldTransform_[i], viewProjection_);
-	//}
-	block_->Draw(worldTransform_, viewProjection_);
+	block_->Draw(cubeWorldTransform_[3], viewProjection_);
+	axis_->Draw(worldTransform_, viewProjection_);
 }
 
 void TitleScene::Finalize() {
@@ -127,6 +121,7 @@ void TitleScene::Finalize() {
 		//delete cube_[i];
 		cubeWorldTransform_[i].constBuff_.ReleaseAndGetAddressOf();
 	}
+	delete axis_;
 
 	worldTransform_.constBuff_.ReleaseAndGetAddressOf();
 	viewProjection_.constBuff_.ReleaseAndGetAddressOf();
