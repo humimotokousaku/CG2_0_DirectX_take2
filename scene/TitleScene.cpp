@@ -16,6 +16,8 @@ void TitleScene::Initialize() {
 	for (int i = 0; i < kMaxCube; i++) {
 		cubeWorldTransform_[i].translation_.x = (float)i;
 	}
+	sprite_ = new Sprite();
+	sprite_->Initialize();
 }
 
 void TitleScene::Update() {
@@ -113,6 +115,7 @@ void TitleScene::Update() {
 void TitleScene::Draw() {
 	block_->Draw(cubeWorldTransform_[3], viewProjection_);
 	axis_->Draw(worldTransform_, viewProjection_);
+	sprite_->Draw(Vector3{100,200,0},UVCHEKER);
 }
 
 void TitleScene::Finalize() {
@@ -122,7 +125,7 @@ void TitleScene::Finalize() {
 		cubeWorldTransform_[i].constBuff_.ReleaseAndGetAddressOf();
 	}
 	delete axis_;
-
+	delete sprite_;
 	worldTransform_.constBuff_.ReleaseAndGetAddressOf();
 	viewProjection_.constBuff_.ReleaseAndGetAddressOf();
 }

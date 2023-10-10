@@ -7,6 +7,7 @@
 #include "../base/WorldTransform.h"
 #include "../base/ViewProjection.h"
 #include "../Model.h"
+#include "../object/Sprite.h"
 
 class GameManager;
 
@@ -27,4 +28,5 @@ private:
 	WorldTransform cubeWorldTransform_[kMaxCube];
 	WorldTransform worldTransform_;
 	ViewProjection viewProjection_;
+	Sprite* sprite_;
 };
